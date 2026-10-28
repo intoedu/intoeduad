@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@supabase/server": "^1.9.2"
+  }
+}
