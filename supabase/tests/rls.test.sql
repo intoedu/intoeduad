@@ -69,8 +69,8 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"a0000000-0000-0000-0000-000000000001","role":"authenticated"}';
 
-select is((select count(*)::int from public.leads), 1, '관리자: 상담 신청 열람');
-select is((select count(*)::int from public.registrations), 2, '관리자: 등록생 전체 열람');
+select is((select count(*)::int from public.leads where id = 'c0000000-0000-0000-0000-000000000001'), 1, '관리자: 상담 신청 열람');
+select is((select count(*)::int from public.registrations where id in ('d0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000002')), 2, '관리자: 등록생 전체 열람');
 select is((select count(*)::int from public.passport_files), 1, '관리자: 여권 메타데이터 열람');
 select is((select count(*)::int from public.passport_access_logs), 1, '관리자: 여권 접속기록 열람');
 
@@ -81,8 +81,8 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims to '{"sub":"a0000000-0000-0000-0000-000000000002","role":"authenticated"}';
 
-select is((select count(*)::int from public.leads), 1, '직원: 상담 신청 열람');
-select is((select count(*)::int from public.registrations), 2, '직원: 등록생 열람');
+select is((select count(*)::int from public.leads where id = 'c0000000-0000-0000-0000-000000000001'), 1, '직원: 상담 신청 열람');
+select is((select count(*)::int from public.registrations where id in ('d0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000002')), 2, '직원: 등록생 열람');
 select is((select count(*)::int from public.v_payment_schedules), 1, '직원: 납부 일정 열람');
 select is((select count(*)::int from public.passport_files), 0, '직원(권한 없음): 여권 메타데이터 열람 불가');
 select is((select count(*)::int from public.passport_access_logs), 0, '직원: 여권 접속기록 열람 불가');

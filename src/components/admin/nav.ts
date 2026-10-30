@@ -16,7 +16,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: '대시보드', roles: ALL },
   { to: '/admin/leads', label: '상담 신청', roles: OFFICE, milestone: 'M4' },
   { to: '/admin/calendar', label: '통합 캘린더', roles: OFFICE, milestone: 'M12' },
-  { to: '/admin/slots', label: '상담 시간 관리', roles: OFFICE, milestone: 'M3' },
+  { to: '/admin/slots', label: '상담 시간 관리', roles: OFFICE },
   { to: '/admin/programs', label: '캠프·프로그램', roles: OFFICE, milestone: 'M5' },
   { to: '/admin/prep', label: '캠프 준비사항', roles: OFFICE, milestone: 'M6' },
   { to: '/admin/registrations', label: '등록생', roles: ALL, milestone: 'M9' },

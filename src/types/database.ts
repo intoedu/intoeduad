@@ -825,6 +825,9 @@ isOneToOne: false
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"generate_consultation_slots":
+{ Args: { "p_breaks"?: Json,"p_capacity"?: number,"p_end": string,"p_from": string,"p_interval_minutes": number,"p_start": string,"p_to": string,"p_weekdays": (number)[] }; Returns: number
+                           },
 "is_active_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -834,6 +837,9 @@ isOneToOne: false
 "is_staff_or_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"jsonb_text_array":
+{ Args: { "p": Json }; Returns: (string)[]
+                           },
 "kst_today":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -841,6 +847,37 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "lead_count": number,"partner_id": string,"registration_count": number
             }[]
+                           },
+"public_available_slots":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "ends_at": string,"id": string,"starts_at": string
+            }[]
+                           },
+"public_lead_form_config":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"public_partner_by_code":
+{ Args: { "p_code": string }; Returns: {
+              "contacts": Json,"id": string,"name": string
+            }[]
+                           },
+"public_partner_contacts":
+{ Args: { "p_partner_id": string }; Returns: {
+              "id": string,"name": string,"role": string
+            }[]
+                           },
+"public_partners":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"name": string,"region": string
+            }[]
+                           },
+"public_programs":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"name": string,"season": string,"type": string
+            }[]
+                           },
+"submit_lead":
+{ Args: { "p": Json }; Returns: Json
                            },
 "viewer_has_program":
 { Args: { "p_program_id": string }; Returns: boolean
