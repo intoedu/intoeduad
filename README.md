@@ -40,6 +40,14 @@ npm run build            # 타입 검사 + 빌드
 npm run e2e              # 브라우저 E2E (Playwright 필요. 로컬 Supabase·functions serve·npm run dev 실행 상태에서, 실행 전 npx supabase db reset)
 ```
 
+## 운영 환경
+
+- Supabase 프로젝트: `intoedu-crm` (ref `ezroctoaeqqmjgnzwfpb`, 서울 리전, 무료 조직 "intoedu AD")
+- API URL: `https://ezroctoaeqqmjgnzwfpb.supabase.co` (공개 키는 Supabase 대시보드 → Project Settings → API Keys)
+- 마이그레이션은 Supabase MCP로 적용함(원격 버전 번호가 로컬 파일명과 다름). CLI `db push`로 바꾸려면 먼저 `supabase migration repair`로 이력을 맞춘다.
+- Edge Function 배포 시 import map은 `deno.deploy.json`(npm 지정자)을 쓴다. 로컬 개발용 `deno.json`은 `node_modules`를 직접 읽는다.
+  `npx supabase functions deploy admin-staff --import-map supabase/functions/admin-staff/deno.deploy.json`
+
 ## 운영 배포 시 필요한 작업 (요약)
 
 1. Supabase 프로젝트(서울 리전) 생성 → `npx supabase link` → `npx supabase db push`
