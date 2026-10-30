@@ -6,7 +6,13 @@ import { RequireStaff } from './features/auth/RequireStaff'
 import { SetPasswordPage } from './features/auth/SetPasswordPage'
 import { ComingSoonPage, NotFoundPage } from './features/common/ComingSoonPage'
 import { DashboardPage } from './features/dashboard/DashboardPage'
+import { PartnerDetailPage } from './features/partners/PartnerDetailPage'
+import { PartnerNewPage } from './features/partners/PartnerNewPage'
+import { PartnersListPage } from './features/partners/PartnersListPage'
 import { StaffPage } from './features/settings/StaffPage'
+import type { StaffRole } from './lib/labels'
+
+const OFFICE: StaffRole[] = ['admin', 'staff']
 
 // 아직 만들지 않은 메뉴는 "준비 중" 화면으로 연결
 const comingSoonRoutes = NAV_ITEMS.filter((item) => item.milestone).map((item) => ({
@@ -40,6 +46,9 @@ export const router = createBrowserRouter([
           </RequireStaff>
         ),
       },
+      { path: 'partners', element: <RequireStaff roles={OFFICE}><PartnersListPage /></RequireStaff> },
+      { path: 'partners/new', element: <RequireStaff roles={OFFICE}><PartnerNewPage /></RequireStaff> },
+      { path: 'partners/:id', element: <RequireStaff roles={OFFICE}><PartnerDetailPage /></RequireStaff> },
       ...comingSoonRoutes,
       { path: '*', element: <NotFoundPage /> },
     ],

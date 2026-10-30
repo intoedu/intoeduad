@@ -37,6 +37,7 @@ npm test                 # 단위 테스트 (Vitest)
 npx supabase test db     # 역할별 접근 권한(RLS) 테스트 (pgTAP)
 npx supabase db lint     # DB 보안·스키마 점검
 npm run build            # 타입 검사 + 빌드
+npm run e2e              # 브라우저 E2E (Playwright 필요. 로컬 Supabase·functions serve·npm run dev 실행 상태에서, 실행 전 npx supabase db reset)
 ```
 
 ## 운영 배포 시 필요한 작업 (요약)

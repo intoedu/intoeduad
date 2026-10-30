@@ -47,3 +47,10 @@ values ('44444444-4444-4444-4444-444444444444', 'aaaaaaaa-0000-0000-0000-0000000
 
 insert into public.partners (name, region, director_name, code)
 values ('대전 인투학원', '대전', '홍길동', 'daejeon-into');
+
+-- 학원 담당자·협약 (개발용)
+insert into public.partner_contacts (partner_id, name, role, code)
+select id, '김상담', 'counselor', 'kim' from public.partners where code = 'daejeon-into';
+
+insert into public.partner_agreements (partner_id, agreement_type, form, start_date, end_date, exclusive_region, signed_on)
+select id, 'exclusive', 'into', '2026-03-01', '2027-02-28', '대전 서구', '2026-03-01' from public.partners where code = 'daejeon-into';

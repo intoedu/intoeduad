@@ -259,14 +259,14 @@ isOneToOne: false
                   ]
                 },"leads": {
                   Row: {
-                    "assigned_to": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"id": string,"interests": (string)[],"message": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_id": string | null,"relation": string | null,"source_other": string | null,"status": string,"student_grade": string | null,"student_name": string | null,"topics": (string)[],"updated_at": string
+                    "assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"id": string,"interests": (string)[],"message": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"relation": string | null,"source_other": string | null,"status": string,"student_grade": string | null,"student_name": string | null,"topics": (string)[],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assigned_to"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
+                    "assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
                   }
                   Update: {
-                    "assigned_to"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
+                    "assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -274,6 +274,18 @@ isOneToOne: false
       columns: ["assigned_to"]
 isOneToOne: false
       referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leads_attribution_confirmed_by_fkey"
+      columns: ["attribution_confirmed_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leads_partner_contact_id_fkey"
+      columns: ["partner_contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "leads_partner_id_fkey"
@@ -317,19 +329,71 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"partners": {
+                },"partner_agreements": {
                   Row: {
-                    "active": boolean,"code": string,"code_locked": boolean,"created_at": string,"deleted_at": string | null,"director_name": string | null,"id": string,"memo": string | null,"name": string,"phone": string | null,"region": string | null,"updated_at": string
+                    "agreement_type": string,"auto_renew": boolean,"contact_id": string | null,"created_at": string,"end_date": string,"exclusive_region": string | null,"form": string,"id": string,"memo": string | null,"partner_id": string,"signed_on": string | null,"start_date": string,"terminated_on": string | null,"termination_notified_on": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"code": string,"code_locked"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"director_name"?: string | null,"id"?: string,"memo"?: string | null,"name": string,"phone"?: string | null,"region"?: string | null,"updated_at"?: string
+                    "agreement_type"?: string,"auto_renew"?: boolean,"contact_id"?: string | null,"created_at"?: string,"end_date": string,"exclusive_region"?: string | null,"form"?: string,"id"?: string,"memo"?: string | null,"partner_id": string,"signed_on"?: string | null,"start_date": string,"terminated_on"?: string | null,"termination_notified_on"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "active"?: boolean,"code"?: string,"code_locked"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"director_name"?: string | null,"id"?: string,"memo"?: string | null,"name"?: string,"phone"?: string | null,"region"?: string | null,"updated_at"?: string
+                    "agreement_type"?: string,"auto_renew"?: boolean,"contact_id"?: string | null,"created_at"?: string,"end_date"?: string,"exclusive_region"?: string | null,"form"?: string,"id"?: string,"memo"?: string | null,"partner_id"?: string,"signed_on"?: string | null,"start_date"?: string,"terminated_on"?: string | null,"termination_notified_on"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "partner_agreements_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "partner_agreements_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"partner_contacts": {
+                  Row: {
+                    "active": boolean,"code": string,"code_locked": boolean,"created_at": string,"email": string | null,"id": string,"memo": string | null,"name": string,"partner_id": string,"phone": string | null,"role": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"code": string,"code_locked"?: boolean,"created_at"?: string,"email"?: string | null,"id"?: string,"memo"?: string | null,"name": string,"partner_id": string,"phone"?: string | null,"role"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"code"?: string,"code_locked"?: boolean,"created_at"?: string,"email"?: string | null,"id"?: string,"memo"?: string | null,"name"?: string,"partner_id"?: string,"phone"?: string | null,"role"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "partner_contacts_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"partners": {
+                  Row: {
+                    "active": boolean,"address": string | null,"business_registration_no": string | null,"code": string,"code_locked": boolean,"created_at": string,"deleted_at": string | null,"director_name": string | null,"email": string | null,"id": string,"memo": string | null,"name": string,"phone": string | null,"referred_by_partner_id": string | null,"region": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"address"?: string | null,"business_registration_no"?: string | null,"code": string,"code_locked"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"director_name"?: string | null,"email"?: string | null,"id"?: string,"memo"?: string | null,"name": string,"phone"?: string | null,"referred_by_partner_id"?: string | null,"region"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"address"?: string | null,"business_registration_no"?: string | null,"code"?: string,"code_locked"?: boolean,"created_at"?: string,"deleted_at"?: string | null,"director_name"?: string | null,"email"?: string | null,"id"?: string,"memo"?: string | null,"name"?: string,"phone"?: string | null,"referred_by_partner_id"?: string | null,"region"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "partners_referred_by_partner_id_fkey"
+      columns: ["referred_by_partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"passport_access_logs": {
                   Row: {
@@ -432,6 +496,32 @@ isOneToOne: false
       columns: ["voided_by"]
 isOneToOne: false
       referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"payout_accounts": {
+                  Row: {
+                    "account_holder": string,"account_number": string,"bank_name": string,"contact_id": string | null,"created_at": string,"id": string,"memo": string | null,"partner_id": string | null,"settlement_method": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "account_holder": string,"account_number": string,"bank_name": string,"contact_id"?: string | null,"created_at"?: string,"id"?: string,"memo"?: string | null,"partner_id"?: string | null,"settlement_method"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "account_holder"?: string,"account_number"?: string,"bank_name"?: string,"contact_id"?: string | null,"created_at"?: string,"id"?: string,"memo"?: string | null,"partner_id"?: string | null,"settlement_method"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payout_accounts_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: true
+      referencedRelation: "partner_contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payout_accounts_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: true
+      referencedRelation: "partners"
       referencedColumns: ["id"]
     }
                   ]
@@ -549,14 +639,14 @@ isOneToOne: true
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"assigned_to": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_id": string | null,"passport_status": string,"program_id": string,"registered_on": string,"school": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
+                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"passport_status": string,"program_id": string,"registered_on": string,"school": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"assigned_to"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id": string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id": string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"assigned_to"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -566,10 +656,22 @@ isOneToOne: false
       referencedRelation: "staff_profiles"
       referencedColumns: ["id"]
     },{
+      foreignKeyName: "registrations_attribution_confirmed_by_fkey"
+      columns: ["attribution_confirmed_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "registrations_lead_id_fkey"
       columns: ["lead_id"]
 isOneToOne: false
       referencedRelation: "leads"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registrations_partner_contact_id_fkey"
+      columns: ["partner_contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "registrations_partner_id_fkey"
@@ -662,7 +764,33 @@ isOneToOne: false
                 }
           }
           Views: {
-            "v_payment_schedules": {
+            "v_partner_agreements": {
+                  Row: {
+                    "agreement_type": string,"auto_renew": boolean,"contact_id": string | null,"created_at": string,"effective_end_date": string | null,"end_date": string,"exclusive_region": string | null,"form": string,"id": string,"memo": string | null,"partner_id": string,"signed_on": string | null,"start_date": string,"status": string | null,"terminated_on": string | null,"termination_notified_on": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "agreement_type"?: string | null,"auto_renew"?: boolean | null,"contact_id"?: string | null,"created_at"?: string | null,"effective_end_date"?: never,"end_date"?: string | null,"exclusive_region"?: string | null,"form"?: string | null,"id"?: string | null,"memo"?: string | null,"partner_id"?: string | null,"signed_on"?: string | null,"start_date"?: string | null,"status"?: never,"terminated_on"?: string | null,"termination_notified_on"?: string | null,"updated_at"?: string | null
+                         }
+                        Update: {
+                           "agreement_type"?: string | null,"auto_renew"?: boolean | null,"contact_id"?: string | null,"created_at"?: string | null,"effective_end_date"?: never,"end_date"?: string | null,"exclusive_region"?: string | null,"form"?: string | null,"id"?: string | null,"memo"?: string | null,"partner_id"?: string | null,"signed_on"?: string | null,"start_date"?: string | null,"status"?: never,"terminated_on"?: string | null,"termination_notified_on"?: string | null,"updated_at"?: string | null
+                         }
+                        Relationships: [
+                    {
+      foreignKeyName: "partner_agreements_contact_id_fkey"
+      columns: ["contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "partner_agreements_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"v_payment_schedules": {
                   Row: {
                     "amount_due": number,"canceled_at": string | null,"created_at": string,"created_from_rule_id": string | null,"due_date": string,"id": string,"kind": string,"label": string,"paid_amount": number | null,"registration_id": string,"sort": number,"status": string | null,"updated_at": string
                   }
@@ -688,6 +816,9 @@ isOneToOne: false
             "admin_create_staff_profile":
 { Args: { "p_can_view_passport"?: boolean,"p_email": string,"p_id": string,"p_name": string,"p_role": string,"p_team"?: string }; Returns: undefined
                            },
+"agreement_effective_end":
+{ Args: { "p_auto_renew": boolean,"p_end": string,"p_terminated_on": string,"p_today"?: string }; Returns: string
+                           },
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -705,6 +836,11 @@ isOneToOne: false
                            },
 "kst_today":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"partner_referral_counts":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "lead_count": number,"partner_id": string,"registration_count": number
+            }[]
                            },
 "viewer_has_program":
 { Args: { "p_program_id": string }; Returns: boolean

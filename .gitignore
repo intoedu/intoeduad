@@ -30,3 +30,4 @@ dist-ssr
 supabase/.temp
 supabase/.branches
 supabase/functions/**/node_modules
+test-results

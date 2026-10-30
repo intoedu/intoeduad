@@ -7,6 +7,7 @@ import {
   type ReactElement,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
 } from 'react'
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -150,4 +151,44 @@ export function PageHeader({
       {actions && <div className="flex gap-2">{actions}</div>}
     </div>
   )
+}
+
+export function Textarea({ className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea rows={3} {...props} className={cx(CONTROL, className)} />
+}
+
+export function Tabs<T extends string>({
+  tabs,
+  value,
+  onChange,
+}: {
+  tabs: Array<{ value: T; label: string }>
+  value: T
+  onChange: (value: T) => void
+}) {
+  return (
+    <div role="tablist" className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
+      {tabs.map((tab) => (
+        <button
+          key={tab.value}
+          type="button"
+          role="tab"
+          aria-selected={value === tab.value}
+          onClick={() => onChange(tab.value)}
+          className={cx(
+            'shrink-0 border-b-2 px-3 py-2 text-sm whitespace-nowrap',
+            value === tab.value
+              ? 'border-brand-600 font-semibold text-brand-700'
+              : 'border-transparent text-slate-500 hover:text-slate-800',
+          )}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+export function EmptyState({ children }: { children: ReactNode }) {
+  return <p className="rounded-lg border border-dashed border-slate-300 px-4 py-8 text-center text-sm text-slate-500">{children}</p>
 }

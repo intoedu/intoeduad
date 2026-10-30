@@ -12,3 +12,34 @@ export const ROLE_DESCRIPTIONS: Record<StaffRole, string> = {
   staff: '고객·상담·등록·납부·일정 관리 (여권 열람은 별도 권한)',
   viewer: '담당 프로그램 등록생 열람·메모 작성 (여권 열람 불가)',
 }
+
+export const CONTACT_ROLE_LABELS: Record<string, string> = {
+  director: '원장',
+  counselor: '상담실장',
+  staff: '학원 직원',
+  other: '기타',
+}
+
+export const AGREEMENT_TYPE_LABELS: Record<string, string> = {
+  basic: '기본형',
+  exclusive: '독점권형',
+}
+
+export const AGREEMENT_FORM_LABELS: Record<string, string> = {
+  into: '인투유학판',
+  counselor: '상담실장판',
+}
+
+export const AGREEMENT_STATUS: Record<string, { label: string; tone: 'gray' | 'blue' | 'green' | 'amber' | 'red' }> = {
+  active: { label: '협약 중', tone: 'green' },
+  renewal_window: { label: '갱신 검토(종료 14일 이내)', tone: 'amber' },
+  scheduled: { label: '시작 전', tone: 'blue' },
+  expired: { label: '만료', tone: 'red' },
+  terminated: { label: '해지', tone: 'gray' },
+}
+
+export const SETTLEMENT_METHOD_LABELS: Record<string, string> = {
+  withholding: '원천징수(본사 부담)',
+  tax_invoice: '세금계산서',
+  invoice: '계산서',
+}
