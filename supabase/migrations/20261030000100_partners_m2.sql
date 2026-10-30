@@ -228,8 +228,7 @@ create trigger audit after insert or update or delete on public.payout_accounts
   for each row execute function public.audit_row('account_number', 'account_holder', 'memo');
 
 -- 학원 감사 기록에서 새 연락처 컬럼도 값 미기록
-drop trigger audit on public.partners;
-create trigger audit after insert or update or delete on public.partners
+create or replace trigger audit after insert or update or delete on public.partners
   for each row execute function public.audit_row('phone', 'director_name', 'memo', 'email', 'address', 'business_registration_no');
 
 alter table public.partner_contacts enable row level security;
