@@ -448,3 +448,17 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/public-register/deno.json"
 entrypoint = "./functions/public-register/index.ts"
+
+[functions.passport-upload]
+enabled = true
+# 비로그인 여권 사진 제출(링크 토큰으로 대상 확인). 암호화 후 비공개 버킷에 저장
+verify_jwt = false
+import_map = "./functions/passport-upload/deno.json"
+entrypoint = "./functions/passport-upload/index.ts"
+
+[functions.passport-admin]
+enabled = true
+# 직원 여권 열람·다운로드·삭제. 인증은 함수 안에서 withSupabase({ auth: "user" })로 검증
+verify_jwt = false
+import_map = "./functions/passport-admin/deno.json"
+entrypoint = "./functions/passport-admin/index.ts"

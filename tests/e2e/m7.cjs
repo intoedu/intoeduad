@@ -38,6 +38,9 @@ async function fillStudent(page, { ko, en, phone }) {
 }
 
 async function agreeAll(page, { health = false } = {}) {
+  // 여권 사진은 M8에서 따로 확인 — 여기서는 "나중에 제출"
+  const later = page.getByText('나중에 제출', { exact: true })
+  if (await later.count()) await later.click()
   await agreeTo(page, '[필수] 1. 개인정보').check()
   await agreeTo(page, '[필수] 2. 고유식별정보').check()
   await agreeTo(page, '[필수] 3. 개인정보 제3자').check()
@@ -108,7 +111,7 @@ async function agreeAll(page, { health = false } = {}) {
   check('제3자 제공 문구에 기관 치환', (await parent.content()).includes('Lincoln School'))
   check('동의 문구 최신 버전(v2) 표시', (await parent.content()).includes('5. 문의: 인투유학 카카오톡 채널'))
   check('파기 안내 상자', await visible(parent.getByRole('note', { name: '개인정보 파기 안내' })))
-  check('여권 제출 안내', await visible(parent.getByText('여권 사진 제출 전용 링크', { exact: false })))
+  check('여권 제출 선택', await visible(parent.getByText('지금 올리기', { exact: true })))
   let w = await parent.evaluate(() => document.documentElement.scrollWidth)
   check('375px 신청서 가로 스크롤 없음', w <= 375, `scrollWidth=${w}`)
 

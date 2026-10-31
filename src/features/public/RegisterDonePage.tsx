@@ -57,10 +57,24 @@ export function RegisterDonePage() {
           </section>
         )}
 
-        {s?.passport_status === 'pending' && (
+        {state && state.passport !== 'none' && !state.waitlisted && (
           <section className="rounded-2xl bg-white p-5 text-sm leading-relaxed text-slate-600 shadow-sm ring-1 ring-slate-200">
-            <h2 className="mb-1 text-base font-bold text-slate-900">여권 사진 제출</h2>
-            담당자가 여권 사진 제출 전용 링크를 보내 드립니다. 여권 정보가 잘 보이도록 빛 반사 없이 촬영해 두시면 좋습니다.
+            <h2 className="mb-1 text-base font-bold text-slate-900">여권 사진</h2>
+            {state.passport === 'uploaded' && <p className="text-green-700">여권 사진이 안전하게 제출되었습니다.</p>}
+            {state.passport === 'failed' && (
+              <p className="text-red-600">
+                여권 사진을 올리지 못했습니다({state.passportError}). 아래 [여권 사진 올리기]에서 다시 올려 주세요.
+              </p>
+            )}
+            {state.passport === 'later' && <p>여권 사진은 아래 [여권 사진 올리기]나 담당자가 보내 드리는 링크로 제출해 주세요.</p>}
+            {state.passport !== 'uploaded' && state.myToken && (
+              <Link
+                to={`/passport/${state.myToken}`}
+                className="mt-3 flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-base font-semibold text-brand-700 ring-1 ring-brand-600"
+              >
+                여권 사진 올리기
+              </Link>
+            )}
           </section>
         )}
 

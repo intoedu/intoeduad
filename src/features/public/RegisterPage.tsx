@@ -18,6 +18,8 @@ import {
   type RegisterForm,
   type RegistrationSummary,
 } from './registerApi'
+import { PassportPicker } from './PassportPicker'
+import { uploadPassport } from './passportUpload'
 import { DestructionNotice, ScheduleList } from './RegistrationParts'
 
 const GRADES = ['초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3', '기타']
@@ -34,6 +36,9 @@ export type RegisterDoneState = {
   kakaoUrl: string | null
   studentName: string
   programName: string
+  // 여권 사진: 함께 올림 / 올리기 실패 / 나중에 제출 / 받지 않는 캠프
+  passport: 'uploaded' | 'failed' | 'later' | 'none'
+  passportError?: string
 }
 
 type Values = {
@@ -133,6 +138,8 @@ export function RegisterPage() {
   const [contactChoice, setContactChoice] = useState('')
 
   const [agree, setAgree] = useState<Record<string, boolean>>({})
+  const [passportMode, setPassportMode] = useState<'' | 'now' | 'later'>('')
+  const [passportFile, setPassportFile] = useState<File | null>(null)
   const [website, setWebsite] = useState('') // 허니팟
   const [attempted, setAttempted] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -238,6 +245,10 @@ export function RegisterPage() {
       e.health = '건강 특이사항을 적으셨다면 민감정보 수집·이용에 동의해 주세요. 동의하지 않으시려면 내용을 지워 주세요.'
     }
     if (!agree.destruction_notice) e.destruction = '개인정보 파기 안내를 확인해 주세요.'
+    if (form?.program.passport_upload_enabled && !form.is_full) {
+      if (!passportMode) e.passport = '여권 사진을 지금 올리실지, 나중에 제출하실지 골라 주세요.'
+      else if (passportMode === 'now' && !passportFile) e.passport = '여권 사진을 선택해 주세요. 지금 없으시면 "나중에 제출"을 골라 주세요.'
+    }
     return e
   }
 
@@ -272,7 +283,21 @@ export function RegisterPage() {
         agree: { ...agree, reg_partner_share: hasPartner && !!agree.reg_partner_share },
         website,
       })
+      // 여권 사진은 신청 저장 뒤 따로 올린다(신청과 파일 업로드 2단계 분리)
+      let passport: RegisterDoneState['passport'] = form.program.passport_upload_enabled ? 'later' : 'none'
+      let passportError: string | undefined
+      if (form.program.passport_upload_enabled && passportMode === 'now' && passportFile && res.my_token && res.status !== 'waitlisted') {
+        try {
+          await uploadPassport(res.my_token, passportFile, true)
+          passport = 'uploaded'
+        } catch (err) {
+          passport = 'failed'
+          passportError = (err as Error).message
+        }
+      }
       const state: RegisterDoneState = {
+        passport,
+        passportError,
         waitlisted: res.status === 'waitlisted',
         myToken: res.my_token,
         summary: res.summary,
@@ -609,10 +634,36 @@ export function RegisterPage() {
 
         {p.passport_upload_enabled && (
           <Section title="여권 사진">
-            <p className="text-sm leading-relaxed text-slate-600">
-              항공권 예매를 위해 학생 여권의 사진면(인적사항 면)이 필요합니다. 신청을 마치시면 담당자가 <strong>여권 사진 제출 전용 링크</strong>를 보내
-              드립니다. 제출하신 이미지는 암호화하여 보관하며, 지정된 담당자만 열람할 수 있습니다.
-            </p>
+            {field(
+              'passport',
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="여권 사진 제출">
+                  {(
+                    [
+                      ['now', '지금 올리기'],
+                      ['later', '나중에 제출'],
+                    ] as const
+                  ).map(([value, label]) => (
+                    <label
+                      key={value}
+                      className={`cursor-pointer rounded-xl py-2.5 text-center text-sm ring-1 has-focus-visible:outline-2 has-focus-visible:outline-brand-600 ${
+                        passportMode === value ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-300'
+                      }`}
+                    >
+                      <input type="radio" name="passport-mode" className="sr-only" checked={passportMode === value} onChange={() => setPassportMode(value)} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                {passportMode === 'now' && <PassportPicker file={passportFile} onChange={setPassportFile} error={errors.passport} />}
+                {passportMode === 'later' && (
+                  <p className="text-sm text-slate-600">신청 후 받으시는 [신청 내용 확인] 페이지나 담당자가 보내 드리는 링크로 제출하실 수 있습니다.</p>
+                )}
+                {passportMode !== 'now' && errors.passport && <p className="text-xs text-red-600">{errors.passport}</p>}
+                <p className="text-xs text-slate-500">제출하신 이미지는 암호화하여 보관하며, 지정된 담당자만 열람할 수 있습니다.</p>
+                {waitlist && <p className="text-xs text-slate-500">대기 접수는 자리가 확정된 뒤 여권 사진을 받습니다.</p>}
+              </div>,
+            )}
           </Section>
         )}
 

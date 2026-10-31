@@ -923,6 +923,9 @@ isOneToOne: false
 "create_access_token":
 { Args: { "p_lead_id"?: string,"p_purpose": string,"p_registration_id"?: string,"p_ttl_days"?: number }; Returns: string
                            },
+"create_passport_link":
+{ Args: { "p_registration_id": string }; Returns: string
+                           },
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -959,10 +962,19 @@ isOneToOne: false
 "kst_today":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"log_passport_access":
+{ Args: { "p_action": string,"p_actor": string,"p_file_id": string,"p_ip": unknown,"p_user_agent": string }; Returns: undefined
+                           },
+"mark_passport_deleted":
+{ Args: { "p_actor": string,"p_file_id": string,"p_ip": unknown,"p_reason": string,"p_user_agent": string }; Returns: string
+                           },
 "partner_referral_counts":
 { Args: Record<PropertyKey, never>; Returns: {
               "lead_count": number,"partner_id": string,"registration_count": number
             }[]
+                           },
+"passport_upload_target":
+{ Args: { "p_token": string }; Returns: Json
                            },
 "prep_due_date":
 { Args: { "p_anchor": string,"p_offset": number,"p_recruit_start": string,"p_start": string }; Returns: string
@@ -1016,6 +1028,9 @@ isOneToOne: false
                            },
 "public_register_form":
 { Args: { "p_slug": string }; Returns: Json
+                           },
+"record_passport_upload":
+{ Args: { "p_consent": boolean,"p_ip": unknown,"p_iv": string,"p_key_version": number,"p_mime": string,"p_path": string,"p_registration_id": string,"p_size": number,"p_user_agent": string }; Returns: Json
                            },
 "registration_consent_values":
 { Args: { "p_partner_name": string,"p_program_id": string }; Returns: Json

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { Alert, Badge, Spinner } from '../../components/ui'
 import { formatDateLongKo } from '../../domain/dates'
 import { PASSPORT_STATUS, REGISTRATION_STATUS } from '../../lib/labels'
@@ -83,6 +83,20 @@ export function MyPage() {
             <p className="mt-4 text-sm text-slate-600">대기 접수 중입니다. 자리가 생기면 순서대로 연락드리겠습니다.</p>
           )}
         </div>
+
+        {(summary.passport_status === 'pending' || summary.passport_status === 'deleted') &&
+          !['waitlisted', 'canceled', 'refunded'].includes(summary.status) && (
+            <section className="rounded-2xl bg-white p-5 text-sm text-slate-600 shadow-sm ring-1 ring-slate-200">
+              <h2 className="mb-1 text-base font-bold text-slate-900">여권 사진 제출</h2>
+              <p>항공권 예매를 위해 여권 사진면을 올려 주세요.</p>
+              <Link
+                to={`/passport/${token}`}
+                className="mt-3 flex w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-base font-semibold text-brand-700 ring-1 ring-brand-600"
+              >
+                여권 사진 올리기
+              </Link>
+            </section>
+          )}
 
         {showPayments && (
           <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">

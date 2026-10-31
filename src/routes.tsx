@@ -30,6 +30,11 @@ const ConsentsPage = lazy(() => import('./features/settings/ConsentsPage').then(
 // 등록 신청서는 상담 신청서와 별도 묶음으로 내려받는다
 const RegisterPage = lazy(() => import('./features/public/RegisterPage').then((m) => ({ default: m.RegisterPage })))
 const RegisterDonePage = lazy(() => import('./features/public/RegisterDonePage').then((m) => ({ default: m.RegisterDonePage })))
+const PassportPage = lazy(() => import('./features/public/PassportPage').then((m) => ({ default: m.PassportPage })))
+const RegistrationDetailPage = lazy(() =>
+  import('./features/registrations/RegistrationDetailPage').then((m) => ({ default: m.RegistrationDetailPage })),
+)
+const PassportLogsPage = lazy(() => import('./features/logs/PassportLogsPage').then((m) => ({ default: m.PassportLogsPage })))
 const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
 const OFFICE: StaffRole[] = ['admin', 'staff']
@@ -62,6 +67,7 @@ export const router = createBrowserRouter([
   { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
   { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
   { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },
+  { path: '/passport/:token', element: <Lazy><PassportPage /></Lazy> },
 
   // 직원용
   { path: '/login', element: <Lazy><LoginPage /></Lazy> },
@@ -87,6 +93,8 @@ export const router = createBrowserRouter([
       { path: 'programs/:id', element: guarded(OFFICE, <ProgramDetailPage />) },
       { path: 'prep', element: guarded(OFFICE, <PrepPage />) },
       { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
+      { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
+      { path: 'logs', element: guarded(['admin'], <PassportLogsPage />) },
       { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },
       { path: 'settings/general', element: guarded(['admin'], <GeneralSettingsPage />) },
