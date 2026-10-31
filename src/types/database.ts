@@ -415,6 +415,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"legal_retention_records": {
+                  Row: {
+                    "created_at": string,"id": string,"legal_basis": string,"payload": NonNullable<Json>,"retain_until": string,"source_id": string,"source_type": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"legal_basis": string,"payload": NonNullable<Json>,"retain_until": string,"source_id": string,"source_type": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"legal_basis"?: string,"payload"?: NonNullable<Json>,"retain_until"?: string,"source_id"?: string,"source_type"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"message_logs": {
                   Row: {
                     "channel": string,"created_at": string,"error": string | null,"id": string,"provider_message_id": string | null,"purpose": string,"related_id": string | null,"related_type": string | null,"sent_at": string | null,"status": string,"template_code": string | null,"to_hash": string | null,"to_masked": string | null
@@ -1042,6 +1056,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"v_destruction_board": {
+                  Row: {
+                    "approved_at": string | null,"approved_by": string | null,"approved_by_name": string | null,"created_at": string,"destroyed_items": Json | null,"due_date": string,"error": string | null,"executed_at": string | null,"held_at": string | null,"held_by": string | null,"held_by_name": string | null,"hold_reason": string | null,"id": string,"lead_id": string | null,"overdue": boolean | null,"parent_name": string | null,"passport_files": number | null,"program_end": string | null,"program_id": string | null,"program_name": string | null,"program_season": string | null,"registration_id": string | null,"registration_status": string | null,"status": string,"student_name": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "destruction_requests_approved_by_fkey"
+      columns: ["approved_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_held_by_fkey"
+      columns: ["held_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_lead_id_fkey"
+      columns: ["lead_id"]
+isOneToOne: true
+      referencedRelation: "leads"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"v_partner_agreements": {
                   Row: {
                     "agreement_type": string,"auto_renew": boolean,"contact_id": string | null,"created_at": string,"effective_end_date": string | null,"end_date": string,"exclusive_region": string | null,"form": string,"id": string,"memo": string | null,"partner_id": string,"signed_on": string | null,"start_date": string,"status": string | null,"terminated_on": string | null,"termination_notified_on": string | null,"updated_at": string
@@ -1167,6 +1225,9 @@ isOneToOne: false
 "apply_registration_status":
 { Args: { "p_registration_id": string }; Returns: undefined
                            },
+"approve_destruction":
+{ Args: { "p_confirm": string,"p_request_ids": (string)[] }; Returns: number
+                           },
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -1196,8 +1257,19 @@ isOneToOne: false
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"destroy_lead_pii":
+{ Args: { "p_lead_id": string }; Returns: Json
+                           },
+"destruction_due_requests":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "id": string,"lead_id": string,"registration_id": string
+            }[]
+                           },
 "duplicate_program":
 { Args: { "p_new_season"?: string,"p_new_start": string,"p_program_id": string }; Returns: string
+                           },
+"execute_destruction":
+{ Args: { "p_request_id": string }; Returns: Json
                            },
 "fill_placeholders":
 { Args: { "p_text": string,"p_values": Json }; Returns: string
@@ -1213,6 +1285,12 @@ isOneToOne: false
                            },
 "generate_prep_items":
 { Args: { "p_program_id": string }; Returns: number
+                           },
+"hold_destruction":
+{ Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
+                           },
+"invoke_destruction_runner":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "is_active_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -1231,6 +1309,9 @@ isOneToOne: false
                            },
 "log_passport_access":
 { Args: { "p_action": string,"p_actor": string,"p_file_id": string,"p_ip": unknown,"p_user_agent": string }; Returns: undefined
+                           },
+"mark_destruction_failed":
+{ Args: { "p_error": string,"p_request_id": string }; Returns: undefined
                            },
 "mark_passport_deleted":
 { Args: { "p_actor": string,"p_file_id": string,"p_ip": unknown,"p_reason": string,"p_user_agent": string }; Returns: string
@@ -1305,6 +1386,9 @@ isOneToOne: false
 "public_register_form":
 { Args: { "p_slug": string }; Returns: Json
                            },
+"queue_destruction_requests":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "record_passport_upload":
 { Args: { "p_consent": boolean,"p_ip": unknown,"p_iv": string,"p_key_version": number,"p_mime": string,"p_path": string,"p_registration_id": string,"p_size": number,"p_user_agent": string }; Returns: Json
                            },
@@ -1336,6 +1420,9 @@ isOneToOne: false
                            },
 "registration_summary_by_token":
 { Args: { "p_token": string }; Returns: Json
+                           },
+"release_destruction_hold":
+{ Args: { "p_request_id": string }; Returns: undefined
                            },
 "reset_commission_auto":
 { Args: { "p_id": string }; Returns: undefined

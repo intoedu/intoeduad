@@ -98,7 +98,8 @@ begin
   return null;
 end;
 $$;
-create trigger payments_after_change after insert or update on public.payments
+-- 메모만 바뀔 때(파기 등)는 다시 계산하지 않는다
+create trigger payments_after_change after insert or update of status, amount, schedule_id on public.payments
   for each row execute function public.payments_after_change();
 
 create or replace function public.schedules_after_change()

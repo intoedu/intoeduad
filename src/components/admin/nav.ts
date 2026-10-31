@@ -22,7 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/admin/registrations', label: '등록생', roles: ALL },
   { to: '/admin/payments', label: '납부·환불', roles: OFFICE },
   { to: '/admin/events', label: '중요 일정', roles: OFFICE, milestone: 'M12' },
-  { to: '/admin/destruction', label: '개인정보 파기', roles: OFFICE, milestone: 'M11' },
+  { to: '/admin/destruction', label: '개인정보 파기', roles: OFFICE },
   { to: '/admin/partners', label: 'MOU 학원', roles: OFFICE },
   { to: '/admin/commissions', label: '커미션 정산', roles: OFFICE },
   { to: '/admin/messages', label: '발송 기록', roles: OFFICE, milestone: 'M13' },

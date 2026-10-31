@@ -462,3 +462,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/passport-admin/deno.json"
 entrypoint = "./functions/passport-admin/index.ts"
+
+[functions.destruction-run]
+enabled = true
+# 매일 예약 작업(러너 토큰) 또는 관리자(로그인)가 호출. 인증은 함수 안에서 확인
+verify_jwt = false
+import_map = "./functions/destruction-run/deno.json"
+entrypoint = "./functions/destruction-run/index.ts"
