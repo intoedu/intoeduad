@@ -84,3 +84,33 @@ export const ATTRIBUTION_SOURCE: Record<string, string> = {
   form: '신청서에서 선택',
   staff: '직원 확인',
 }
+
+export const PROGRAM_TYPE: Record<string, string> = { camp: '캠프', study_abroad: '유학' }
+
+export const PROGRAM_STATUS: Record<string, { label: string; tone: Tone }> = {
+  before: { label: '모집 전', tone: 'gray' },
+  open: { label: '모집 중', tone: 'green' },
+  closed: { label: '마감', tone: 'red' },
+}
+
+export const DUE_RULE_LABELS: Record<string, string> = {
+  fixed: '고정 날짜',
+  after_registration: '신청 후 N일',
+  before_start: '출국 N일 전',
+}
+
+export const MILESTONE_CATEGORY: Record<string, string> = {
+  document_deadline: '서류 마감',
+  visa: '비자 신청',
+  flight_ticketing: '항공권 발권',
+  orientation: '오리엔테이션',
+  departure: '출국',
+  return: '귀국',
+  other: '기타',
+}
+
+// 커미션 지급 기준 (협약서 제7조④, 2026-10-31 확정) — 내부 화면 전용
+export const COMMISSION_PAY_RULE: Record<string, string> = {
+  camp: '캠프 시작일(출국일)에 지급',
+  study_abroad: '유학비 완납 후 영업일 10일 이내 지급',
+}

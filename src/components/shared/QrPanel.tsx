@@ -1,6 +1,6 @@
 import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
-import { Badge, Button } from '../../components/ui'
+import { Badge, Button } from '../ui'
 
 type Props = {
   title: string

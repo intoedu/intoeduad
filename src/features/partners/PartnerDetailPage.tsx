@@ -9,7 +9,7 @@ import { errorMessage, type Partner, type PartnerAgreement, type PartnerContact,
 import { ContactsSection } from './ContactsSection'
 import { PartnerForm } from './PartnerForm'
 import { PayoutSection } from './PayoutSection'
-import { QrPanel } from './QrPanel'
+import { QrPanel } from '../../components/shared/QrPanel'
 
 type Tab = 'info' | 'links' | 'contacts' | 'agreements' | 'payout'
 
