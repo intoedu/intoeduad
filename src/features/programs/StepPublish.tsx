@@ -6,7 +6,7 @@ import { PROGRAM_STATUS } from '../../lib/labels'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { isPrepIncomplete } from '../prep/api'
-import type { Program } from './api'
+import type { Program, ThirdParties } from './api'
 
 export function registerLink(base: string, slug: string, partnerCode?: string): string {
   return `${base}/register/${encodeURIComponent(slug)}${partnerCode ? `?ref=${encodeURIComponent(partnerCode)}` : ''}`
@@ -29,6 +29,13 @@ export function StepPublish({
   const [blocked, setBlocked] = useState<number | null>(null)
   const [reason, setReason] = useState('')
   const base = publicSiteUrl()
+  // 동의 문구(제3자 제공·국외 이전)에 들어갈 대상이 비어 있으면 "확정 후 안내"로 표시된다
+  const tp = (program.third_party_recipients ?? {}) as ThirdParties
+  const missingRecipients = [
+    !tp.ticketing?.trim() && '항공권 발권처',
+    !tp.school?.name?.trim() && '현지 학교·기관',
+    !tp.lodging?.name?.trim() && '숙소 기관',
+  ].filter(Boolean) as string[]
 
   useEffect(() => {
     supabase
@@ -82,6 +89,14 @@ export function StepPublish({
           </Field>
           <p className="text-sm text-slate-500">"모집 중"일 때만 학부모가 신청서를 제출할 수 있습니다.</p>
         </div>
+        {missingRecipients.length > 0 && (
+          <div className="mt-4">
+            <Alert tone="amber">
+              [4. 동의·환불 규정]에 {missingRecipients.join('·')}이(가) 비어 있어, 신청서의 제3자 제공 동의 문구에 "확정 후 안내"로 표시됩니다. 가능하면 모집 전에
+              입력해 주세요.
+            </Alert>
+          </div>
+        )}
         {blocked !== null && (
           <div className="mt-4 space-y-3">
             <Alert tone="amber">
@@ -151,7 +166,6 @@ export function StepPublish({
         </ul>
         {partners.length === 0 && <p className="text-sm text-slate-500">활성 MOU 학원이 없습니다.</p>}
       </Card>
-      <p className="text-xs text-slate-400">등록 신청서 화면은 다음 단계(M7)에서 열립니다.</p>
     </div>
   )
 }

@@ -82,7 +82,7 @@ export function activeConsultation(lead: Pick<LeadRow, 'consultations'>): Consul
 // ---------------------------------------------------------------------------
 // 타임라인: 감사 기록(상태·담당자·상담 변경) + 메모를 시간순으로
 // ---------------------------------------------------------------------------
-export type TimelineItem = { at: string; actor: string | null; text: string; kind: 'apply' | 'status' | 'consult' | 'note' | 'attribution' | 'other' }
+export type TimelineItem = { at: string; actor: string | null; text: string; kind: 'apply' | 'status' | 'consult' | 'note' | 'attribution' | 'register' | 'other' }
 
 type Log = Tables<'activity_logs'>
 
@@ -139,13 +139,18 @@ function describeConsultLog(log: Log, staff: Map<string, string>): TimelineItem[
 
 export async function loadTimeline(lead: LeadRow): Promise<TimelineItem[]> {
   const consultIds = lead.consultations.map((c) => c.id)
-  const [leadLogs, consultLogs, notes, staff] = await Promise.all([
+  const [leadLogs, consultLogs, notes, staff, registrations] = await Promise.all([
     supabase.from('activity_logs').select('*').eq('entity_type', 'leads').eq('entity_id', lead.id).order('created_at'),
     consultIds.length
       ? supabase.from('activity_logs').select('*').eq('entity_type', 'consultations').in('entity_id', consultIds).order('created_at')
       : Promise.resolve({ data: [] as Log[] }),
     supabase.from('notes').select('created_at, author_id, body').eq('entity_type', 'lead').eq('entity_id', lead.id).is('deleted_at', null),
     supabase.from('staff_profiles').select('id, name'),
+    supabase
+      .from('registrations')
+      .select('created_at, status, programs(name, season)')
+      .eq('lead_id', lead.id)
+      .is('deleted_at', null),
   ])
   const names = new Map((staff.data ?? []).map((s) => [s.id, s.name]))
   const items: TimelineItem[] = [
@@ -156,6 +161,12 @@ export async function loadTimeline(lead: LeadRow): Promise<TimelineItem[]> {
       actor: names.get(n.author_id) ?? '직원',
       text: `메모: ${n.body.length > 60 ? `${n.body.slice(0, 60)}…` : n.body}`,
       kind: 'note' as const,
+    })),
+    ...(registrations.data ?? []).map((r) => ({
+      at: r.created_at,
+      actor: null,
+      text: `${r.status === 'waitlisted' ? '등록 대기 접수' : '등록 신청 접수'}: ${r.programs?.name ?? ''}${r.programs?.season ? ` (${r.programs.season})` : ''}`,
+      kind: 'register' as const,
     })),
   ]
   // 신청 기록이 감사 기록보다 먼저 생긴 경우(이전 데이터) 대비

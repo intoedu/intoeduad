@@ -194,7 +194,13 @@ export function LeadDetailPage() {
                 <li key={`${t.at}-${i}`} className="relative">
                   <span
                     className={`absolute top-1.5 -left-[21px] size-2.5 rounded-full ${
-                      t.kind === 'apply' ? 'bg-brand-600' : t.kind === 'attribution' ? 'bg-amber-500' : t.kind === 'note' ? 'bg-slate-400' : 'bg-green-600'
+                      t.kind === 'apply' || t.kind === 'register'
+                        ? 'bg-brand-600'
+                        : t.kind === 'attribution'
+                          ? 'bg-amber-500'
+                          : t.kind === 'note'
+                            ? 'bg-slate-400'
+                            : 'bg-green-600'
                     }`}
                     aria-hidden
                   />
@@ -206,7 +212,7 @@ export function LeadDetailPage() {
                 </li>
               ))}
             </ol>
-            <p className="mt-4 text-xs text-slate-400">등록·납부 이력은 등록 기능(M7~M9)이 생기면 함께 표시됩니다.</p>
+            <p className="mt-4 text-xs text-slate-400">납부 이력은 등록생·납부 관리(M9)에서 함께 표시됩니다.</p>
           </Card>
         </div>
       </div>
@@ -438,7 +444,7 @@ function RegisterLinkCard({ lead, onMessage }: { lead: LeadRow; onMessage: (m: {
         </div>
       )}
       {link && <p className="mt-3 font-mono text-xs break-all text-slate-600">{link}</p>}
-      <p className="mt-2 text-xs text-slate-400">신청서 화면은 등록 신청서 단계(M7)에서 열립니다.</p>
+      <p className="mt-2 text-xs text-slate-400">이 링크로 신청하면 상담 기록과 연결되고, 상담 상태가 "등록 전환"으로 바뀝니다.</p>
     </Card>
   )
 }

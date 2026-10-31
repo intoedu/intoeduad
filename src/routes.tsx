@@ -25,6 +25,12 @@ const ProgramDetailPage = lazy(() => import('./features/programs/ProgramPages').
 const PrepPage = lazy(() => import('./features/prep/PrepPage').then((m) => ({ default: m.PrepPage })))
 const SlotsPage = lazy(() => import('./features/slots/SlotsPage').then((m) => ({ default: m.SlotsPage })))
 const StaffPage = lazy(() => import('./features/settings/StaffPage').then((m) => ({ default: m.StaffPage })))
+const GeneralSettingsPage = lazy(() => import('./features/settings/GeneralSettingsPage').then((m) => ({ default: m.GeneralSettingsPage })))
+const ConsentsPage = lazy(() => import('./features/settings/ConsentsPage').then((m) => ({ default: m.ConsentsPage })))
+// 등록 신청서는 상담 신청서와 별도 묶음으로 내려받는다
+const RegisterPage = lazy(() => import('./features/public/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+const RegisterDonePage = lazy(() => import('./features/public/RegisterDonePage').then((m) => ({ default: m.RegisterDonePage })))
+const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
 const OFFICE: StaffRole[] = ['admin', 'staff']
 
@@ -53,6 +59,9 @@ export const router = createBrowserRouter([
   { path: '/apply', element: <ApplyPage /> },
   { path: '/apply/done', element: <ApplyDonePage /> },
   { path: '/apply/:partnerCode', element: <ApplyPage /> },
+  { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
+  { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
+  { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },
 
   // 직원용
   { path: '/login', element: <Lazy><LoginPage /></Lazy> },
@@ -80,6 +89,8 @@ export const router = createBrowserRouter([
       { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
       { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },
+      { path: 'settings/general', element: guarded(['admin'], <GeneralSettingsPage />) },
+      { path: 'settings/consents', element: guarded(['admin'], <ConsentsPage />) },
       ...comingSoonRoutes,
       { path: '*', element: <NotFoundPage /> },
     ],

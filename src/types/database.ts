@@ -723,14 +723,14 @@ isOneToOne: true
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"passport_status": string,"program_id": string,"registered_on": string,"school": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
+                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id": string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"passport_status"?: string,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -897,7 +897,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "add_prep_version":
+            "add_consent_version":
+{ Args: { "p_body": string,"p_kind": string,"p_title": string }; Returns: number
+                           },
+"add_prep_version":
 { Args: { "p_item_id": string,"p_note"?: string,"p_url": string }; Returns: number
                            },
 "admin_create_staff_profile":
@@ -912,6 +915,11 @@ isOneToOne: false
 "clear_must_change_password":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"compute_payment_schedule":
+{ Args: { "p_program_id": string,"p_registered_on": string }; Returns: {
+              "adjusted": boolean,"amount": number,"due_date": string,"kind": string,"label": string,"rule_id": string,"sort": number
+            }[]
+                           },
 "create_access_token":
 { Args: { "p_lead_id"?: string,"p_purpose": string,"p_registration_id"?: string,"p_ttl_days"?: number }; Returns: string
                            },
@@ -921,8 +929,14 @@ isOneToOne: false
 "duplicate_program":
 { Args: { "p_new_season"?: string,"p_new_start": string,"p_program_id": string }; Returns: string
                            },
+"fill_placeholders":
+{ Args: { "p_text": string,"p_values": Json }; Returns: string
+                           },
 "flag_prep_recheck":
 { Args: { "p_program_id": string,"p_reason": string }; Returns: undefined
+                           },
+"format_date_ko":
+{ Args: { "p": string }; Returns: string
                            },
 "generate_consultation_slots":
 { Args: { "p_breaks"?: Json,"p_capacity"?: number,"p_end": string,"p_from": string,"p_interval_minutes": number,"p_start": string,"p_to": string,"p_weekdays": (number)[] }; Returns: number
@@ -958,6 +972,9 @@ isOneToOne: false
                            },
 "prep_review_keys":
 { Args: Record<PropertyKey, never>; Returns: (string)[]
+                           },
+"program_enrolled_count":
+{ Args: { "p_program_id": string }; Returns: number
                            },
 "program_enrollment_counts":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -997,7 +1014,36 @@ isOneToOne: false
               "id": string,"name": string,"season": string,"type": string
             }[]
                            },
+"public_register_form":
+{ Args: { "p_slug": string }; Returns: Json
+                           },
+"registration_consent_values":
+{ Args: { "p_partner_name": string,"p_program_id": string }; Returns: Json
+                           },
+"registration_consents":
+{ Args: { "p_partner_name": string,"p_program_id": string }; Returns: {
+              "body": string,"kind": string,"required": boolean,"title": string,"version": number
+            }[]
+                           },
+"registration_field_modes":
+{ Args: { "p_config": Json }; Returns: Json
+                           },
+"registration_prefill":
+{ Args: { "p_token": string }; Returns: Json
+                           },
+"registration_refund_text":
+{ Args: { "p_program_id": string }; Returns: string
+                           },
+"registration_summary":
+{ Args: { "p_registration_id": string }; Returns: Json
+                           },
+"registration_summary_by_token":
+{ Args: { "p_token": string }; Returns: Json
+                           },
 "submit_lead":
+{ Args: { "p": Json }; Returns: Json
+                           },
+"submit_registration":
 { Args: { "p": Json }; Returns: Json
                            },
 "viewer_has_program":

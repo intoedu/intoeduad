@@ -38,3 +38,9 @@ export function formatDateKo(date: string): string {
 export function kstDayStartIso(date: string): string {
   return `${date}T00:00:00+09:00`
 }
+
+// 예: 2027-01-05 → 2027년 1월 5일(화) — 학부모 안내용 (DB format_date_ko 와 같은 형식)
+export function formatDateLongKo(date: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  return `${y}년 ${m}월 ${d}일(${weekdayKo(date)})`
+}

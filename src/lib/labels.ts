@@ -159,3 +159,45 @@ export const PREP_REQUEST_FIELDS: Array<{ key: string; label: string; type: 'tex
   { key: 'partner_logo', label: '학원 로고 포함', type: 'check' },
   { key: 'photo_consent', label: '학생 사진·영상 사용(촬영 동의 필요)', type: 'check' },
 ]
+
+// 등록 상태 (SPEC 4-7)
+export const REGISTRATION_STATUS: Record<string, { label: string; tone: Tone }> = {
+  received: { label: '신청 접수', tone: 'blue' },
+  deposit_pending: { label: '예약금 대기', tone: 'amber' },
+  deposit_paid: { label: '예약금 완료', tone: 'blue' },
+  balance_pending: { label: '잔금 대기', tone: 'amber' },
+  confirmed: { label: '등록 확정', tone: 'green' },
+  waitlisted: { label: '대기', tone: 'gray' },
+  canceled: { label: '취소', tone: 'gray' },
+  refunded: { label: '환불', tone: 'gray' },
+}
+
+// 납부 일정 상태 (v_payment_schedules 계산값)
+export const PAYMENT_STATUS: Record<string, { label: string; tone: Tone }> = {
+  scheduled: { label: '납부 예정', tone: 'gray' },
+  partial: { label: '일부 납부', tone: 'amber' },
+  paid: { label: '납부 완료', tone: 'green' },
+  overdue: { label: '기한 지남', tone: 'red' },
+  canceled: { label: '취소', tone: 'gray' },
+}
+
+export const PASSPORT_STATUS: Record<string, string> = {
+  not_required: '제출 필요 없음',
+  pending: '미제출',
+  submitted: '제출 완료',
+  deleted: '파기됨',
+}
+
+// 동의 문구 종류 (설정 화면)
+export const CONSENT_KIND_LABELS: Record<string, string> = {
+  lead_privacy: '상담 신청 — 개인정보 수집·이용',
+  lead_guardian: '상담 신청 — 법정대리인 동의',
+  reg_privacy: '등록 신청 — 1. 개인정보 수집·이용',
+  reg_passport: '등록 신청 — 2. 고유식별정보(여권)',
+  reg_third_party: '등록 신청 — 3. 제3자 제공·국외 이전',
+  reg_health: '등록 신청 — 4. 민감정보(건강)',
+  reg_guardian: '등록 신청 — 5. 법정대리인 확인',
+  reg_partner_share: '등록 신청 — 6. 소개 학원 제공(선택)',
+  destruction_notice: '개인정보 파기 안내',
+  refund_default: '환불 규정 기본안',
+}

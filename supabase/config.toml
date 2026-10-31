@@ -441,3 +441,10 @@ entrypoint = "./functions/public-lead-submit/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/public-lead-submit/*.html" ]
+
+[functions.public-register]
+enabled = true
+# 비로그인 공개 등록 신청서: 공개 키로 호출, 저장·조회는 함수 안에서 service role로
+verify_jwt = false
+import_map = "./functions/public-register/deno.json"
+entrypoint = "./functions/public-register/index.ts"

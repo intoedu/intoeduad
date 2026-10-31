@@ -3,6 +3,7 @@ import { Alert, Badge, Button, Card, Field, Input, PageHeader, Select, Spinner }
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, type StaffRole } from '../../lib/labels'
 import { invokeFunction, supabase, type Tables } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
+import { SettingsTabs } from './SettingsTabs'
 
 type Staff = Tables<'staff_profiles'>
 type ProgramOption = Pick<Tables<'programs'>, 'id' | 'name' | 'season'>
@@ -88,6 +89,7 @@ export function StaffPage() {
 
   return (
     <>
+      <SettingsTabs />
       <PageHeader title="직원 관리" description="직원은 관리자 초대로만 추가됩니다. 초대 메일의 링크에서 비밀번호를 설정하면 로그인할 수 있습니다." />
       {message && (
         <div className="mb-4">
