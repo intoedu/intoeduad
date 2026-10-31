@@ -1228,6 +1228,11 @@ isOneToOne: false
 "approve_destruction":
 { Args: { "p_confirm": string,"p_request_ids": (string)[] }; Returns: number
                            },
+"calendar_items":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "critical": boolean,"date": string,"detail": string,"done": boolean,"kind": string,"link": string,"program_id": string,"starts_at": string,"title": string
+            }[]
+                           },
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -1256,6 +1261,14 @@ isOneToOne: false
                            },
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"dashboard_summary":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"dday_items":
+{ Args: { "p_days"?: number }; Returns: {
+              "critical": boolean,"date": string,"kind": string,"link": string,"overdue": boolean,"title": string
+            }[]
                            },
 "destroy_lead_pii":
 { Args: { "p_lead_id": string }; Returns: Json
