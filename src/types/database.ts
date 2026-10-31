@@ -75,6 +75,88 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"commission_overrides": {
+                  Row: {
+                    "amount": number,"created_at": string,"created_by": string | null,"memo": string | null,"partner_id": string,"program_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"created_by"?: string | null,"memo"?: string | null,"partner_id": string,"program_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"created_by"?: string | null,"memo"?: string | null,"partner_id"?: string,"program_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commission_overrides_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commission_overrides_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commission_overrides_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"commissions": {
+                  Row: {
+                    "amount": number | null,"auto_status": boolean,"basis_date": string | null,"created_at": string,"due_date": string | null,"id": string,"kind": string,"paid_by": string | null,"paid_on": string | null,"partner_contact_id": string | null,"partner_id": string,"pay_memo": string | null,"program_id": string,"recipient_type": string,"registration_id": string,"review_note": string | null,"status": string,"status_reason": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount"?: number | null,"auto_status"?: boolean,"basis_date"?: string | null,"created_at"?: string,"due_date"?: string | null,"id"?: string,"kind"?: string,"paid_by"?: string | null,"paid_on"?: string | null,"partner_contact_id"?: string | null,"partner_id": string,"pay_memo"?: string | null,"program_id": string,"recipient_type"?: string,"registration_id": string,"review_note"?: string | null,"status"?: string,"status_reason"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number | null,"auto_status"?: boolean,"basis_date"?: string | null,"created_at"?: string,"due_date"?: string | null,"id"?: string,"kind"?: string,"paid_by"?: string | null,"paid_on"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string,"pay_memo"?: string | null,"program_id"?: string,"recipient_type"?: string,"registration_id"?: string,"review_note"?: string | null,"status"?: string,"status_reason"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "commissions_paid_by_fkey"
+      columns: ["paid_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_partner_contact_id_fkey"
+      columns: ["partner_contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"consent_documents": {
                   Row: {
                     "body": string,"created_at": string,"created_by": string | null,"id": string,"kind": string,"title": string,"version": number
@@ -220,6 +302,26 @@ isOneToOne: true
       columns: ["registration_id"]
 isOneToOne: true
       referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"holidays": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"date": string,"name": string,"source": string | null,"verified": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"date": string,"name": string,"source"?: string | null,"verified"?: boolean
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"date"?: string,"name"?: string,"source"?: string | null,"verified"?: boolean
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "holidays_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
       referencedColumns: ["id"]
     }
                   ]
@@ -896,7 +998,51 @@ isOneToOne: false
                 }
           }
           Views: {
-            "v_partner_agreements": {
+            "v_commissions": {
+                  Row: {
+                    "amount": number | null,"auto_status": boolean,"basis_date": string | null,"contact_name": string | null,"created_at": string,"deposit_due": string | null,"deposit_paid": number | null,"destroyed_at": string | null,"due_date": string | null,"id": string,"kind": string,"overdue": boolean | null,"paid_by": string | null,"paid_on": string | null,"partner_code": string,"partner_contact_id": string | null,"partner_id": string,"partner_name": string,"partner_share_agreed": boolean,"pay_memo": string | null,"program_id": string,"program_name": string,"program_season": string | null,"program_start": string,"program_type": string,"recipient_type": string,"registered_on": string,"registration_id": string,"registration_status": string,"review_note": string | null,"status": string,"status_reason": string | null,"student_name_ko": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "commissions_paid_by_fkey"
+      columns: ["paid_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_partner_contact_id_fkey"
+      columns: ["partner_contact_id"]
+isOneToOne: false
+      referencedRelation: "partner_contacts"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "commissions_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"v_partner_agreements": {
                   Row: {
                     "agreement_type": string,"auto_renew": boolean,"contact_id": string | null,"created_at": string,"effective_end_date": string | null,"end_date": string,"exclusive_region": string | null,"form": string,"id": string,"memo": string | null,"partner_id": string,"signed_on": string | null,"start_date": string,"status": string | null,"terminated_on": string | null,"termination_notified_on": string | null,"updated_at": string
                   }
@@ -1003,7 +1149,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "add_consent_version":
+            "add_business_days":
+{ Args: { "p_days": number,"p_from": string }; Returns: string
+                           },
+"add_consent_version":
 { Args: { "p_body": string,"p_kind": string,"p_title": string }; Returns: number
                            },
 "add_prep_version":
@@ -1093,6 +1242,9 @@ isOneToOne: false
                            },
 "passport_upload_target":
 { Args: { "p_token": string }; Returns: Json
+                           },
+"pay_commissions":
+{ Args: { "p_ids": (string)[],"p_memo": string,"p_paid_on": string }; Returns: number
                            },
 "prep_due_date":
 { Args: { "p_anchor": string,"p_offset": number,"p_recruit_start": string,"p_start": string }; Returns: string
@@ -1185,11 +1337,20 @@ isOneToOne: false
 "registration_summary_by_token":
 { Args: { "p_token": string }; Returns: Json
                            },
+"reset_commission_auto":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"set_commission_status":
+{ Args: { "p_id": string,"p_reason": string,"p_status": string }; Returns: undefined
+                           },
 "submit_lead":
 { Args: { "p": Json }; Returns: Json
                            },
 "submit_registration":
 { Args: { "p": Json }; Returns: Json
+                           },
+"sync_commissions":
+{ Args: { "p_registration_id": string }; Returns: undefined
                            },
 "viewer_has_program":
 { Args: { "p_program_id": string }; Returns: boolean

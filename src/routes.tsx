@@ -36,6 +36,7 @@ const RegistrationDetailPage = lazy(() =>
 )
 const RegistrationsPage = lazy(() => import('./features/registrations/RegistrationsPage').then((m) => ({ default: m.RegistrationsPage })))
 const PaymentsPage = lazy(() => import('./features/payments/PaymentsPage').then((m) => ({ default: m.PaymentsPage })))
+const CommissionsPage = lazy(() => import('./features/commissions/CommissionsPage').then((m) => ({ default: m.CommissionsPage })))
 const PassportLogsPage = lazy(() => import('./features/logs/PassportLogsPage').then((m) => ({ default: m.PassportLogsPage })))
 const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
@@ -98,6 +99,7 @@ export const router = createBrowserRouter([
       { path: 'registrations', element: guarded(['admin', 'staff', 'viewer'], <RegistrationsPage />) },
       { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
       { path: 'payments', element: guarded(OFFICE, <PaymentsPage />) },
+      { path: 'commissions', element: guarded(OFFICE, <CommissionsPage />) },
       { path: 'logs', element: guarded(['admin'], <PassportLogsPage />) },
       { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },

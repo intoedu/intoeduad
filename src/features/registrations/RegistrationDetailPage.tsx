@@ -13,6 +13,7 @@ import { CONSENT_RECORD_LABELS, getRegistration } from './api'
 import { PassportPanel } from './PassportPanel'
 import { PaymentsCard } from './PaymentsCard'
 import { RefundsCard, StatusActions } from './StatusCards'
+import { CommissionSummary } from './CommissionSummary'
 
 function Item({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -104,6 +105,7 @@ export function RegistrationDetailPage() {
             onMessage={setMessage}
           />
           <RefundsCard key={r.status} registrationId={r.id} onChanged={load} onMessage={setMessage} />
+          <CommissionSummary registrationId={r.id} />
           <AttributionCard table="registrations" row={r} isAdmin={profile?.role === 'admin'} onChanged={load} onMessage={setMessage} />
           <p className="-mt-2 text-xs text-slate-500">
             학원 제공 동의: {r.partner_id ? (r.partner_share_agreed ? '동의(학원 안내에 이름 표시)' : '미동의(학원 안내에서 이름 가림)') : '-'}

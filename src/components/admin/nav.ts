@@ -24,7 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/admin/events', label: '중요 일정', roles: OFFICE, milestone: 'M12' },
   { to: '/admin/destruction', label: '개인정보 파기', roles: OFFICE, milestone: 'M11' },
   { to: '/admin/partners', label: 'MOU 학원', roles: OFFICE },
-  { to: '/admin/commissions', label: '커미션 정산', roles: OFFICE, milestone: 'M10' },
+  { to: '/admin/commissions', label: '커미션 정산', roles: OFFICE },
   { to: '/admin/messages', label: '발송 기록', roles: OFFICE, milestone: 'M13' },
   { to: '/admin/logs', label: '여권 접근 기록', roles: ADMIN },
   { to: '/admin/settings', label: '설정·직원 관리', roles: ADMIN },
