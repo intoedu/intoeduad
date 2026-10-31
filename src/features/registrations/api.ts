@@ -9,7 +9,7 @@ export type Registration = Tables<'registrations'> & {
 export type ConsentRecord = Pick<Tables<'consent_records'>, 'id' | 'kind' | 'document_version' | 'agreed' | 'agreed_at' | 'rendered_text' | 'withdrawn_at'>
 
 export async function getRegistration(id: string) {
-  const [reg, health, consents] = await Promise.all([
+  const [reg, health, consents, board] = await Promise.all([
     supabase
       .from('registrations')
       .select(
@@ -23,8 +23,11 @@ export async function getRegistration(id: string) {
       .select('id, kind, document_version, agreed, agreed_at, rendered_text, withdrawn_at')
       .eq('registration_id', id)
       .order('created_at'),
+    supabase.from('v_registration_board').select('total_due, total_paid, core_paid').eq('id', id).maybeSingle(),
   ])
   return {
+    paidTotal: board.data?.total_paid ?? 0,
+    corePaid: !!board.data?.core_paid,
     registration: (reg.data as Registration | null) ?? null,
     health: health.data?.body ?? null,
     consents: (consents.data ?? []) as ConsentRecord[],

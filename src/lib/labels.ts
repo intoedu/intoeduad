@@ -201,3 +201,14 @@ export const CONSENT_KIND_LABELS: Record<string, string> = {
   destruction_notice: '개인정보 파기 안내',
   refund_default: '환불 규정 기본안',
 }
+
+export const PAYMENT_METHOD: Record<string, string> = { transfer: '계좌이체', card: '카드', cash: '현금', other: '기타' }
+
+export const REFUND_REASON: Record<string, string> = {
+  customer: '고객 사정',
+  company: '인투유학 사정',
+  force_majeure: '불가항력(실비 공제)',
+  mid_return: '중도 귀국(현지 규정)',
+}
+
+export const PAYMENT_KIND: Record<string, string> = { deposit: '예약금', balance: '잔금', extra: '추가 납부' }

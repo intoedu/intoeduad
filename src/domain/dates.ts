@@ -44,3 +44,8 @@ export function formatDateLongKo(date: string): string {
   const [y, m, d] = date.split('-').map(Number)
   return `${y}년 ${m}월 ${d}일(${weekdayKo(date)})`
 }
+
+// to - from (일). 같은 날이면 0
+export function daysBetween(from: string, to: string): number {
+  return Math.round((toUtc(to).getTime() - toUtc(from).getTime()) / 86_400_000)
+}

@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
+import { AttributionCard } from '../../components/shared/AttributionCard'
 import { NotesPanel } from '../../components/shared/NotesPanel'
-import { Badge, Card, PageHeader, Spinner } from '../../components/ui'
+import { Alert, Badge, Card, PageHeader, Spinner } from '../../components/ui'
 import { formatDateKo } from '../../domain/dates'
 import { formatPhone } from '../../domain/phone'
 import { formatKst } from '../../lib/datetime'
-import { ATTRIBUTION_SOURCE, REGISTRATION_STATUS } from '../../lib/labels'
-import { CONSENT_RECORD_LABELS, getRegistration, type ConsentRecord, type Registration } from './api'
+import { waitingAttribution, type RegistrationStatus } from '../../domain/registrationStatus'
+import { REGISTRATION_STATUS } from '../../lib/labels'
+import { useAuth } from '../auth/AuthProvider'
+import { CONSENT_RECORD_LABELS, getRegistration } from './api'
 import { PassportPanel } from './PassportPanel'
+import { PaymentsCard } from './PaymentsCard'
+import { RefundsCard, StatusActions } from './StatusCards'
 
 function Item({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -20,7 +25,9 @@ function Item({ label, value }: { label: string; value: ReactNode }) {
 
 export function RegistrationDetailPage() {
   const { id = '' } = useParams()
-  const [data, setData] = useState<{ registration: Registration | null; health: string | null; consents: ConsentRecord[] } | null>(null)
+  const { profile } = useAuth()
+  const [data, setData] = useState<Awaited<ReturnType<typeof getRegistration>> | null>(null)
+  const [message, setMessage] = useState<{ tone: 'green' | 'red'; text: string } | null>(null)
 
   const load = useCallback(async () => setData(await getRegistration(id)), [id])
   useEffect(() => {
@@ -82,20 +89,30 @@ export function RegistrationDetailPage() {
             )}
           </Card>
 
-          <Card>
-            <p className="mb-3 font-semibold text-slate-900">소개 경로</p>
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Item label="학원" value={r.partners?.name ?? r.source_other ?? '없음'} />
-              <Item label="상담실장" value={r.partner_contacts?.name} />
-              <Item label="기록 경로" value={r.attribution_source ? ATTRIBUTION_SOURCE[r.attribution_source] : null} />
-              <Item label="학원 제공 동의" value={r.partner_id ? (r.partner_share_agreed ? '동의' : '미동의(이름 가림)') : '-'} />
-            </dl>
+          {message && <Alert tone={message.tone}>{message.text}</Alert>}
+          {waitingAttribution(r.status as RegistrationStatus, data.corePaid, !!r.attribution_confirmed_at) && (
+            <Alert tone="amber">예약금·잔금을 모두 받았습니다. 아래 소개 경로를 확인 처리하면 "등록 확정"이 됩니다.</Alert>
+          )}
+          <StatusActions registration={r} paidTotal={data.paidTotal} onChanged={load} onMessage={setMessage} />
+          <PaymentsCard
+            key={`${r.status}-${r.registered_on}`}
+            registrationId={r.id}
+            editable={!destroyed && !['refunded'].includes(r.status)}
+            paymentChangedAt={r.payment_changed_at}
+            correctionSentAt={r.payment_correction_sent_at}
+            onChanged={() => void load()}
+            onMessage={setMessage}
+          />
+          <RefundsCard key={r.status} registrationId={r.id} onChanged={load} onMessage={setMessage} />
+          <AttributionCard table="registrations" row={r} isAdmin={profile?.role === 'admin'} onChanged={load} onMessage={setMessage} />
+          <p className="-mt-2 text-xs text-slate-500">
+            학원 제공 동의: {r.partner_id ? (r.partner_share_agreed ? '동의(학원 안내에 이름 표시)' : '미동의(학원 안내에서 이름 가림)') : '-'}
             {r.lead_id && (
-              <Link to={`/admin/leads/${r.lead_id}`} className="mt-3 inline-block text-sm text-brand-600 hover:underline">
+              <Link to={`/admin/leads/${r.lead_id}`} className="ml-2 text-brand-600 hover:underline">
                 상담 기록 보기
               </Link>
             )}
-          </Card>
+          </p>
 
           {p?.passport_upload_enabled && !destroyed && <PassportPanel registrationId={r.id} passportStatus={r.passport_status} onChanged={() => void load()} />}
 

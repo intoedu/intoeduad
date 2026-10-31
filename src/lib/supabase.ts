@@ -23,6 +23,9 @@ export const supabase = createClient<Database>(url, key, {
 export type Tables<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row']
 
+export type Views<T extends keyof Database['public']['Views']> =
+  Database['public']['Views'][T]['Row']
+
 // Edge Function 호출: 실패 시 함수가 돌려준 한국어 메시지를 그대로 꺼낸다
 export async function invokeFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke<T>(name, { body })

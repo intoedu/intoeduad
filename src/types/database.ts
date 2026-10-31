@@ -53,6 +53,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "registrations"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "access_tokens_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
     }
                   ]
                 },"activity_logs": {
@@ -112,6 +118,12 @@ isOneToOne: false
       columns: ["registration_id"]
 isOneToOne: false
       referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "consent_records_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
       referencedColumns: ["id"]
     }
                   ]
@@ -202,6 +214,12 @@ isOneToOne: false
       columns: ["registration_id"]
 isOneToOne: true
       referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "destruction_requests_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "v_registration_board"
       referencedColumns: ["id"]
     }
                   ]
@@ -433,18 +451,24 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "registrations"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "passport_files_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
     }
                   ]
                 },"payment_schedules": {
                   Row: {
-                    "amount_due": number,"canceled_at": string | null,"created_at": string,"created_from_rule_id": string | null,"due_date": string,"id": string,"kind": string,"label": string,"registration_id": string,"sort": number,"updated_at": string
+                    "amount_due": number,"canceled_at": string | null,"change_reason": string | null,"created_at": string,"created_from_rule_id": string | null,"due_date": string,"id": string,"kind": string,"label": string,"registration_id": string,"sort": number,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_due": number,"canceled_at"?: string | null,"created_at"?: string,"created_from_rule_id"?: string | null,"due_date": string,"id"?: string,"kind": string,"label": string,"registration_id": string,"sort"?: number,"updated_at"?: string
+                    "amount_due": number,"canceled_at"?: string | null,"change_reason"?: string | null,"created_at"?: string,"created_from_rule_id"?: string | null,"due_date": string,"id"?: string,"kind": string,"label": string,"registration_id": string,"sort"?: number,"updated_at"?: string
                   }
                   Update: {
-                    "amount_due"?: number,"canceled_at"?: string | null,"created_at"?: string,"created_from_rule_id"?: string | null,"due_date"?: string,"id"?: string,"kind"?: string,"label"?: string,"registration_id"?: string,"sort"?: number,"updated_at"?: string
+                    "amount_due"?: number,"canceled_at"?: string | null,"change_reason"?: string | null,"created_at"?: string,"created_from_rule_id"?: string | null,"due_date"?: string,"id"?: string,"kind"?: string,"label"?: string,"registration_id"?: string,"sort"?: number,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -458,6 +482,12 @@ isOneToOne: false
       columns: ["registration_id"]
 isOneToOne: false
       referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payment_schedules_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
       referencedColumns: ["id"]
     }
                   ]
@@ -484,6 +514,12 @@ isOneToOne: false
       columns: ["schedule_id"]
 isOneToOne: false
       referencedRelation: "payment_schedules"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payments_schedule_id_fkey"
+      columns: ["schedule_id"]
+isOneToOne: false
+      referencedRelation: "v_payment_board"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "payments_schedule_id_fkey"
@@ -699,6 +735,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "registrations"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "refunds_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
     }
                   ]
                 },"registration_health_notes": {
@@ -719,18 +761,24 @@ isOneToOne: false
 isOneToOne: true
       referencedRelation: "registrations"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registration_health_notes_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
     }
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
+                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -874,9 +922,35 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"v_payment_board": {
+                  Row: {
+                    "amount_due": number,"canceled_at": string | null,"change_reason": string | null,"destroyed_at": string | null,"due_date": string,"id": string,"kind": string,"label": string,"paid_amount": number | null,"parent_name": string | null,"program_id": string,"program_name": string,"program_season": string | null,"registration_id": string,"registration_status": string,"status": string | null,"student_name_ko": string | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "payment_schedules_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payment_schedules_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registrations_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"v_payment_schedules": {
                   Row: {
-                    "amount_due": number,"canceled_at": string | null,"created_at": string,"created_from_rule_id": string | null,"due_date": string,"id": string,"kind": string,"label": string,"paid_amount": number | null,"registration_id": string,"sort": number,"status": string | null,"updated_at": string
+                    "amount_due": number,"canceled_at": string | null,"change_reason": string | null,"created_at": string,"created_from_rule_id": string | null,"due_date": string,"id": string,"kind": string,"label": string,"paid_amount": number | null,"registration_id": string,"sort": number,"status": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Relationships: [
@@ -891,6 +965,38 @@ isOneToOne: false
       columns: ["registration_id"]
 isOneToOne: false
       referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "payment_schedules_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: false
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"v_registration_board": {
+                  Row: {
+                    "attribution_confirmed_at": string | null,"core_paid": boolean | null,"created_at": string,"destroyed_at": string | null,"id": string,"lead_id": string | null,"next_due_date": string | null,"overdue_count": number | null,"parent_name": string | null,"parent_phone": string | null,"partner_id": string | null,"partner_name": string | null,"passport_status": string,"program_id": string,"program_name": string,"program_season": string | null,"program_start": string,"registered_on": string,"status": string,"student_name_ko": string | null,"total_due": number | null,"total_paid": number | null
+                  }
+                  ComputedFields: never
+                  Relationships: [
+                    {
+      foreignKeyName: "registrations_lead_id_fkey"
+      columns: ["lead_id"]
+isOneToOne: false
+      referencedRelation: "leads"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registrations_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registrations_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
       referencedColumns: ["id"]
     }
                   ]
@@ -909,8 +1015,14 @@ isOneToOne: false
 "agreement_effective_end":
 { Args: { "p_auto_renew": boolean,"p_end": string,"p_terminated_on": string,"p_today"?: string }; Returns: string
                            },
+"apply_registration_status":
+{ Args: { "p_registration_id": string }; Returns: undefined
+                           },
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"cancel_registration":
+{ Args: { "p_memo": string,"p_reason_type": string,"p_registration_id": string,"p_requested_on": string }; Returns: string
                            },
 "clear_must_change_password":
 { Args: Record<PropertyKey, never>; Returns: undefined
@@ -919,6 +1031,12 @@ isOneToOne: false
 { Args: { "p_program_id": string,"p_registered_on": string }; Returns: {
               "adjusted": boolean,"amount": number,"due_date": string,"kind": string,"label": string,"rule_id": string,"sort": number
             }[]
+                           },
+"compute_registration_status":
+{ Args: { "p_registration_id": string }; Returns: string
+                           },
+"confirm_registration_receipt":
+{ Args: { "p_registration_id": string }; Returns: string
                            },
 "create_access_token":
 { Args: { "p_lead_id"?: string,"p_purpose": string,"p_registration_id"?: string,"p_ttl_days"?: number }; Returns: string
@@ -985,6 +1103,9 @@ isOneToOne: false
 "prep_review_keys":
 { Args: Record<PropertyKey, never>; Returns: (string)[]
                            },
+"process_refund":
+{ Args: { "p_final_amount": number,"p_memo": string,"p_refund_id": string }; Returns: undefined
+                           },
 "program_enrolled_count":
 { Args: { "p_program_id": string }; Returns: number
                            },
@@ -997,6 +1118,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: {
               "due_soon": number,"gate_pending": number,"needs_recheck": number,"overdue": number,"program_id": string,"required_done": number,"required_total": number
             }[]
+                           },
+"promote_waitlisted":
+{ Args: { "p_registration_id": string }; Returns: undefined
                            },
 "public_available_slots":
 { Args: { "p_from": string,"p_to": string }; Returns: {
@@ -1031,6 +1155,12 @@ isOneToOne: false
                            },
 "record_passport_upload":
 { Args: { "p_consent": boolean,"p_ip": unknown,"p_iv": string,"p_key_version": number,"p_mime": string,"p_path": string,"p_registration_id": string,"p_size": number,"p_user_agent": string }; Returns: Json
+                           },
+"refresh_registration_statuses":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"refund_deduction_rate":
+{ Args: { "p_days": number,"p_rules": Json }; Returns: number
                            },
 "registration_consent_values":
 { Args: { "p_partner_name": string,"p_program_id": string }; Returns: Json
