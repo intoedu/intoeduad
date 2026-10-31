@@ -709,14 +709,14 @@ isOneToOne: false
                   ]
                 },"staff_profiles": {
                   Row: {
-                    "active": boolean,"can_view_passport": boolean,"created_at": string,"email": string,"id": string,"name": string,"notify_channels": (string)[],"phone": string | null,"role": string,"team": string | null,"updated_at": string
+                    "active": boolean,"can_view_passport": boolean,"created_at": string,"email": string,"id": string,"must_change_password": boolean,"name": string,"notify_channels": (string)[],"phone": string | null,"role": string,"team": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "active"?: boolean,"can_view_passport"?: boolean,"created_at"?: string,"email": string,"id": string,"name": string,"notify_channels"?: (string)[],"phone"?: string | null,"role": string,"team"?: string | null,"updated_at"?: string
+                    "active"?: boolean,"can_view_passport"?: boolean,"created_at"?: string,"email": string,"id": string,"must_change_password"?: boolean,"name": string,"notify_channels"?: (string)[],"phone"?: string | null,"role": string,"team"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "active"?: boolean,"can_view_passport"?: boolean,"created_at"?: string,"email"?: string,"id"?: string,"name"?: string,"notify_channels"?: (string)[],"phone"?: string | null,"role"?: string,"team"?: string | null,"updated_at"?: string
+                    "active"?: boolean,"can_view_passport"?: boolean,"created_at"?: string,"email"?: string,"id"?: string,"must_change_password"?: boolean,"name"?: string,"notify_channels"?: (string)[],"phone"?: string | null,"role"?: string,"team"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -821,6 +821,9 @@ isOneToOne: false
                            },
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"clear_must_change_password":
+{ Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "create_access_token":
 { Args: { "p_lead_id"?: string,"p_purpose": string,"p_registration_id"?: string,"p_ttl_days"?: number }; Returns: string

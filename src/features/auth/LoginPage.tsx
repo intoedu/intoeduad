@@ -14,7 +14,7 @@ export function LoginPage() {
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
-  if (!loading && recoveryMode) return <Navigate to="/auth/set-password" replace />
+  if (!loading && (recoveryMode || (session && profile?.must_change_password))) return <Navigate to="/auth/set-password" replace />
   if (!loading && session && profile?.active) {
     const from = (location.state as { from?: string } | null)?.from
     return <Navigate to={from ?? '/admin'} replace />

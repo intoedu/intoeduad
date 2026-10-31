@@ -50,7 +50,7 @@ export function StaffPage() {
     if (error) {
       notify('red', error.message.includes('최소 1명') ? error.message : '변경하지 못했습니다.')
     } else {
-      notify('green', `${member.name}님의 정보를 변경했습니다.`)
+      notify('green', `${next.name ?? member.name}님의 정보를 변경했습니다.`)
     }
     await load()
   }
@@ -120,7 +120,17 @@ export function StaffPage() {
                   <p className="mt-0.5 break-all text-sm text-slate-500">{member.email}</p>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3 lg:w-[520px]">
+                <div className="grid gap-3 sm:grid-cols-4 lg:w-[680px]">
+                  <Field label="이름">
+                    <Input
+                      defaultValue={member.name}
+                      disabled={!member.active}
+                      onBlur={(e) => {
+                        const name = e.target.value.trim()
+                        if (name && name !== member.name) void updateStaff(member, { name })
+                      }}
+                    />
+                  </Field>
                   <Field label="역할">
                     <Select
                       value={role}

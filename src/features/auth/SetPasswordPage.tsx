@@ -7,7 +7,7 @@ import { useAuth } from './AuthProvider'
 const MIN_LENGTH = 10
 
 export function SetPasswordPage() {
-  const { session, loading, finishRecovery } = useAuth()
+  const { session, profile, loading, finishRecovery, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -36,6 +36,10 @@ export function SetPasswordPage() {
       setError('비밀번호를 저장하지 못했습니다. 링크가 만료되었다면 관리자에게 재발송을 요청해 주세요.')
       return
     }
+    if (profile?.must_change_password) {
+      await supabase.rpc('clear_must_change_password')
+      await refreshProfile()
+    }
     finishRecovery()
     navigate('/admin', { replace: true })
   }
@@ -49,6 +53,9 @@ export function SetPasswordPage() {
         </div>
         <Card>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {profile?.must_change_password && (
+              <Alert tone="amber">처음 로그인하셨습니다. 보안을 위해 임시 비밀번호를 새 비밀번호로 바꿔 주세요.</Alert>
+            )}
             <p className="text-sm text-slate-600">{session.user.email} 계정의 비밀번호를 설정합니다.</p>
             <Field label="새 비밀번호" hint={`영문과 숫자를 포함해 ${MIN_LENGTH}자 이상`}>
               <Input

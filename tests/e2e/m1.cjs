@@ -50,7 +50,7 @@ async function login(page, email, password = 'devpass1234') {
     await page.getByRole('link', { name: /설정·직원 관리/ }).click()
     await page.waitForURL('**/admin/settings/staff')
     await page.getByRole('button', { name: '+ 직원 초대' }).click()
-    await page.getByLabel('이름').fill('E2E 신규직원')
+    await page.locator('form', { hasText: '직원 초대' }).getByLabel('이름').fill('E2E 신규직원')
     await page.getByLabel('이메일').fill(invitedEmail)
     await page.getByRole('button', { name: '초대 메일 보내기' }).click()
     check('직원 초대 성공 안내', await visible(page.getByText(`${invitedEmail}로 초대 메일을 보냈습니다.`)))
@@ -58,7 +58,7 @@ async function login(page, email, password = 'devpass1234') {
 
     // 같은 이메일 재초대 → 거절, 기존 직원 유지
     await page.getByRole('button', { name: '+ 직원 초대' }).click()
-    await page.getByLabel('이름').fill('중복')
+    await page.locator('form', { hasText: '직원 초대' }).getByLabel('이름').fill('중복')
     await page.getByLabel('이메일').fill(invitedEmail)
     await page.getByRole('button', { name: '초대 메일 보내기' }).click()
     check('중복 초대 거절', await visible(page.getByText('이미 등록된 이메일입니다.', { exact: false })))

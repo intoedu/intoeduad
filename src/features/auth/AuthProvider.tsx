@@ -11,6 +11,7 @@ type AuthState = {
   recoveryMode: boolean
   loading: boolean
   finishRecovery: () => void
+  refreshProfile: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -65,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRecoveryMode(false)
       window.history.replaceState(null, '', window.location.pathname)
     },
+    refreshProfile: () => loadProfile(session?.user.id),
     signOut: async () => {
       await supabase.auth.signOut()
       setProfile(null)

@@ -10,7 +10,8 @@ export function RequireStaff({ roles, children }: { roles?: StaffRole[]; childre
   const location = useLocation()
 
   if (loading) return <Spinner />
-  if (recoveryMode) return <Navigate to="/auth/set-password" replace />
+  // 초대·재설정 링크로 왔거나, 임시 비밀번호로 만든 계정의 첫 로그인이면 비밀번호부터 설정
+  if (recoveryMode || profile?.must_change_password) return <Navigate to="/auth/set-password" replace />
   if (!session || !profile || !profile.active) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
