@@ -40,9 +40,14 @@ export function PartnersListPage() {
         title="MOU 학원"
         description="파트너 학원과 상담실장, 협약, 신청 링크·QR을 관리합니다."
         actions={
-          <Link to="/admin/partners/new" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
-            + 학원 등록
-          </Link>
+          <>
+            <Link to="/admin/partners/stats" className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50">
+              학원별 통계
+            </Link>
+            <Link to="/admin/partners/new" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+              + 학원 등록
+            </Link>
+          </>
         }
       />
 

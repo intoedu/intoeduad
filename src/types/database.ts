@@ -1390,6 +1390,11 @@ isOneToOne: false
               "lead_count": number,"partner_id": string,"registration_count": number
             }[]
                            },
+"partner_stats":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "canceled": number,"confirmed": number,"consulted": number,"leads": number,"partner_id": string,"partner_name": string,"programs": Json,"region": string,"registrations": number
+            }[]
+                           },
 "passport_upload_target":
 { Args: { "p_token": string }; Returns: Json
                            },

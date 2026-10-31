@@ -44,6 +44,7 @@ const MessagesPage = lazy(() => import('./features/messages/MessagesPage').then(
 const NotificationSettingsPage = lazy(() =>
   import('./features/settings/NotificationSettingsPage').then((m) => ({ default: m.NotificationSettingsPage })),
 )
+const PartnerStatsPage = lazy(() => import('./features/partners/PartnerStatsPage').then((m) => ({ default: m.PartnerStatsPage })))
 const PassportLogsPage = lazy(() => import('./features/logs/PassportLogsPage').then((m) => ({ default: m.PassportLogsPage })))
 const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
@@ -95,6 +96,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Lazy><DashboardPage /></Lazy> },
       { path: 'partners', element: guarded(OFFICE, <PartnersListPage />) },
       { path: 'partners/new', element: guarded(OFFICE, <PartnerNewPage />) },
+      { path: 'partners/stats', element: guarded(OFFICE, <PartnerStatsPage />) },
       { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
       { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
       { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },

@@ -35,7 +35,7 @@ export async function preparePassportFile(file: File): Promise<File> {
   try {
     if (kind === 'heic') {
       // 아이폰 HEIC는 필요할 때만 변환 도구를 내려받는다
-      const { heicTo } = await import('heic-to')
+      const { heicTo } = await import('heic-to/csp')
       bitmap = await heicTo({ blob: file, type: 'bitmap' })
     } else {
       bitmap = await createImageBitmap(file)

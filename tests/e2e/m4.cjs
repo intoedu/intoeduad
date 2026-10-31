@@ -54,7 +54,7 @@ async function submitLead(body) {
 
   await login(page, 'staff@dev.local')
   check('사이드바 신규 배지 2', await visible(page.getByLabel('신규 2건')))
-  await page.getByRole('link', { name: /상담 신청/ }).click()
+  await page.getByRole('link', { name: /^상담 신청/ }).click()
   await page.waitForURL('**/admin/leads')
   check('목록: 두 건 표시', await visible(page.getByText('정하준 · 중2')) && await visible(page.getByText('한지우 · 초6')))
   check('목록: 소개 경로 미확인 배지', (await page.getByText('소개 경로 미확인', { exact: true }).count()) === 2)
