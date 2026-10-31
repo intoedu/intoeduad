@@ -17,6 +17,8 @@ const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage').th
 const PartnersListPage = lazy(() => import('./features/partners/PartnersListPage').then((m) => ({ default: m.PartnersListPage })))
 const PartnerNewPage = lazy(() => import('./features/partners/PartnerNewPage').then((m) => ({ default: m.PartnerNewPage })))
 const PartnerDetailPage = lazy(() => import('./features/partners/PartnerDetailPage').then((m) => ({ default: m.PartnerDetailPage })))
+const LeadsListPage = lazy(() => import('./features/leads/LeadsListPage').then((m) => ({ default: m.LeadsListPage })))
+const LeadDetailPage = lazy(() => import('./features/leads/LeadDetailPage').then((m) => ({ default: m.LeadDetailPage })))
 const SlotsPage = lazy(() => import('./features/slots/SlotsPage').then((m) => ({ default: m.SlotsPage })))
 const StaffPage = lazy(() => import('./features/settings/StaffPage').then((m) => ({ default: m.StaffPage })))
 
@@ -65,6 +67,8 @@ export const router = createBrowserRouter([
       { path: 'partners', element: guarded(OFFICE, <PartnersListPage />) },
       { path: 'partners/new', element: guarded(OFFICE, <PartnerNewPage />) },
       { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
+      { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
+      { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },
       { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
       { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },

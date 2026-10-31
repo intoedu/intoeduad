@@ -41,3 +41,6 @@ export async function invokeFunction<T>(name: string, body: Record<string, unkno
   }
   return data as T
 }
+
+export type TablesUpdate<T extends keyof Database['public']['Tables']> =
+  Database['public']['Tables'][T]['Update']

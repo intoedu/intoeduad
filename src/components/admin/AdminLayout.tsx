@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { NavLink, Outlet } from 'react-router'
+import { useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../../features/auth/AuthProvider'
 import { ROLE_LABELS, type StaffRole } from '../../lib/labels'
+import { supabase } from '../../lib/supabase'
 import { NAV_ITEMS } from './nav'
 
 export function AdminLayout() {
@@ -9,6 +10,18 @@ export function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const role = profile?.role as StaffRole
   const items = NAV_ITEMS.filter((item) => item.roles.includes(role))
+  const location = useLocation()
+  // 미처리(신규) 상담 신청 수 — 화면을 옮길 때마다 갱신
+  const [newLeads, setNewLeads] = useState(0)
+  useEffect(() => {
+    if (role === 'viewer') return
+    supabase
+      .from('leads')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'new')
+      .is('deleted_at', null)
+      .then(({ count }) => setNewLeads(count ?? 0))
+  }, [role, location.pathname])
 
   const nav = (
     <nav className="space-y-0.5">
@@ -25,6 +38,11 @@ export function AdminLayout() {
           }
         >
           {item.label}
+          {item.to === '/admin/leads' && newLeads > 0 && (
+            <span className="rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white" aria-label={`신규 ${newLeads}건`}>
+              {newLeads}
+            </span>
+          )}
           {item.milestone && <span className="text-[10px] text-slate-400">준비 중</span>}
         </NavLink>
       ))}

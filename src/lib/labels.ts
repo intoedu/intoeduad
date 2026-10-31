@@ -43,3 +43,44 @@ export const SETTLEMENT_METHOD_LABELS: Record<string, string> = {
   tax_invoice: '세금계산서',
   invoice: '계산서',
 }
+
+type Tone = 'gray' | 'blue' | 'green' | 'amber' | 'red'
+
+export const LEAD_STATUS: Record<string, { label: string; tone: Tone }> = {
+  new: { label: '신규', tone: 'red' },
+  contacting: { label: '연락 중', tone: 'amber' },
+  scheduled: { label: '상담 예정', tone: 'blue' },
+  consulted: { label: '상담 완료', tone: 'green' },
+  converted: { label: '등록 전환', tone: 'green' },
+  on_hold: { label: '보류', tone: 'gray' },
+  closed: { label: '종료', tone: 'gray' },
+}
+
+export const CONSULT_METHOD: Record<string, string> = {
+  undecided: '미정',
+  phone: '전화',
+  video: '화상',
+}
+
+export const CONSULT_STATUS: Record<string, { label: string; tone: Tone }> = {
+  scheduled: { label: '예정', tone: 'blue' },
+  done: { label: '완료', tone: 'green' },
+  canceled: { label: '취소', tone: 'gray' },
+  no_show: { label: '노쇼', tone: 'red' },
+}
+
+export const INTEREST_LABELS: Record<string, string> = { study_abroad: '유학', camp: '캠프' }
+
+export const TOPIC_LABELS: Record<string, string> = {
+  camp: '캠프',
+  study_abroad: '유학',
+  cost: '비용',
+  schedule: '일정',
+  other: '기타',
+}
+
+export const ATTRIBUTION_SOURCE: Record<string, string> = {
+  link: '링크·QR',
+  form: '신청서에서 선택',
+  staff: '직원 확인',
+}

@@ -14,7 +14,7 @@ const ADMIN: StaffRole[] = ['admin']
 
 export const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: '대시보드', roles: ALL },
-  { to: '/admin/leads', label: '상담 신청', roles: OFFICE, milestone: 'M4' },
+  { to: '/admin/leads', label: '상담 신청', roles: OFFICE },
   { to: '/admin/calendar', label: '통합 캘린더', roles: OFFICE, milestone: 'M12' },
   { to: '/admin/slots', label: '상담 시간 관리', roles: OFFICE },
   { to: '/admin/programs', label: '캠프·프로그램', roles: OFFICE, milestone: 'M5' },

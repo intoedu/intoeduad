@@ -822,6 +822,9 @@ isOneToOne: false
 "can_view_passport":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"create_access_token":
+{ Args: { "p_lead_id"?: string,"p_purpose": string,"p_registration_id"?: string,"p_ttl_days"?: number }; Returns: string
+                           },
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },

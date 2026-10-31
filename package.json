@@ -11,7 +11,7 @@
     "test": "vitest run",
     "typecheck": "tsc -b",
     "db:types": "supabase gen types typescript --local > src/types/database.ts",
-    "e2e": "for f in tests/e2e/*.cjs; do node $f || exit 1; done"
+    "e2e": "for f in tests/e2e/*.cjs; do npx supabase db reset >/dev/null 2>&1 && sleep 4 && node $f || exit 1; done"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
