@@ -525,6 +525,20 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"prep_item_templates": {
+                  Row: {
+                    "active": boolean,"audience": string | null,"description": string | null,"due_anchor": string,"due_offset_days": number,"gate_open": boolean,"key": string,"kind": string,"required": boolean,"sort": number,"title": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"audience"?: string | null,"description"?: string | null,"due_anchor"?: string,"due_offset_days"?: number,"gate_open"?: boolean,"key": string,"kind": string,"required"?: boolean,"sort"?: number,"title": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"audience"?: string | null,"description"?: string | null,"due_anchor"?: string,"due_offset_days"?: number,"gate_open"?: boolean,"key"?: string,"kind"?: string,"required"?: boolean,"sort"?: number,"title"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"program_milestones": {
                   Row: {
                     "category": string,"created_at": string,"date": string,"id": string,"memo": string | null,"program_id": string,"show_dday": boolean,"title": string,"updated_at": string
@@ -565,16 +579,86 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"programs": {
+                },"program_prep_items": {
                   Row: {
-                    "capacity": number | null,"commission_amount": number | null,"commission_notice_sent_on": string | null,"copied_from": string | null,"country": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"destroy_after_days": number,"end_date": string,"form_config": NonNullable<Json>,"health_field_enabled": boolean,"id": string,"name": string,"passport_upload_enabled": boolean,"recruit_start_date": string | null,"refund_policy_text": string | null,"refund_policy_version": number,"refund_rules": NonNullable<Json>,"season": string | null,"slug": string,"slug_locked": boolean,"start_date": string,"status": string,"third_party_recipients": NonNullable<Json>,"total_price": number,"type": string,"updated_at": string,"waitlist_enabled": boolean
+                    "approved_at": string | null,"approved_by": string | null,"audience": string | null,"checklist": NonNullable<Json>,"created_at": string,"deleted_at": string | null,"distributed_on": string | null,"distribution_channel": string | null,"due_anchor": string,"due_date": string | null,"due_manual": boolean,"due_offset_days": number,"gate_open": boolean,"id": string,"kind": string,"memo": string | null,"needs_recheck": boolean,"owner_id": string | null,"partner_id": string | null,"program_id": string,"recheck_reason": string | null,"request": NonNullable<Json>,"required": boolean,"result_url": string | null,"reviewer_id": string | null,"sort": number,"status": string,"template_key": string | null,"title": string,"updated_at": string,"version": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date": string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name": string,"passport_upload_enabled"?: boolean,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug": string,"slug_locked"?: boolean,"start_date": string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type": string,"updated_at"?: string,"waitlist_enabled"?: boolean
+                    "approved_at"?: string | null,"approved_by"?: string | null,"audience"?: string | null,"checklist"?: NonNullable<Json>,"created_at"?: string,"deleted_at"?: string | null,"distributed_on"?: string | null,"distribution_channel"?: string | null,"due_anchor"?: string,"due_date"?: string | null,"due_manual"?: boolean,"due_offset_days"?: number,"gate_open"?: boolean,"id"?: string,"kind": string,"memo"?: string | null,"needs_recheck"?: boolean,"owner_id"?: string | null,"partner_id"?: string | null,"program_id": string,"recheck_reason"?: string | null,"request"?: NonNullable<Json>,"required"?: boolean,"result_url"?: string | null,"reviewer_id"?: string | null,"sort"?: number,"status"?: string,"template_key"?: string | null,"title": string,"updated_at"?: string,"version"?: number
                   }
                   Update: {
-                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date"?: string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name"?: string,"passport_upload_enabled"?: boolean,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug"?: string,"slug_locked"?: boolean,"start_date"?: string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type"?: string,"updated_at"?: string,"waitlist_enabled"?: boolean
+                    "approved_at"?: string | null,"approved_by"?: string | null,"audience"?: string | null,"checklist"?: NonNullable<Json>,"created_at"?: string,"deleted_at"?: string | null,"distributed_on"?: string | null,"distribution_channel"?: string | null,"due_anchor"?: string,"due_date"?: string | null,"due_manual"?: boolean,"due_offset_days"?: number,"gate_open"?: boolean,"id"?: string,"kind"?: string,"memo"?: string | null,"needs_recheck"?: boolean,"owner_id"?: string | null,"partner_id"?: string | null,"program_id"?: string,"recheck_reason"?: string | null,"request"?: NonNullable<Json>,"required"?: boolean,"result_url"?: string | null,"reviewer_id"?: string | null,"sort"?: number,"status"?: string,"template_key"?: string | null,"title"?: string,"updated_at"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "program_prep_items_approved_by_fkey"
+      columns: ["approved_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_prep_items_owner_id_fkey"
+      columns: ["owner_id"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_prep_items_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_prep_items_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_prep_items_reviewer_id_fkey"
+      columns: ["reviewer_id"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"program_prep_versions": {
+                  Row: {
+                    "created_at": string,"created_by": string | null,"id": string,"item_id": string,"note": string | null,"url": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"item_id": string,"note"?: string | null,"url": string,"version": number
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string | null,"id"?: string,"item_id"?: string,"note"?: string | null,"url"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "program_prep_versions_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_prep_versions_item_id_fkey"
+      columns: ["item_id"]
+isOneToOne: false
+      referencedRelation: "program_prep_items"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"programs": {
+                  Row: {
+                    "capacity": number | null,"commission_amount": number | null,"commission_notice_sent_on": string | null,"copied_from": string | null,"country": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"destroy_after_days": number,"end_date": string,"form_config": NonNullable<Json>,"health_field_enabled": boolean,"id": string,"name": string,"passport_upload_enabled": boolean,"prep_override_reason": string | null,"recruit_start_date": string | null,"refund_policy_text": string | null,"refund_policy_version": number,"refund_rules": NonNullable<Json>,"season": string | null,"slug": string,"slug_locked": boolean,"start_date": string,"status": string,"third_party_recipients": NonNullable<Json>,"total_price": number,"type": string,"updated_at": string,"waitlist_enabled": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date": string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name": string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug": string,"slug_locked"?: boolean,"start_date": string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type": string,"updated_at"?: string,"waitlist_enabled"?: boolean
+                  }
+                  Update: {
+                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date"?: string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name"?: string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug"?: string,"slug_locked"?: boolean,"start_date"?: string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type"?: string,"updated_at"?: string,"waitlist_enabled"?: boolean
                   }
                   Relationships: [
                     {
@@ -813,7 +897,10 @@ isOneToOne: false
                 }
           }
           Functions: {
-            "admin_create_staff_profile":
+            "add_prep_version":
+{ Args: { "p_item_id": string,"p_note"?: string,"p_url": string }; Returns: number
+                           },
+"admin_create_staff_profile":
 { Args: { "p_can_view_passport"?: boolean,"p_email": string,"p_id": string,"p_name": string,"p_role": string,"p_team"?: string }; Returns: undefined
                            },
 "agreement_effective_end":
@@ -834,8 +921,14 @@ isOneToOne: false
 "duplicate_program":
 { Args: { "p_new_season"?: string,"p_new_start": string,"p_program_id": string }; Returns: string
                            },
+"flag_prep_recheck":
+{ Args: { "p_program_id": string,"p_reason": string }; Returns: undefined
+                           },
 "generate_consultation_slots":
 { Args: { "p_breaks"?: Json,"p_capacity"?: number,"p_end": string,"p_from": string,"p_interval_minutes": number,"p_start": string,"p_to": string,"p_weekdays": (number)[] }; Returns: number
+                           },
+"generate_prep_items":
+{ Args: { "p_program_id": string }; Returns: number
                            },
 "is_active_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -857,9 +950,23 @@ isOneToOne: false
               "lead_count": number,"partner_id": string,"registration_count": number
             }[]
                            },
+"prep_due_date":
+{ Args: { "p_anchor": string,"p_offset": number,"p_recruit_start": string,"p_start": string }; Returns: string
+                           },
+"prep_item_complete":
+{ Args: { "p_needs_recheck": boolean,"p_status": string }; Returns: boolean
+                           },
+"prep_review_keys":
+{ Args: Record<PropertyKey, never>; Returns: (string)[]
+                           },
 "program_enrollment_counts":
 { Args: Record<PropertyKey, never>; Returns: {
               "enrolled": number,"program_id": string,"waitlisted": number
+            }[]
+                           },
+"program_prep_progress":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "due_soon": number,"gate_pending": number,"needs_recheck": number,"overdue": number,"program_id": string,"required_done": number,"required_total": number
             }[]
                            },
 "public_available_slots":

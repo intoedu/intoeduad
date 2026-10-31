@@ -1,4 +1,4 @@
-// M5 브라우저 E2E: 캠프 만들기 6단계(기본·납부 규칙·신청서 항목·동의/환불·주요 일정·공개) + 복제 + 커미션 비공개
+// M5 브라우저 E2E: 캠프 만들기 단계(기본·납부 규칙·신청서 항목·동의/환불·주요 일정·공개) + 복제 + 커미션 비공개
 const { chromium } = require('playwright')
 const { execFileSync } = require('child_process')
 const OUT = process.env.E2E_OUT || 'test-results'
@@ -106,10 +106,11 @@ async function login(page, email) {
   await page.getByRole('button', { name: '추가', exact: true }).click()
   check('직접 일정 추가', await visible(page.getByText('"학부모 설명회" 일정을 추가했습니다.')))
 
-  // 6) 공개
-  await page.getByRole('tab', { name: '6. 공개' }).click()
+  // 6) 공개 (모집 시작 경고는 M6 E2E에서 자세히 확인)
+  await page.getByRole('tab', { name: '7. 공개' }).click()
   await page.getByLabel('모집 상태').selectOption('open')
-  check('모집 중으로 변경', await visible(page.getByText('모집 상태를 "모집 중"(으)로 바꿨습니다.')))
+  check('준비물이 남으면 모집 중 전환 경고(직원)', await visible(page.getByText('모집 전에 끝내야 할 준비물', { exact: false })))
+  check('DB: 모집 전 유지', sql(`select status from programs where slug = 'winter-schooling-2027-1'`) === 'before')
   check('신청서 링크', await visible(page.getByText(`${BASE}/register/winter-schooling-2027-1`, { exact: true })))
   check('학원별 링크', await visible(page.getByText(`${BASE}/register/winter-schooling-2027-1?ref=daejeon-into`, { exact: true })))
   await page.getByRole('button', { name: '전체 복사' }).click()

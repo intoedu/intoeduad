@@ -114,3 +114,48 @@ export const COMMISSION_PAY_RULE: Record<string, string> = {
   camp: '캠프 시작일(출국일)에 지급',
   study_abroad: '유학비 완납 후 영업일 10일 이내 지급',
 }
+
+// 캠프 준비사항
+export const PREP_STATUS: Record<string, { label: string; tone: Tone }> = {
+  requested: { label: '요청서 작성', tone: 'gray' },
+  producing: { label: '제작 중', tone: 'blue' },
+  reviewing: { label: '교차 검수', tone: 'amber' },
+  approved: { label: '확인 완료', tone: 'green' },
+  distributed: { label: '배포 완료', tone: 'green' },
+  todo: { label: '할 일', tone: 'gray' },
+  done: { label: '완료', tone: 'green' },
+  not_applicable: { label: '해당 없음', tone: 'gray' },
+}
+
+export const PREP_KIND: Record<string, string> = { material: '제작물', task: '할 일' }
+
+export const DUE_ANCHOR_LABELS: Record<string, string> = {
+  recruit_start: '모집 시작일 기준',
+  start: '출국일 기준',
+  none: '마감 없음',
+}
+
+// 교차 검수 체크리스트(운영 매뉴얼 11) — 키는 src/domain/prep.ts PREP_REVIEW_KEYS와 같다
+export const PREP_REVIEW_ITEMS: Record<string, string> = {
+  brand_name: '회사명 "인투유학" 표기 통일',
+  price_dates: '금액·날짜·요일이 기준 정보와 일치',
+  inclusions: '포함/미포함 내역 일치',
+  apply_qr: '신청 링크·QR이 실제로 열림',
+  no_guarantee: '보장·최상급 표현 없음(예: "100% 합격", "최고")',
+  admission_disclaimer: '진학 실적에 단서(개인차·기간) 표기',
+  photo_consent: '사용한 사진·영상의 촬영 동의 확인',
+  school_logo: '학교·기관 로고 사용 허락 확인',
+  file_version: '파일명에 버전 표기(예: _v2)',
+}
+
+// 제작 요청서 항목
+export const PREP_REQUEST_FIELDS: Array<{ key: string; label: string; type: 'text' | 'textarea' | 'check'; hint?: string }> = [
+  { key: 'purpose', label: '목적', type: 'text', hint: '예: 학원 게시용 모집 안내' },
+  { key: 'audience', label: '보는 사람', type: 'text', hint: '예: 초5~중2 학부모' },
+  { key: 'usage', label: '사용처', type: 'text', hint: '예: 학원 게시판, 카카오톡 공유' },
+  { key: 'spec', label: '규격', type: 'text', hint: '예: A2 세로, 1080×1920 세로 영상 60초' },
+  { key: 'key_message', label: '꼭 전할 내용', type: 'textarea' },
+  { key: 'include_price', label: '금액·일정 포함', type: 'check' },
+  { key: 'partner_logo', label: '학원 로고 포함', type: 'check' },
+  { key: 'photo_consent', label: '학생 사진·영상 사용(촬영 동의 필요)', type: 'check' },
+]

@@ -22,6 +22,7 @@ const LeadDetailPage = lazy(() => import('./features/leads/LeadDetailPage').then
 const ProgramsListPage = lazy(() => import('./features/programs/ProgramPages').then((m) => ({ default: m.ProgramsListPage })))
 const ProgramNewPage = lazy(() => import('./features/programs/ProgramPages').then((m) => ({ default: m.ProgramNewPage })))
 const ProgramDetailPage = lazy(() => import('./features/programs/ProgramPages').then((m) => ({ default: m.ProgramDetailPage })))
+const PrepPage = lazy(() => import('./features/prep/PrepPage').then((m) => ({ default: m.PrepPage })))
 const SlotsPage = lazy(() => import('./features/slots/SlotsPage').then((m) => ({ default: m.SlotsPage })))
 const StaffPage = lazy(() => import('./features/settings/StaffPage').then((m) => ({ default: m.StaffPage })))
 
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
       { path: 'programs', element: guarded(OFFICE, <ProgramsListPage />) },
       { path: 'programs/new', element: guarded(OFFICE, <ProgramNewPage />) },
       { path: 'programs/:id', element: guarded(OFFICE, <ProgramDetailPage />) },
+      { path: 'prep', element: guarded(OFFICE, <PrepPage />) },
       { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
       { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },

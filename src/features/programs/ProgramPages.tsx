@@ -14,9 +14,14 @@ import { StepMilestones } from './StepMilestones'
 import { StepPayments } from './StepPayments'
 import { StepPolicies } from './StepPolicies'
 import { StepPublish } from './StepPublish'
+import { StepPrep } from '../prep/StepPrep'
+import { isPrepIncomplete } from '../prep/api'
 
 function errorText(error: { code?: string; message?: string }): string {
   if (error.code === '23505') return '이미 쓰고 있는 신청서 링크 주소입니다. 다른 주소를 입력해 주세요.'
+  if (isPrepIncomplete(error) && error.message?.endsWith(':new'))
+    return '새 캠프는 "모집 전"으로 만든 뒤, 준비사항을 확인하고 [7. 공개]에서 모집을 시작해 주세요.'
+  if (isPrepIncomplete(error)) return '모집 전에 끝내야 할 준비물이 남아 있어 "모집 중"으로 바꿀 수 없습니다. [6. 준비사항]을 확인하거나 [7. 공개] 단계에서 바꿔 주세요.'
   if (error.message && /[가-힣]/.test(error.message)) return error.message
   return '저장하지 못했습니다.'
 }
@@ -28,7 +33,8 @@ function daysUntil(date: string): number {
 // ---------------------------------------------------------------------------
 // 목록
 // ---------------------------------------------------------------------------
-type ListItem = Program & { enrolled: number; waitlisted: number }
+type Prep = { required_total: number; required_done: number; overdue: number; due_soon: number; needs_recheck: number }
+type ListItem = Program & { enrolled: number; waitlisted: number; prep?: Prep }
 
 export function ProgramsListPage() {
   const [items, setItems] = useState<ListItem[] | null>(null)
@@ -38,13 +44,27 @@ export function ProgramsListPage() {
     Promise.all([
       supabase.from('programs').select('*').is('deleted_at', null).order('start_date'),
       supabase.rpc('program_enrollment_counts'),
-    ]).then(([p, c]) => {
+      supabase.rpc('program_prep_progress'),
+    ]).then(([p, c, prep]) => {
       const counts = new Map((c.data ?? []).map((x) => [x.program_id, x]))
+      const preps = new Map(
+        (prep.data ?? []).map((x) => [
+          x.program_id,
+          {
+            required_total: Number(x.required_total),
+            required_done: Number(x.required_done),
+            overdue: Number(x.overdue),
+            due_soon: Number(x.due_soon),
+            needs_recheck: Number(x.needs_recheck),
+          },
+        ]),
+      )
       setItems(
         (p.data ?? []).map((x) => ({
           ...x,
           enrolled: Number(counts.get(x.id)?.enrolled ?? 0),
           waitlisted: Number(counts.get(x.id)?.waitlisted ?? 0),
+          prep: preps.get(x.id),
         })),
       )
     })
@@ -113,6 +133,15 @@ export function ProgramsListPage() {
                         <div className="h-full bg-brand-600" style={{ width: `${Math.min(100, (p.enrolled / p.capacity) * 100)}%` }} />
                       </div>
                     )}
+                    {p.prep && p.prep.required_total > 0 && (
+                      <span className="flex items-center gap-1">
+                        <Badge tone={p.prep.required_done === p.prep.required_total ? 'green' : 'gray'}>
+                          준비 {p.prep.required_done}/{p.prep.required_total}
+                        </Badge>
+                        {p.prep.overdue > 0 && <Badge tone="red">준비물 마감 지남 {p.prep.overdue}</Badge>}
+                        {p.prep.needs_recheck > 0 && <Badge tone="amber">자료 재확인 {p.prep.needs_recheck}</Badge>}
+                      </span>
+                    )}
                     <span className="text-xs text-amber-800">커미션 {p.commission_amount === null ? '미정' : won(p.commission_amount)}</span>
                   </div>
                 </div>
@@ -133,7 +162,7 @@ export function ProgramNewPage() {
   const { profile } = useAuth()
   return (
     <>
-      <PageHeader title="캠프 만들기" description="1단계 기본 정보를 저장하면 납부 규칙 → 신청서 항목 → 동의·환불 규정 → 주요 일정 → 공개 순서로 이어집니다." />
+      <PageHeader title="캠프 만들기" description="1단계 기본 정보를 저장하면 납부 규칙 → 신청서 항목 → 동의·환불 규정 → 주요 일정 → 준비사항 → 공개 순서로 이어집니다. 포스터·브로셔·영상 등 준비물은 저장과 함께 자동으로 만들어집니다." />
       <Card>
         <StepBasic
           canEditLockedSlug={profile?.role === 'admin'}
@@ -157,7 +186,7 @@ export function ProgramNewPage() {
 // ---------------------------------------------------------------------------
 // 상세(단계별 수정) + 복제
 // ---------------------------------------------------------------------------
-type Step = 'basic' | 'payments' | 'form' | 'policies' | 'milestones' | 'publish'
+type Step = 'basic' | 'payments' | 'form' | 'policies' | 'milestones' | 'prep' | 'publish'
 
 const STEPS: Array<{ value: Step; label: string }> = [
   { value: 'basic', label: '1. 기본 정보' },
@@ -165,7 +194,8 @@ const STEPS: Array<{ value: Step; label: string }> = [
   { value: 'form', label: '3. 신청서 항목' },
   { value: 'policies', label: '4. 동의·환불 규정' },
   { value: 'milestones', label: '5. 주요 일정' },
-  { value: 'publish', label: '6. 공개' },
+  { value: 'prep', label: '6. 준비사항' },
+  { value: 'publish', label: '7. 공개' },
 ]
 
 export function ProgramDetailPage() {
@@ -298,7 +328,8 @@ export function ProgramDetailPage() {
       {step === 'form' && <StepForm key={program.updated_at} program={program} onSaved={saved} />}
       {step === 'policies' && <StepPolicies key={program.updated_at} program={program} onSaved={saved} />}
       {step === 'milestones' && <StepMilestones program={program} milestones={milestones} onSaved={saved} />}
-      {step === 'publish' && <StepPublish program={program} onSaved={saved} />}
+      {step === 'prep' && <StepPrep program={program} rules={rules} />}
+      {step === 'publish' && <StepPublish program={program} onSaved={saved} onOpenPrep={() => setParams({ step: 'prep' }, { replace: true })} />}
 
       {next && (
         <div className="mt-6 flex justify-end">
