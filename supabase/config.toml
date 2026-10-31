@@ -469,3 +469,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/destruction-run/deno.json"
 entrypoint = "./functions/destruction-run/index.ts"
+
+[functions.message-sender]
+enabled = true
+# 발송 대기열 처리. 예약 작업(러너 토큰)·신청 직후 호출·직원(로그인)이 호출. 인증은 함수 안에서 확인
+verify_jwt = false
+import_map = "./functions/message-sender/deno.json"
+entrypoint = "./functions/message-sender/index.ts"

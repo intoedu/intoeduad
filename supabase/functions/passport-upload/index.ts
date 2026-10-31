@@ -2,7 +2,7 @@
 // - action=info(JSON): 대상 학생·프로그램·고유식별정보 동의 문구
 // - 업로드(multipart): token, consent, file → 형식 확인(매직 바이트) → AES-256-GCM 암호화 → 비공개 버킷 저장 → 기록
 // - 원본(평문)은 어디에도 저장하지 않는다. 실패하면 올린 암호문도 지운다.
-// TODO(M13): 여권 업로드 직원 알림(개인정보 없이 "여권 업로드 1건")
+// 여권 업로드 직원 알림(개인정보 없이 "여권 업로드 1건")은 DB가 발송 대기열에 넣는다
 import { withSupabase } from "@supabase/server";
 import { clientIp, detectMime, encryptFile, MAX_BYTES } from "./passport-crypto.ts";
 
@@ -25,6 +25,21 @@ type Target = {
   allowed: boolean;
   consent: { kind: string; version: number; title: string; body: string } | null;
 };
+
+// 신청 직후 알림 발송 함수를 깨운다(실패해도 매분 예약 작업이 다시 처리)
+function kickMessageSender(req: Request) {
+  const token = Deno.env.get("MESSAGE_RUNNER_TOKEN");
+  const base = Deno.env.get("SUPABASE_URL");
+  const apikey = req.headers.get("apikey") ?? req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!token || !base || !apikey) return;
+  const p = fetch(`${base}/functions/v1/message-sender`, {
+    method: "POST",
+    headers: { apikey, Authorization: `Bearer ${apikey}`, "x-runner-token": token, "Content-Type": "application/json" },
+    body: "{}",
+  }).catch(() => {});
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(p);
+}
 
 export default {
   fetch: withSupabase({ auth: "publishable" }, async (req, ctx) => {
@@ -130,6 +145,7 @@ export default {
       if (rmErr) console.error("replaced file remove failed", rmErr.message);
     }
 
+    kickMessageSender(req);
     return reply(200, { ok: true });
   }),
 };

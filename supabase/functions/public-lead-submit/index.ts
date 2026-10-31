@@ -1,7 +1,7 @@
 // 학부모 상담 신청 접수 (비로그인 공개 폼)
 // - 공개 키(publishable)로만 호출 가능, 저장은 submit_lead()가 한 트랜잭션으로 처리
 // - 허니팟·입력 검증·같은 번호 단시간 중복 제출 제한(번호는 해시로만 비교)
-// TODO(M13): 접수 확인 알림톡·직원 알림 발송
+// 접수 확인 알림톡·직원 알림은 DB가 발송 대기열에 넣고 message-sender가 보낸다
 import { withSupabase } from "@supabase/server";
 
 const GRADES = new Set([
@@ -40,6 +40,21 @@ async function phoneHash(phone: string): Promise<string> {
   );
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(phone));
   return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 신청 직후 알림 발송 함수를 깨운다(실패해도 매분 예약 작업이 다시 처리)
+function kickMessageSender(req: Request) {
+  const token = Deno.env.get("MESSAGE_RUNNER_TOKEN");
+  const base = Deno.env.get("SUPABASE_URL");
+  const apikey = req.headers.get("apikey") ?? req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!token || !base || !apikey) return;
+  const p = fetch(`${base}/functions/v1/message-sender`, {
+    method: "POST",
+    headers: { apikey, Authorization: `Bearer ${apikey}`, "x-runner-token": token, "Content-Type": "application/json" },
+    body: "{}",
+  }).catch(() => {});
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(p);
 }
 
 export default {
@@ -109,6 +124,7 @@ export default {
       return reply(500, { error: "신청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." });
     }
 
+    kickMessageSender(req);
     const result = data as { scheduled_at: string | null };
     return reply(200, { ok: true, scheduled_at: result.scheduled_at });
   }),

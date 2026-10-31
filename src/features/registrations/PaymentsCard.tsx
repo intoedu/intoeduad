@@ -4,7 +4,7 @@ import { formatDateKo } from '../../domain/dates'
 import { formatWon } from '../../domain/registration'
 import { formatKst, todayKst } from '../../lib/datetime'
 import { PAYMENT_KIND, PAYMENT_METHOD, PAYMENT_STATUS } from '../../lib/labels'
-import { supabase, type Tables, type Views } from '../../lib/supabase'
+import { invokeFunction, supabase, type Tables, type Views } from '../../lib/supabase'
 
 type Schedule = Views<'v_payment_schedules'>
 type Payment = Tables<'payments'>
@@ -151,7 +151,31 @@ export function PaymentsCard({
       </div>
       {needsCorrection && (
         <div className="mb-3">
-          <Alert tone="amber">납부 금액·기한이 바뀌었습니다({formatKst(paymentChangedAt)}). 학부모에게 정정 안내를 1회 보내 주세요.</Alert>
+          <Alert tone="amber">
+            납부 금액·기한이 바뀌었습니다({formatKst(paymentChangedAt)}). 학부모에게 정정 안내를 1회 보내 주세요.{' '}
+            {editable && (
+              <button
+                type="button"
+                className="font-semibold underline"
+                onClick={async () => {
+                  const { error } = await supabase.rpc('request_payment_correction', { p_registration_id: registrationId })
+                  if (error) return setMessage({ tone: 'red', text: err(error, '정정 안내를 요청하지 못했습니다.') })
+                  try {
+                    const r = await invokeFunction<{ sent: number; skipped: number; failed: number }>('message-sender', {})
+                    setMessage({
+                      tone: r.sent ? 'green' : 'red',
+                      text: r.sent ? '납부 정정 안내를 보냈습니다.' : '정정 안내를 보내지 못했습니다. 발송 기록에서 이유를 확인해 주세요(알림 설정 등).',
+                    })
+                  } catch (e) {
+                    setMessage({ tone: 'red', text: (e as Error).message })
+                  }
+                  onChanged()
+                }}
+              >
+                정정 안내 보내기
+              </button>
+            )}
+          </Alert>
         </div>
       )}
       {schedules.length === 0 && <p className="text-sm text-slate-500">납부 일정이 없습니다(대기 접수는 승격 시 생성).</p>}

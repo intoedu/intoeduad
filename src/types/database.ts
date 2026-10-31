@@ -431,17 +431,29 @@ isOneToOne: false
                   ]
                 },"message_logs": {
                   Row: {
-                    "channel": string,"created_at": string,"error": string | null,"id": string,"provider_message_id": string | null,"purpose": string,"related_id": string | null,"related_type": string | null,"sent_at": string | null,"status": string,"template_code": string | null,"to_hash": string | null,"to_masked": string | null
+                    "attempts": number,"channel": string,"created_at": string,"error": string | null,"id": string,"last_attempt_at": string | null,"provider_message_id": string | null,"purpose": string,"recipient_staff_id": string | null,"related_id": string | null,"related_type": string | null,"requested_by": string | null,"sent_at": string | null,"status": string,"template_code": string | null,"to_hash": string | null,"to_masked": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "channel": string,"created_at"?: string,"error"?: string | null,"id"?: string,"provider_message_id"?: string | null,"purpose": string,"related_id"?: string | null,"related_type"?: string | null,"sent_at"?: string | null,"status": string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
+                    "attempts"?: number,"channel": string,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose": string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status": string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
                   }
                   Update: {
-                    "channel"?: string,"created_at"?: string,"error"?: string | null,"id"?: string,"provider_message_id"?: string | null,"purpose"?: string,"related_id"?: string | null,"related_type"?: string | null,"sent_at"?: string | null,"status"?: string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
+                    "attempts"?: number,"channel"?: string,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose"?: string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status"?: string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "message_logs_recipient_staff_id_fkey"
+      columns: ["recipient_staff_id"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "message_logs_requested_by_fkey"
+      columns: ["requested_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"notes": {
                   Row: {
@@ -1239,8 +1251,37 @@ isOneToOne: false
 "cancel_registration":
 { Args: { "p_memo": string,"p_reason_type": string,"p_registration_id": string,"p_requested_on": string }; Returns: string
                            },
+"claim_messages":
+{ Args: { "p_limit"?: number }; Returns: {
+              "attempts": number,
+"channel": string,
+"created_at": string,
+"error": string | null,
+"id": string,
+"last_attempt_at": string | null,
+"provider_message_id": string | null,
+"purpose": string,
+"recipient_staff_id": string | null,
+"related_id": string | null,
+"related_type": string | null,
+"requested_by": string | null,
+"sent_at": string | null,
+"status": string,
+"template_code": string | null,
+"to_hash": string | null,
+"to_masked": string | null
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "message_logs"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
 "clear_must_change_password":
 { Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"complete_message":
+{ Args: { "p_error": string,"p_log_id": string,"p_provider_id": string,"p_status": string,"p_to_hash": string,"p_to_masked": string }; Returns: undefined
                            },
 "compute_payment_schedule":
 { Args: { "p_program_id": string,"p_registered_on": string }; Returns: {
@@ -1281,6 +1322,12 @@ isOneToOne: false
 "duplicate_program":
 { Args: { "p_new_season"?: string,"p_new_start": string,"p_program_id": string }; Returns: string
                            },
+"enqueue_daily_staff_alerts":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"enqueue_staff_alert":
+{ Args: { "p_admin_only": boolean,"p_event": string,"p_related_id": string,"p_related_type": string }; Returns: number
+                           },
 "execute_destruction":
 { Args: { "p_request_id": string }; Returns: Json
                            },
@@ -1305,6 +1352,9 @@ isOneToOne: false
 "invoke_destruction_runner":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"invoke_message_sender":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "is_active_staff":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
@@ -1313,6 +1363,9 @@ isOneToOne: false
                            },
 "is_staff_or_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"issue_my_token":
+{ Args: { "p_registration_id": string }; Returns: string
                            },
 "jsonb_text_array":
 { Args: { "p": Json }; Returns: (string)[]
@@ -1328,6 +1381,9 @@ isOneToOne: false
                            },
 "mark_passport_deleted":
 { Args: { "p_actor": string,"p_file_id": string,"p_ip": unknown,"p_reason": string,"p_user_agent": string }; Returns: string
+                           },
+"message_context":
+{ Args: { "p_log_id": string }; Returns: Json
                            },
 "partner_referral_counts":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -1437,11 +1493,25 @@ isOneToOne: false
 "release_destruction_hold":
 { Args: { "p_request_id": string }; Returns: undefined
                            },
+"request_payment_correction":
+{ Args: { "p_registration_id": string }; Returns: string
+                           },
 "reset_commission_auto":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"retry_message":
+{ Args: { "p_log_id": string }; Returns: undefined
+                           },
+"send_test_message":
+{ Args: { "p_channel": string }; Returns: string
+                           },
 "set_commission_status":
 { Args: { "p_id": string,"p_reason": string,"p_status": string }; Returns: undefined
+                           },
+"staff_recipients":
+{ Args: { "p_admin_only": boolean,"p_event": string }; Returns: {
+              "channel": string,"staff_id": string
+            }[]
                            },
 "submit_lead":
 { Args: { "p": Json }; Returns: Json

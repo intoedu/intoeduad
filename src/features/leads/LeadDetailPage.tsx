@@ -10,6 +10,7 @@ import { supabase, type TablesUpdate } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { getLead, loadTimeline, type LeadRow, type TimelineItem } from './api'
 import { ConsultationCard } from './ConsultationCard'
+import { MessageHistory } from '../messages/MessagesPage'
 import { AttributionCard } from '../../components/shared/AttributionCard'
 
 type Option = { id: string; name: string }
@@ -188,6 +189,10 @@ export function LeadDetailPage() {
 
         <div className="space-y-4">
           <NotesPanel entityType="lead" entityId={lead.id} onChanged={() => void load()} />
+          <Card>
+            <p className="mb-2 font-semibold text-slate-900">알림 발송</p>
+            <MessageHistory relatedId={lead.id} />
+          </Card>
           <Card>
             <p className="mb-3 font-semibold text-slate-900">타임라인</p>
             <ol className="relative space-y-4 border-l border-slate-200 pl-4">

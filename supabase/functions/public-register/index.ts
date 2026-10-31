@@ -2,8 +2,8 @@
 // - 공개 키(publishable)로만 호출. 개인정보를 다루는 DB 함수는 service role로만 실행한다.
 // - action: "prefill"(상담 기록 링크로 미리 채움) / "submit"(신청 저장) / "my"(고객용 신청 내용 확인)
 // - 저장은 submit_registration()이 한 트랜잭션으로 처리(정원·납부 일정·동의 기록·확인 링크)
-// TODO(M8): 신청서에서 바로 여권 사진 업로드(암호화)
-// TODO(M13): 납부 안내 알림톡(대기 접수는 대기 안내)·직원 알림 발송 — 문안은 docs/alimtalk-templates.md
+// 여권 사진은 신청 저장 뒤 passport-upload로 따로 올린다(M8)
+// 납부 안내 알림톡(대기 접수는 대기 안내)·직원 알림은 DB가 발송 대기열에 넣고 message-sender가 보낸다(문안: docs/alimtalk-templates.md)
 import { withSupabase } from "@supabase/server";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,6 +55,21 @@ const ERRORS: Record<string, [number, string]> = {
   CONSENT_REQUIRED: [400, "필수 동의 항목에 모두 동의해 주세요."],
   INVALID_INPUT: [400, "입력하신 내용을 다시 확인해 주세요."],
 };
+
+// 신청 직후 알림 발송 함수를 깨운다(실패해도 매분 예약 작업이 다시 처리)
+function kickMessageSender(req: Request) {
+  const token = Deno.env.get("MESSAGE_RUNNER_TOKEN");
+  const base = Deno.env.get("SUPABASE_URL");
+  const apikey = req.headers.get("apikey") ?? req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+  if (!token || !base || !apikey) return;
+  const p = fetch(`${base}/functions/v1/message-sender`, {
+    method: "POST",
+    headers: { apikey, Authorization: `Bearer ${apikey}`, "x-runner-token": token, "Content-Type": "application/json" },
+    body: "{}",
+  }).catch(() => {});
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(p);
+}
 
 export default {
   fetch: withSupabase({ auth: "publishable" }, async (req, ctx) => {
@@ -148,6 +163,7 @@ export default {
       return reply(500, { error: "신청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요." });
     }
 
+    kickMessageSender(req);
     const result = data as { status: string; my_token: string };
     // 완료 화면용 요약(납부 일정·계좌·파기 예정일). 확인 링크 원문은 이번 응답에서만 돌려준다.
     const { data: summary } = await ctx.supabaseAdmin.rpc("registration_summary_by_token", { p_token: result.my_token });

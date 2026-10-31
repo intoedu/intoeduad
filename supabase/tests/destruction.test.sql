@@ -31,8 +31,9 @@ insert into public.payment_schedules (id, registration_id, kind, label, amount_d
 values ('b1100000-0000-0000-0000-000000000002', 'b0100000-0000-0000-0000-000000000002', 'balance', '참가비', 1000000, public.kst_today() - 40);
 insert into public.payments (schedule_id, amount, method, paid_at, memo) values ('b1100000-0000-0000-0000-000000000002', 1000000, 'transfer', public.kst_today() - 40, '입금자 나부모');
 insert into public.access_tokens (token_hash, purpose, registration_id, expires_at) values ('h-m11', 'my_view', 'b0100000-0000-0000-0000-000000000002', now() + interval '10 days');
-insert into public.message_logs (channel, purpose, to_masked, to_hash, status, related_type, related_id)
-values ('alimtalk', 'registration_payment_notice', '010-****-0002', 'hash', 'sent', 'registration', 'b0100000-0000-0000-0000-000000000002');
+-- 등록 시 자동으로 쌓인 납부 안내 발송 기록을 "보냄"으로
+update public.message_logs set to_masked = '010-****-0002', to_hash = 'hash', status = 'sent'
+ where purpose = 'registration_payment_notice' and related_id = 'b0100000-0000-0000-0000-000000000002';
 
 -- 승인 대기 생성
 select is(public.queue_destruction_requests(), 3, '종료된 캠프 등록 2건 + 1년 지난 상담 1건 대기 생성');

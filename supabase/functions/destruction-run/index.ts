@@ -1,7 +1,7 @@
 // 개인정보 파기 실행 — 관리자가 승인했고 예정일이 된 요청만 처리한다(같은 요청을 다시 호출해도 안전)
 // - 호출: 매일 예약 작업(pg_cron + pg_net, 헤더 x-runner-token) 또는 관리자 화면의 [지금 실행](로그인 + 관리자 확인)
 // - 순서: 승인 대기 생성 → 요청마다 여권 파일을 저장소에서 실제 삭제(자동 파기 접근 기록) → DB 개인정보 파기 → 결과 기록
-// TODO(M13): 미승인 기한 초과 시 관리자 알림은 notify 함수에서 보낸다
+// 미승인 기한 초과 관리자 알림은 매일 예약 작업(enqueue_daily_staff_alerts)이 발송 대기열에 넣는다
 import { withSupabase } from "@supabase/server";
 
 function reply(status: number, body: Record<string, unknown>) {

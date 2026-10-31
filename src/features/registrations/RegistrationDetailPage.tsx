@@ -14,6 +14,7 @@ import { PassportPanel } from './PassportPanel'
 import { PaymentsCard } from './PaymentsCard'
 import { RefundsCard, StatusActions } from './StatusCards'
 import { CommissionSummary } from './CommissionSummary'
+import { MessageHistory } from '../messages/MessagesPage'
 
 function Item({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -139,7 +140,13 @@ export function RegistrationDetailPage() {
             </ul>
           </Card>
         </div>
-        <div className="space-y-4">{!destroyed && <NotesPanel entityType="registration" entityId={r.id} />}</div>
+        <div className="space-y-4">
+          {!destroyed && <NotesPanel entityType="registration" entityId={r.id} />}
+          <Card>
+            <p className="mb-2 font-semibold text-slate-900">알림 발송</p>
+            <MessageHistory relatedId={r.id} />
+          </Card>
+        </div>
       </div>
     </>
   )
