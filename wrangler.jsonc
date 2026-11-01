@@ -1,0 +1,13 @@
+// Cloudflare Workers(정적 파일 전용) 배포 설정 — 대시보드 "Create an app" → GitHub 연결 → 배포 명령 npx wrangler deploy
+// - 빌드 결과(dist)만 올린다. 서버 코드(Worker 스크립트)는 없다.
+// - 없는 경로(/register/..., /admin/...)는 index.html로 응답(SPA). public/_headers의 보안 헤더는 정적 파일 응답에 적용된다.
+// - VITE_* 값은 Cloudflare Settings → Build → Build variables에 넣는다(여기·저장소에 비밀값을 두지 않는다).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "intoeduad",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
