@@ -2,7 +2,8 @@
 
 > 2026-11-01 기준 운영 Supabase 프로젝트 `intoedu-crm`(ref `ezroctoaeqqmjgnzwfpb`, 조직 "intoedu AD") 상태
 > - **완료**: 1장 DB 마이그레이션 전부(+ `pg_net_schema`), 2장 Edge Function 6개 배포, 4장 Vault 4개(실행 토큰 2개는 DB 안에서 무작위 생성)
-> - **남음(사람이 입력)**: 3장 Edge Function 시크릿, 5~8장
+> - **완료(2026-11-01 오후)**: 3장 시크릿 4개(PASSPORT_KEY_V1·PHONE_HASH_PEPPER·실행 토큰 2개), 5장 화면 배포 `https://intoeduad.intoedu0309.workers.dev`, 기본 설정(입금 계좌·카카오 채널·학부모용 사이트 주소)
+> - **남음**: 6장 Auth 설정(대시보드 — 확인 시점에 신규 가입이 켜져 있었음), 솔라피·Resend 키, 7장 나머지·8장
 > - 확인한 것: 함수 6개 기동·입력 검증 응답, 예약 작업 → Vault → pg_net → `destruction-run` 호출 도달(시크릿 입력 전이라 403 — 예상한 결과)
 
 ## 1. DB 마이그레이션 (순서대로, 하나씩)
