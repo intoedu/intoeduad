@@ -70,7 +70,7 @@ const visible = async (locator, timeout = 10000) => {
   await page.getByLabel('이메일').fill('first@dev.local')
   await page.getByLabel('비밀번호').fill('TempPass2026x')
   await page.getByRole('button', { name: '로그인' }).click()
-  check('임시 비밀번호는 더 이상 사용 불가', await visible(page.getByText('이메일 또는 비밀번호가 올바르지 않습니다.')))
+  check('임시 비밀번호는 더 이상 사용 불가', await visible(page.getByText('아이디(이메일) 또는 비밀번호가 올바르지 않습니다.')))
   await page.getByLabel('비밀번호').fill('MyNewPass2026')
   await page.getByRole('button', { name: '로그인' }).click()
   await page.waitForURL('**/admin')

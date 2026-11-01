@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Alert, Badge, Button, Card, Field, Input, PageHeader, Select, Spinner } from '../../components/ui'
+import { displayLogin, isLoginIdAccount, LOGIN_ID_RE } from '../../domain/loginId'
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, type StaffRole } from '../../lib/labels'
 import { invokeFunction, supabase, type Tables } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
@@ -11,6 +12,50 @@ type ProgramOption = Pick<Tables<'programs'>, 'id' | 'name' | 'season'>
 const ROLES: StaffRole[] = ['admin', 'staff', 'viewer']
 const redirectTo = () => `${window.location.origin}/auth/set-password`
 
+type Credential = { name: string; loginId: string; password: string; reissued: boolean }
+
+// 새 계정·재발급 임시 비밀번호: 이 화면에서 한 번만 보여 준다(저장하지 않음)
+function CredentialCard({ credential, onClose }: { credential: Credential; onClose: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const text = `[인투유학 관리 시스템]\n주소: ${window.location.origin}/login\n아이디: ${credential.loginId}\n임시 비밀번호: ${credential.password}\n첫 로그인 때 새 비밀번호로 바꿔 주세요.`
+  return (
+    <Card className="border-amber-300 bg-amber-50">
+      <p className="font-semibold text-slate-900">
+        {credential.name}님 {credential.reissued ? '임시 비밀번호를 다시 만들었습니다' : '계정을 만들었습니다'}
+      </p>
+      <dl className="mt-3 grid grid-cols-[6rem_1fr] gap-y-1 text-sm">
+        <dt className="text-slate-500">아이디</dt>
+        <dd className="font-mono font-semibold text-slate-900">{credential.loginId}</dd>
+        <dt className="text-slate-500">임시 비밀번호</dt>
+        <dd className="font-mono font-semibold text-slate-900" aria-label="임시 비밀번호">
+          {credential.password}
+        </dd>
+      </dl>
+      <p className="mt-3 text-xs text-slate-600">
+        이 비밀번호는 지금 한 번만 보입니다. 본인에게 직접 전달해 주세요. 첫 로그인 때 새 비밀번호로 바꾸게 됩니다.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(text)
+              setCopied(true)
+            } catch {
+              setCopied(false)
+            }
+          }}
+        >
+          {copied ? '복사했습니다' : '안내 문구 복사'}
+        </Button>
+        <Button variant="ghost" onClick={onClose}>
+          닫기
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
 export function StaffPage() {
   const { profile: me } = useAuth()
   const [staff, setStaff] = useState<Staff[]>([])
@@ -18,6 +63,7 @@ export function StaffPage() {
   const [assignments, setAssignments] = useState<Record<string, string[]>>({})
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{ tone: 'green' | 'red'; text: string } | null>(null)
+  const [credential, setCredential] = useState<Credential | null>(null)
 
   const load = useCallback(async () => {
     const [staffRes, programRes, assignRes] = await Promise.all([
@@ -77,6 +123,19 @@ export function StaffPage() {
     }
   }
 
+  async function resetPassword(member: Staff) {
+    if (!window.confirm(`${member.name}님의 임시 비밀번호를 새로 만들까요?\n지금 비밀번호는 더 이상 쓸 수 없고, 다음 로그인 때 새 비밀번호로 바꾸게 됩니다.`)) return
+    try {
+      const res = await invokeFunction<{ temp_password: string }>('admin-staff', { action: 'reset_password', id: member.id })
+      setMessage(null)
+      setCredential({ name: member.name, loginId: displayLogin(member.email), password: res.temp_password, reissued: true })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (e) {
+      notify('red', (e as Error).message)
+    }
+    await load()
+  }
+
   async function toggleAssignment(member: Staff, programId: string, assigned: boolean) {
     const { error } = assigned
       ? await supabase.from('staff_program_assignments').insert({ staff_id: member.id, program_id: programId })
@@ -90,16 +149,30 @@ export function StaffPage() {
   return (
     <>
       <SettingsTabs />
-      <PageHeader title="직원 관리" description="직원은 관리자 초대로만 추가됩니다. 초대 메일의 링크에서 비밀번호를 설정하면 로그인할 수 있습니다." />
+      <PageHeader
+        title="직원 관리"
+        description="직원 계정은 관리자만 만들 수 있습니다. 아이디와 임시 비밀번호로 바로 만들거나, 이메일로 초대할 수 있습니다."
+      />
       {message && (
         <div className="mb-4">
           <Alert tone={message.tone}>{message.text}</Alert>
         </div>
       )}
+      {credential && (
+        <div className="mb-4">
+          <CredentialCard credential={credential} onClose={() => setCredential(null)} />
+        </div>
+      )}
 
-      <InviteForm
+      <AddStaffForm
         onInvited={async (email) => {
           notify('green', `${email}로 초대 메일을 보냈습니다.`)
+          await load()
+        }}
+        onCreated={async (c) => {
+          setMessage(null)
+          setCredential(c)
+          window.scrollTo({ top: 0, behavior: 'smooth' })
           await load()
         }}
         onError={(text) => notify('red', text)}
@@ -119,7 +192,12 @@ export function StaffPage() {
                     {!member.active && <Badge tone="red">비활성</Badge>}
                     {member.can_view_passport && role !== 'viewer' && <Badge tone="amber">여권 열람</Badge>}
                   </div>
-                  <p className="mt-0.5 break-all text-sm text-slate-500">{member.email}</p>
+                  <p className="mt-0.5 break-all text-sm text-slate-500">
+                    {isLoginIdAccount(member.email) ? `아이디: ${displayLogin(member.email)}` : member.email}
+                  </p>
+                  {member.must_change_password && member.active && (
+                    <p className="mt-0.5 text-xs text-amber-700">임시 비밀번호 상태(첫 로그인 때 변경)</p>
+                  )}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-4 lg:w-[680px]">
@@ -203,6 +281,11 @@ export function StaffPage() {
               {!isMe && (
                 <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
                   {member.active && (
+                    <Button variant="secondary" onClick={() => void resetPassword(member)}>
+                      임시 비밀번호 재발급
+                    </Button>
+                  )}
+                  {member.active && !isLoginIdAccount(member.email) && (
                     <Button variant="secondary" onClick={() => void resendInvite(member)}>
                       초대 메일 재발송
                     </Button>
@@ -220,8 +303,18 @@ export function StaffPage() {
   )
 }
 
-function InviteForm({ onInvited, onError }: { onInvited: (email: string) => Promise<void>; onError: (text: string) => void }) {
+function AddStaffForm({
+  onInvited,
+  onCreated,
+  onError,
+}: {
+  onInvited: (email: string) => Promise<void>
+  onCreated: (c: Credential) => Promise<void>
+  onError: (text: string) => void
+}) {
   const [open, setOpen] = useState(false)
+  const [method, setMethod] = useState<'id' | 'email'>('id')
+  const [loginId, setLoginId] = useState('')
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [role, setRole] = useState<StaffRole>('staff')
@@ -229,26 +322,39 @@ function InviteForm({ onInvited, onError }: { onInvited: (email: string) => Prom
   const [canViewPassport, setCanViewPassport] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  const normalizedId = loginId.trim().toLowerCase()
+  const idInvalid = method === 'id' && normalizedId !== '' && !LOGIN_ID_RE.test(normalizedId)
+
+  function reset() {
+    setLoginId('')
+    setEmail('')
+    setName('')
+    setTeam('')
+    setCanViewPassport(false)
+    setOpen(false)
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    if (idInvalid) return
     setSubmitting(true)
     try {
-      await invokeFunction('admin-staff', {
-        action: 'invite',
-        email,
-        name,
-        role,
-        team,
-        can_view_passport: role === 'staff' && canViewPassport,
-        redirect_to: redirectTo(),
-      })
-      const invited = email
-      setEmail('')
-      setName('')
-      setTeam('')
-      setCanViewPassport(false)
-      setOpen(false)
-      await onInvited(invited)
+      const common = { name, role, team, can_view_passport: role === 'staff' && canViewPassport }
+      if (method === 'id') {
+        const res = await invokeFunction<{ login_id: string; temp_password: string }>('admin-staff', {
+          action: 'create_account',
+          login_id: normalizedId,
+          ...common,
+        })
+        const created: Credential = { name, loginId: res.login_id, password: res.temp_password, reissued: false }
+        reset()
+        await onCreated(created)
+      } else {
+        await invokeFunction('admin-staff', { action: 'invite', email, redirect_to: redirectTo(), ...common })
+        const invited = email
+        reset()
+        await onInvited(invited)
+      }
     } catch (err) {
       onError((err as Error).message)
     } finally {
@@ -257,20 +363,43 @@ function InviteForm({ onInvited, onError }: { onInvited: (email: string) => Prom
   }
 
   if (!open) {
-    return <Button onClick={() => setOpen(true)}>+ 직원 초대</Button>
+    return <Button onClick={() => setOpen(true)}>+ 직원 계정 추가</Button>
   }
 
   return (
     <Card>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="font-semibold text-slate-900">직원 초대</p>
+        <p className="font-semibold text-slate-900">직원 계정 추가</p>
+        <div className="flex flex-wrap gap-4 text-sm text-slate-700">
+          <label className="flex items-center gap-2">
+            <input type="radio" name="method" className="size-4" checked={method === 'id'} onChange={() => setMethod('id')} />
+            아이디 + 임시 비밀번호로 만들기
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="radio" name="method" className="size-4" checked={method === 'email'} onChange={() => setMethod('email')} />
+            이메일로 초대 (메일 발송 설정 필요)
+          </label>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="이름">
             <Input required value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
-          <Field label="이메일">
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          </Field>
+          {method === 'id' ? (
+            <Field label="아이디" hint="영문 소문자·숫자 3~30자 (. _ - 사용 가능)" error={idInvalid ? '아이디 형식을 확인해 주세요.' : undefined}>
+              <Input
+                required
+                autoCapitalize="none"
+                spellCheck={false}
+                value={loginId}
+                placeholder="예: juliet"
+                onChange={(e) => setLoginId(e.target.value)}
+              />
+            </Field>
+          ) : (
+            <Field label="이메일">
+              <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </Field>
+          )}
           <Field label="역할" hint={ROLE_DESCRIPTIONS[role]}>
             <Select value={role} onChange={(e) => setRole(e.target.value as StaffRole)}>
               {ROLES.map((r) => (
@@ -281,7 +410,7 @@ function InviteForm({ onInvited, onError }: { onInvited: (email: string) => Prom
             </Select>
           </Field>
           <Field label="소속 팀 (선택)">
-            <Input value={team} placeholder="예: 행정팀, 필리핀" onChange={(e) => setTeam(e.target.value)} />
+            <Input value={team} placeholder="예: 행정팀, 미국" onChange={(e) => setTeam(e.target.value)} />
           </Field>
         </div>
         {role === 'staff' && (
@@ -291,8 +420,8 @@ function InviteForm({ onInvited, onError }: { onInvited: (email: string) => Prom
           </label>
         )}
         <div className="flex gap-2">
-          <Button type="submit" disabled={submitting}>
-            {submitting ? '보내는 중…' : '초대 메일 보내기'}
+          <Button type="submit" disabled={submitting || idInvalid}>
+            {submitting ? '처리 중…' : method === 'id' ? '계정 만들기' : '초대 메일 보내기'}
           </Button>
           <Button variant="ghost" onClick={() => setOpen(false)}>
             취소

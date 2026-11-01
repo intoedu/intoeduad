@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { Alert, Button, Card, Field, Input } from '../../components/ui'
+import { isLoginIdAccount, toLoginEmail } from '../../domain/loginId'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -24,13 +25,13 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    const { error } = await supabase.auth.signInWithPassword({ email: toLoginEmail(email), password })
     setSubmitting(false)
     if (error) {
       setError(
         error.message.includes('banned')
           ? '비활성화된 계정입니다. 관리자에게 문의해 주세요.'
-          : '이메일 또는 비밀번호가 올바르지 않습니다.',
+          : '아이디(이메일) 또는 비밀번호가 올바르지 않습니다.',
       )
     }
   }
@@ -38,8 +39,14 @@ export function LoginPage() {
   async function handleForgot(e: FormEvent) {
     e.preventDefault()
     setError('')
+    setNotice('')
+    // 아이디로 만든 계정은 메일을 받을 수 없다 → 관리자에게 임시 비밀번호 재발급 요청
+    if (isLoginIdAccount(toLoginEmail(email))) {
+      setError('아이디로 만든 계정은 관리자(행정실)에게 임시 비밀번호 재발급을 요청해 주세요.')
+      return
+    }
     setSubmitting(true)
-    await supabase.auth.resetPasswordForEmail(email.trim(), {
+    await supabase.auth.resetPasswordForEmail(toLoginEmail(email), {
       redirectTo: `${window.location.origin}/auth/set-password`,
     })
     setSubmitting(false)
@@ -67,8 +74,16 @@ export function LoginPage() {
           )}
           {mode === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-4">
-              <Field label="이메일">
-                <Input type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Field label="아이디 또는 이메일">
+                <Input
+                  type="text"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </Field>
               <Field label="비밀번호">
                 <Input
@@ -96,10 +111,14 @@ export function LoginPage() {
             </form>
           ) : (
             <form onSubmit={handleForgot} className="space-y-4">
-              <p className="text-sm text-slate-600">가입한 이메일로 비밀번호 재설정 링크를 보내 드립니다.</p>
-              <Field label="이메일">
-                <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <p className="text-sm text-slate-600">
+                이메일로 만든 계정은 재설정 링크를 메일로 보내 드립니다. 아이디로 만든 계정은 관리자(행정실)에게 임시 비밀번호 재발급을
+                요청해 주세요.
+              </p>
+              <Field label="아이디 또는 이메일">
+                <Input type="text" autoCapitalize="none" spellCheck={false} required value={email} onChange={(e) => setEmail(e.target.value)} />
               </Field>
+              {error && <Alert>{error}</Alert>}
               {notice && <Alert tone="green">{notice}</Alert>}
               <Button type="submit" className="w-full" disabled={submitting}>
                 재설정 메일 받기
@@ -117,7 +136,7 @@ export function LoginPage() {
             </form>
           )}
         </Card>
-        <p className="mt-6 text-center text-xs text-slate-400">계정은 관리자 초대로만 만들 수 있습니다.</p>
+        <p className="mt-6 text-center text-xs text-slate-400">계정은 관리자만 만들 수 있습니다.</p>
       </div>
     </div>
   )
