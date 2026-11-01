@@ -37,6 +37,8 @@
 
 ## 3. Edge Function 시크릿
 
+입력 위치: Supabase 대시보드 → Edge Functions → Secrets (`https://supabase.com/dashboard/project/ezroctoaeqqmjgnzwfpb/functions/secrets`). 이름·값을 넣고 저장하면 다시 배포하지 않아도 바로 적용됩니다(Supabase 공식 문서).
+
 | 이름 | 값 | 주의 |
 |---|---|---|
 | `PASSPORT_KEY_V1` | `openssl rand -base64 32` 결과(32바이트) | **잃어버리면 모든 여권 사진을 복호화할 수 없습니다.** 안전한 곳(비밀번호 관리자 등)에 따로 보관 |
@@ -75,7 +77,8 @@ select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'mess
 
 ## 5. 화면 배포 (Cloudflare Pages)
 
-- 빌드 명령 `npm run build`, 출력 폴더 `dist`
+- 순서(Cloudflare 공식 문서): Workers & Pages → Create application → Pages → Connect to Git → GitHub 저장소 `intoedu/intoeduad` 선택 → Begin setup
+- 빌드 명령 `npm run build`, 출력 폴더 `dist` (Pages 기본 Node 22 — 로컬 빌드와 같은 버전대라 별도 지정 불필요)
 - 환경 변수: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_PUBLIC_SITE_URL`(Pages 주소 또는 연결한 도메인)
 - `404.html`이 없으면 Pages가 SPA로 보고 모든 경로에 `/`를 응답합니다(공식 문서 확인) → 별도 설정 불필요
 - `public/_headers`로 보안 헤더(X-Frame-Options, nosniff, Referrer-Policy, CSP)가 적용됩니다. CSP는 `https://*.supabase.co`만 허용하므로 Supabase 주소를 바꾸면 함께 고칩니다.
@@ -92,7 +95,7 @@ select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'mess
 
 1. 설정 → 기본 설정: 카카오톡 채널 주소, **학부모용 사이트 주소**, 입금 계좌
 2. 설정 → 알림: 솔라피 발신번호·pfId·템플릿 ID 4개(카카오 승인 후), 직원 알림 받을 사람·번호
-3. 커미션 정산 → 요율·특별 합의·공휴일: 어린이날·부처님오신날(2027) 관보 확인 후 "확인 완료", 학원 간 소개 요율
+3. 커미션 정산 → 요율·특별 합의·학원 간 소개 요율 (2027 공휴일은 2026-11-01 우주항공청 「2027년 월력요항」 보도자료 원문 공휴일 표로 전부 확인 완료 — 어린이날 5/5(수), 부처님 오신 날 5/13(목))
 4. 각 캠프: 1인당 커미션, 제3자 제공 대상(발권처·현지 학교·숙소), 환불 규정
 
 ## 8. 운영 전 사람이 확인해야 할 것
