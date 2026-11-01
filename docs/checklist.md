@@ -20,6 +20,14 @@
 | 상태·금액 변경 이력이 activity_logs에 남음(개인정보 값 제외) | 통과 | `registrations_admin.test.sql`(금액 전·후), `registrations.test.sql`(개인정보 값 없음) |
 | 솔라피 비활성 상태에서도 전체 기능 정상 | 통과 | `tests/e2e/m13.cjs`(꺼짐 → "보내지 않음" 기록, 신청은 정상), M7~M12 E2E는 모두 알림 꺼진 상태로 실행 |
 
+## 운영(intoedu-crm)에서 확인한 것 (2026-11-01)
+
+- Edge Function 시크릿 4개 입력 후: 예약 작업 → Vault → pg_net → `destruction-run`·`message-sender` 호출 200
+- 시험 신청(`public-register`) → 여권 업로드(`passport-upload`) 200, 저장 파일 = 원본 + 16바이트(AES-GCM 인증 태그) → 암호화 확인, 버킷 비공개, 접근 기록(upload) 생성
+- 알림 꺼진 상태: 납부 안내 알림톡 "보내지 않음(알림톡 사용 안 함)"으로 기록, 신청은 정상
+- 파기: 승인된 요청 → `destruction-run` 실행 → 저장소 여권 파일 실제 삭제(0개), 학생·학부모 개인정보 null, 접근 기록은 보존(수정·삭제 차단 확인)
+- 시험 프로그램(`zz-deploy-check`)·신청은 숨김 처리(접근 기록 보존 때문에 행 삭제 대신 deleted_at)
+
 ## 추가로 확인한 것
 
 - 배포 형태(빌드 결과 + `_headers` 보안 헤더·CSP)에서 신청서·여권 제출·열람·관리자 화면 동작, SPA 경로 응답: `tests/e2e/m14.cjs`
