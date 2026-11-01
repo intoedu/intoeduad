@@ -75,14 +75,16 @@ select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'mess
 
 없으면 예약 작업은 아무것도 호출하지 않습니다(등록 상태 갱신·파기 대기 생성은 DB 안에서 그대로 동작, 파기 실행·알림 발송만 멈춤).
 
-## 5. 화면 배포 (Cloudflare Pages)
+## 5. 화면 배포 (Cloudflare — Workers 정적 배포)
 
-- 순서(Cloudflare 공식 문서): Workers & Pages → Create application → Pages → Connect to Git → GitHub 저장소 `intoedu/intoeduad` 선택 → Begin setup
-- 빌드 명령 `npm run build`, 출력 폴더 `dist` (Pages 기본 Node 22 — 로컬 빌드와 같은 버전대라 별도 지정 불필요)
-- 환경 변수: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_PUBLIC_SITE_URL`(Pages 주소 또는 연결한 도메인)
-- `404.html`이 없으면 Pages가 SPA로 보고 모든 경로에 `/`를 응답합니다(공식 문서 확인) → 별도 설정 불필요
-- `public/_headers`로 보안 헤더(X-Frame-Options, nosniff, Referrer-Policy, CSP)가 적용됩니다. CSP는 `https://*.supabase.co`만 허용하므로 Supabase 주소를 바꾸면 함께 고칩니다.
-- 배포 전 확인: Cloudflare Self-Serve Subscription Agreement 2.2.1(무료 플랜 상업적 사용) 원문 — PLAN.md 1장
+- 2026-11 기준 Cloudflare 대시보드의 "Create an app"은 Workers 방식(배포 명령 `npx wrangler deploy`)으로 안내한다. 저장소의 `wrangler.jsonc`가 설정을 담고 있다.
+  - 프로젝트 이름 `intoeduad`(= `wrangler.jsonc`의 name), 빌드 명령 `npm run build`, 배포 명령 `npx wrangler deploy`
+  - `dist`만 정적 배포, 없는 경로는 `index.html`(SPA), `public/_headers` 보안 헤더 적용(정적 파일 응답에만 — Cloudflare 문서)
+- Supabase 주소·공개 키: 빌드 변수(Settings → Build → Build variables)가 없으면 `src/lib/supabase.ts`의 운영 값(공개 값)을 쓴다. 다른 Supabase를 쓰려면 빌드 변수 `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`로 바꾼다.
+- `VITE_PUBLIC_SITE_URL`(선택): 비우면 접속한 주소를 쓴다. 도메인을 연결하면 그 주소로.
+- `main`에 올라가면 자동으로 다시 빌드·배포된다.
+- CSP는 `https://*.supabase.co`만 허용하므로 Supabase 주소를 바꾸면 `public/_headers`도 함께 고친다.
+- 배포 전 확인: Cloudflare 무료 플랜 상업적 사용 조건 원문 — PLAN.md 1장
 
 ## 6. Supabase Auth 설정 (대시보드)
 

@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types/database'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+// 운영 Supabase(intoedu-crm)의 주소와 공개 키 — 비밀값이 아니며 화면 번들에 원래 들어가는 값이다.
+// 배포 빌드에서 VITE_* 환경변수가 없을 때만 쓴다(로컬 개발·테스트는 .env.local 값이 항상 우선).
+const PRODUCTION_URL = 'https://ezroctoaeqqmjgnzwfpb.supabase.co'
+const PRODUCTION_PUBLISHABLE_KEY = 'sb_publishable_JOm9ZSMtm3PThp_mtb4-Ug_3k3Fz3Id'
+
+const url = import.meta.env.VITE_SUPABASE_URL || (import.meta.env.PROD ? PRODUCTION_URL : undefined)
+const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || (import.meta.env.PROD ? PRODUCTION_PUBLISHABLE_KEY : undefined)
 
 if (!url || !key) {
   throw new Error('VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY 환경변수를 설정해 주세요.')
