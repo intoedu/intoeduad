@@ -1,7 +1,7 @@
 # 최종 점검 (SPEC 8장 품질·보안 체크리스트)
 
 > 2026-11-01, 로컬 Supabase 기준 자동 테스트로 확인. "근거"는 해당 테스트 파일입니다.
-> 운영(Supabase `intoedu-crm`)에는 M6까지만 반영된 상태이며, 운영 반영 후 같은 항목을 다시 확인합니다(`docs/deployment.md`).
+> 운영(Supabase `intoedu-crm`)에는 2026-11-01 M7~M14 DB·함수·Vault까지 반영했습니다. Edge Function 시크릿 입력 후 운영에서 같은 항목을 다시 확인합니다(`docs/deployment.md`).
 
 | 항목 | 결과 | 근거 |
 |---|---|---|

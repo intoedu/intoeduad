@@ -1,7 +1,9 @@
 # 운영 반영·배포 안내
 
-> 2026-11-01 기준. 운영 Supabase 프로젝트 `intoedu-crm`(ref `ezroctoaeqqmjgnzwfpb`, 조직 "intoedu AD")에는 **M6까지만** 반영되어 있습니다.
-> M7~M14는 GitHub 저장소에만 있습니다. 아래 순서대로 반영합니다.
+> 2026-11-01 기준 운영 Supabase 프로젝트 `intoedu-crm`(ref `ezroctoaeqqmjgnzwfpb`, 조직 "intoedu AD") 상태
+> - **완료**: 1장 DB 마이그레이션 전부(+ `pg_net_schema`), 2장 Edge Function 6개 배포, 4장 Vault 4개(실행 토큰 2개는 DB 안에서 무작위 생성)
+> - **남음(사람이 입력)**: 3장 Edge Function 시크릿, 5~8장
+> - 확인한 것: 함수 6개 기동·입력 검증 응답, 예약 작업 → Vault → pg_net → `destruction-run` 호출 도달(시크릿 입력 전이라 403 — 예상한 결과)
 
 ## 1. DB 마이그레이션 (순서대로, 하나씩)
 
@@ -15,6 +17,7 @@
 | 6 | `20261101000500_calendar_m12.sql` | 통합 캘린더·D-Day·대시보드 |
 | 7 | `20261101000600_messages_m13.sql` | 알림 발송 대기열·예약 작업 |
 | 8 | `20261101000700_partner_stats_m14.sql` | 학원별 통계 |
+| 9 | `20261101000800_pg_net_schema.sql` | 보안 점검 조치: pg_net을 extensions 스키마로(다시 설치) |
 
 - `pg_cron`, `pg_net` 확장을 사용합니다(마이그레이션이 켭니다).
 - 반영 후 보안 점검(Advisors)을 다시 확인합니다.
@@ -29,7 +32,8 @@
 | `destruction-run` | 신규 |
 | `message-sender` | 신규(`build.ts` 포함) |
 
-모두 `verify_jwt = false`(함수 안에서 인증 확인). 배포용 import는 `deno.deploy.json`(`npm:@supabase/server`)을 씁니다.
+모두 `verify_jwt = false`(함수 안에서 인증 확인). 배포용 import는 `deno.deploy.json`(`npm:@supabase/server`)을 `deno.json` 이름으로 올립니다.
+이미 있는 함수를 다시 배포할 때는 import map 경로를 `deno.json`으로 꼭 지정합니다(지정하지 않으면 이전 배포의 임시 경로를 찾다가 실패).
 
 ## 3. Edge Function 시크릿
 
@@ -37,20 +41,34 @@
 |---|---|---|
 | `PASSPORT_KEY_V1` | `openssl rand -base64 32` 결과(32바이트) | **잃어버리면 모든 여권 사진을 복호화할 수 없습니다.** 안전한 곳(비밀번호 관리자 등)에 따로 보관 |
 | `PHONE_HASH_PEPPER` | 임의의 긴 문자열 | 중복 제출 제한·발송 기록 번호 해시용(없으면 service role 키 사용) |
-| `DESTRUCTION_RUNNER_TOKEN` | `openssl rand -hex 24` | Vault의 `destruction_runner_token`과 같게 |
-| `MESSAGE_RUNNER_TOKEN` | `openssl rand -hex 24` | Vault의 `message_runner_token`과 같게 |
+| `DESTRUCTION_RUNNER_TOKEN` | Vault의 `destruction_runner_token` 값 그대로 | 운영 Vault에 이미 만들어 둠 — 아래 SQL로 꺼내 복사 |
+| `MESSAGE_RUNNER_TOKEN` | Vault의 `message_runner_token` 값 그대로 | 위와 같음 |
 | `SOLAPI_API_KEY` · `SOLAPI_API_SECRET` | 솔라피 콘솔 발급 | 알림톡·문자 |
 | `RESEND_API_KEY` | Resend 발급 | 직원 이메일 알림(도메인 인증 필요) |
 
 `SOLAPI_DRY_RUN`은 운영에 넣지 않습니다(로컬 테스트 전용).
 
+컴퓨터에 openssl이 없으면 Supabase SQL Editor에서 값을 만들 수 있습니다(실행 결과는 저장되지 않음).
+
+```sql
+select encode(extensions.gen_random_bytes(32), 'base64') as passport_key_v1;   -- PASSPORT_KEY_V1
+select encode(extensions.gen_random_bytes(32), 'hex')    as phone_hash_pepper; -- PHONE_HASH_PEPPER
+-- 실행 토큰(이미 Vault에 있음) 꺼내기
+select name, decrypted_secret from vault.decrypted_secrets where name like '%runner_token';
+```
+
+입력 후 확인: SQL Editor에서 `select public.invoke_destruction_runner();` 실행 → 몇 초 뒤
+`select status_code, content from net._http_response order by id desc limit 1;` 결과가 **200**이면 연결 완료(403이면 토큰 불일치).
+
 ## 4. Vault 시크릿 (예약 작업이 함수를 부를 때 사용 — Supabase 공식 "Scheduling Edge Functions" 방식)
+
+운영에는 2026-11-01에 만들어 두었습니다. 새 프로젝트에 다시 만들 때만 아래를 씁니다.
 
 ```sql
 select vault.create_secret('https://ezroctoaeqqmjgnzwfpb.supabase.co', 'project_url');
 select vault.create_secret('<publishable key>', 'publishable_key');
-select vault.create_secret('<DESTRUCTION_RUNNER_TOKEN과 같은 값>', 'destruction_runner_token');
-select vault.create_secret('<MESSAGE_RUNNER_TOKEN과 같은 값>', 'message_runner_token');
+select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'destruction_runner_token');
+select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'message_runner_token');
 ```
 
 없으면 예약 작업은 아무것도 호출하지 않습니다(등록 상태 갱신·파기 대기 생성은 DB 안에서 그대로 동작, 파기 실행·알림 발송만 멈춤).
