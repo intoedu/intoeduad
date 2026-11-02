@@ -3,9 +3,9 @@ import { Navigate, useNavigate } from 'react-router'
 import { Alert, Button, Card, Field, Input, Spinner } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { displayLogin } from '../../domain/loginId'
+import { isAcceptablePassword, PASSWORD_MIN_LENGTH, toAuthPassword } from '../../domain/password'
 import { useAuth } from './AuthProvider'
 
-const MIN_LENGTH = 10
 
 export function SetPasswordPage() {
   const { session, profile, loading, finishRecovery, refreshProfile } = useAuth()
@@ -22,8 +22,8 @@ export function SetPasswordPage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
-    if (password.length < MIN_LENGTH || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
-      setError(`비밀번호는 영문과 숫자를 포함해 ${MIN_LENGTH}자 이상이어야 합니다.`)
+    if (!isAcceptablePassword(password)) {
+      setError(`비밀번호는 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`)
       return
     }
     if (password !== confirm) {
@@ -31,7 +31,7 @@ export function SetPasswordPage() {
       return
     }
     setSubmitting(true)
-    const { error } = await supabase.auth.updateUser({ password })
+    const { error } = await supabase.auth.updateUser({ password: toAuthPassword(password) })
     setSubmitting(false)
     if (error) {
       setError('비밀번호를 저장하지 못했습니다. 링크가 만료되었다면 관리자에게 재발송을 요청해 주세요.')
@@ -58,7 +58,7 @@ export function SetPasswordPage() {
               <Alert tone="amber">처음 로그인하셨습니다. 보안을 위해 임시 비밀번호를 새 비밀번호로 바꿔 주세요.</Alert>
             )}
             <p className="text-sm text-slate-600">{displayLogin(session.user.email)} 계정의 비밀번호를 설정합니다.</p>
-            <Field label="새 비밀번호" hint={`영문과 숫자를 포함해 ${MIN_LENGTH}자 이상`}>
+            <Field label="새 비밀번호" hint={`${PASSWORD_MIN_LENGTH}자 이상 (숫자만도 가능)`}>
               <Input
                 type="password"
                 autoComplete="new-password"

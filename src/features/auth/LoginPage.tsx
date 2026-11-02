@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation } from 'react-router'
 import { Alert, Button, Card, Field, Input } from '../../components/ui'
 import { isLoginIdAccount, toLoginEmail } from '../../domain/loginId'
+import { toAuthPassword } from '../../domain/password'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from './AuthProvider'
 
@@ -25,7 +26,7 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email: toLoginEmail(email), password })
+    const { error } = await supabase.auth.signInWithPassword({ email: toLoginEmail(email), password: toAuthPassword(password) })
     setSubmitting(false)
     if (error) {
       setError(
