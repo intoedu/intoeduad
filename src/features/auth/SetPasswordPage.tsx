@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import { Alert, Button, Card, Field, Input, Spinner } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
+import { displayLogin } from '../../domain/loginId'
 import { useAuth } from './AuthProvider'
 
 const MIN_LENGTH = 10
@@ -56,7 +57,7 @@ export function SetPasswordPage() {
             {profile?.must_change_password && (
               <Alert tone="amber">처음 로그인하셨습니다. 보안을 위해 임시 비밀번호를 새 비밀번호로 바꿔 주세요.</Alert>
             )}
-            <p className="text-sm text-slate-600">{session.user.email} 계정의 비밀번호를 설정합니다.</p>
+            <p className="text-sm text-slate-600">{displayLogin(session.user.email)} 계정의 비밀번호를 설정합니다.</p>
             <Field label="새 비밀번호" hint={`영문과 숫자를 포함해 ${MIN_LENGTH}자 이상`}>
               <Input
                 type="password"
