@@ -89,8 +89,8 @@ select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'mess
 
 ## 6. Supabase Auth 설정 (대시보드)
 
-- Site URL·Redirect URLs를 Pages 주소로(직원 초대·비밀번호 재설정 링크)
-- "Allow new users to sign up" 끄기(직원은 초대로만)
+- Site URL `https://intoeduad.intoedu0309.workers.dev`, Redirect URLs `https://intoeduad.intoedu0309.workers.dev/**` (이메일 계정의 초대·비밀번호 재설정 링크용, 아이디 계정은 무관)
+- 신규 가입(Allow new users to sign up)은 켜 둔다(2026-11-01 결정). 직원 등록이 없는 계정은 데이터 0건·관리 함수 거부(운영 점검 완료)
 - 유출된 비밀번호 차단(Leaked password protection) — 사용 가능한 요금제인지 확인
 - 이메일: 운영 전 사용자 지정 SMTP(예: Resend) 연결
 
@@ -104,6 +104,7 @@ select vault.create_secret(encode(extensions.gen_random_bytes(24), 'hex'), 'mess
 | `tim` | 팀 선생님(캠프 인솔) | 현지 팀(담당 프로그램만) | 캠프 인솔 |
 
 - 모두 임시 비밀번호로 만들었고 첫 로그인 때 새 비밀번호로 바꾼다.
+- `zz-verify`("시스템 점검(사용 안 함)")는 운영 점검용으로 만든 뒤 비활성화한 계정이다. 다시 켜지 않는다.
 - 새 계정·비밀번호 분실: 관리자 → 설정 → 직원 관리 → "+ 직원 계정 추가"(아이디 방식) / "임시 비밀번호 재발급"
 - 아이디 계정의 내부 주소는 `아이디@staff.intoedu.invalid`(메일 발송 불가) — 메일 비밀번호 찾기는 쓰지 않는다.
 
