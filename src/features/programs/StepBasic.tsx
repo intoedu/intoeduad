@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Alert, Button, Field, Input, Select, Textarea } from '../../components/ui'
 import { formatDateKo } from '../../domain/dates'
 import { destroyDate } from '../../domain/paymentRules'
-import { slugify } from '../../domain/romanize'
+import { programSlug } from '../../domain/programSlug'
 import { PROGRAM_STATUS, PROGRAM_TYPE } from '../../lib/labels'
 import type { TablesUpdate } from '../../lib/supabase'
 import type { Program } from './api'
@@ -62,7 +62,7 @@ export function StepBasic({
   function set<K extends keyof typeof v>(key: K, value: (typeof v)[K]) {
     setV((prev) => {
       const next = { ...prev, [key]: value }
-      if (!slugTouched && (key === 'name' || key === 'season')) next.slug = slugify(`${next.name} ${next.season}`, 60)
+      if (!slugTouched && (key === 'name' || key === 'season')) next.slug = programSlug(`${next.name} ${next.season}`, 60)
       return next
     })
   }
