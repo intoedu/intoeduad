@@ -37,6 +37,7 @@ export type RegisterForm = {
   }
   fields?: Record<RegisterFieldKey, FieldMode>
   schedule?: ScheduleLine[]
+  discounts?: DiscountLine[]
   destroy_date?: string
   consents?: RegisterConsent[]
   refund?: { version: number; body: string }
@@ -54,6 +55,9 @@ export type Prefill = {
 
 export type BankAccount = { bank: string; number: string; holder: string }
 
+// 적용된 캠프비 할인(얼리버드·학원 연계)
+export type DiscountLine = { kind: 'early_bird' | 'partner'; label: string; amount: number }
+
 export type RegistrationSummary = {
   status: string
   destroyed: boolean
@@ -64,6 +68,7 @@ export type RegistrationSummary = {
   destroy_date: string | null
   program: { name: string; season: string | null; country: string | null; start_date: string; end_date: string; end_plus_days: number }
   schedule: Array<ScheduleLine & { paid: number; status: 'scheduled' | 'partial' | 'paid' | 'overdue' | 'canceled' }>
+  discounts?: DiscountLine[]
   bank_account: BankAccount | null
   kakao_channel_url: string | null
 }
@@ -96,8 +101,9 @@ export type RegistrationSubmission = {
   website: string
 }
 
-export async function getRegisterForm(slug: string): Promise<RegisterForm | null> {
-  const { data, error } = await supabase.rpc('public_register_form', { p_slug: slug })
+// partnerCode: 학원 링크(?ref=)로 들어온 경우 — 그 학원 할인을 미리 보여 준다
+export async function getRegisterForm(slug: string, partnerCode?: string | null): Promise<RegisterForm | null> {
+  const { data, error } = await supabase.rpc('public_register_form', { p_slug: slug, ...(partnerCode ? { p_partner_code: partnerCode } : {}) })
   if (error) throw error
   return (data as unknown as RegisterForm) ?? null
 }

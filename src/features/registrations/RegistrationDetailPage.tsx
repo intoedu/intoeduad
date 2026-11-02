@@ -96,6 +96,18 @@ export function RegistrationDetailPage() {
             <Alert tone="amber">예약금·잔금을 모두 받았습니다. 아래 소개 경로를 확인 처리하면 "등록 확정"이 됩니다.</Alert>
           )}
           <StatusActions registration={r} paidTotal={data.paidTotal} onChanged={load} onMessage={setMessage} />
+          {r.discount_amount > 0 && (
+            <Alert tone="green">
+              <p className="font-medium">캠프비 할인 적용 −{r.discount_amount.toLocaleString('ko-KR')}원 (신청 시점 기준)</p>
+              <ul className="mt-1 list-disc pl-5">
+                {((r.discount_detail as Array<{ label: string; amount: number; kind: string }> | null) ?? []).map((d, i) => (
+                  <li key={i}>
+                    {d.kind === 'partner' && r.partners ? `${d.label} (${r.partners.name})` : d.label} −{Number(d.amount).toLocaleString('ko-KR')}원
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          )}
           <PaymentsCard
             key={`${r.status}-${r.registered_on}`}
             registrationId={r.id}

@@ -12,6 +12,10 @@ describe('캠프 신청서 링크 주소 추천', () => {
     expect(programSlug('미국스쿨링캠프 2027 겨울 1차')).toBe('usa-schooling-camp-2027-winter-1')
     expect(programSlug('호주 홈스테이 2027 여름 2기')).toBe('australia-homestay-2027-summer-2')
   })
+  it('같은 단어는 한 번만(숫자는 유지)', () => {
+    expect(programSlug('겨울 미국 스쿨링캠프 2027 겨울 1차')).toBe('winter-usa-schooling-camp-2027-1')
+    expect(programSlug('2027 캠프 2027')).toBe('2027-camp-2027')
+  })
   it('사전에 없는 한글은 로마자로', () => {
     expect(programSlug('미국 하버드 탐방')).toBe('usa-habeodeu-tour')
   })

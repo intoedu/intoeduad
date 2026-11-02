@@ -104,3 +104,25 @@ export function destroyDate(endDate: string, days: number): string {
 export function commissionNoticeDeadline(startDate: string): string {
   return addDays(startDate, -30)
 }
+
+// ---------------------------------------------------------------------------
+// 캠프비 할인 (M15) — DB compute_registration_schedule과 같은 규칙
+// 할인 합계를 잔금에서 먼저, 잔금보다 크면 예약금에서 뺀다. 추가 항목(항공권 등)은 그대로.
+// ---------------------------------------------------------------------------
+export type Discount = { kind: 'early_bird' | 'partner'; label: string; amount: number }
+
+export function applyDiscounts(schedule: ScheduledPayment[], discountTotal: number): ScheduledPayment[] {
+  const balance = schedule.filter((s) => s.kind === 'balance').reduce((n, s) => n + s.amount, 0)
+  const balCut = Math.min(Math.max(discountTotal, 0), balance)
+  const depCut = Math.max(discountTotal, 0) - balCut
+  return schedule.map((s) => {
+    if (s.kind === 'balance' && balCut > 0) return { ...s, label: `${s.label} (할인 반영)`, amount: s.amount - balCut }
+    if (s.kind === 'deposit' && depCut > 0) return { ...s, label: `${s.label} (할인 반영)`, amount: Math.max(s.amount - depCut, 0) }
+    return s
+  })
+}
+
+// 얼리버드 적용 여부: 신청일(한국 날짜)이 마감일 이하
+export function earlyBirdApplies(registeredOn: string, until: string | null | undefined, amount: number | null | undefined): boolean {
+  return !!until && !!amount && amount > 0 && registeredOn <= until
+}

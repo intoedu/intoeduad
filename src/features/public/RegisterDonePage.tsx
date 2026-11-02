@@ -3,7 +3,7 @@ import { formatDateLongKo } from '../../domain/dates'
 import { PublicLayout } from './PublicLayout'
 import type { RegisterDoneState } from './RegisterPage'
 import { KakaoButton } from './RegisterPage'
-import { BankAccountBox, DestructionNotice, ScheduleList } from './RegistrationParts'
+import { BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
 
 export function RegisterDonePage() {
   const state = useLocation().state as RegisterDoneState | null
@@ -52,6 +52,7 @@ export function RegisterDonePage() {
         {s && !state?.waitlisted && (
           <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="text-base font-bold text-slate-900">납부 안내</h2>
+            <DiscountList discounts={s.discounts} />
             <ScheduleList lines={s.schedule} />
             <BankAccountBox account={s.bank_account} />
           </section>

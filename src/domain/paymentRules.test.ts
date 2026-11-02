@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  applyDiscounts,
+  earlyBirdApplies,
   commissionNoticeDeadline,
   computeDueDate,
   computeSchedule,
@@ -72,5 +74,30 @@ describe('기타 날짜', () => {
   })
   it('커미션 고지 기한 = 출국 30일 전 (매뉴얼 예: 2027.01.02 출발 → 2026.12.03)', () => {
     expect(commissionNoticeDeadline('2027-01-02')).toBe('2026-12-03')
+  })
+})
+
+describe('캠프비 할인 반영 (DB와 같은 규칙)', () => {
+  const sched = [
+    { kind: 'deposit' as const, label: '예약금', amount: 1_000_000, due_date: '2026-11-09', adjusted: false },
+    { kind: 'balance' as const, label: '잔금', amount: 4_000_000, due_date: '2026-12-06', adjusted: false },
+    { kind: 'extra' as const, label: '항공권', amount: 1_500_000, due_date: '2026-11-21', adjusted: false },
+  ]
+  it('잔금에서 먼저 뺀다, 추가 항목은 그대로', () => {
+    const r = applyDiscounts(sched, 500_000)
+    expect(r.map((s) => s.amount)).toEqual([1_000_000, 3_500_000, 1_500_000])
+    expect(r[1].label).toBe('잔금 (할인 반영)')
+    expect(r[0].label).toBe('예약금')
+  })
+  it('잔금보다 크면 남은 만큼 예약금에서', () => {
+    expect(applyDiscounts(sched, 4_200_000).map((s) => s.amount)).toEqual([800_000, 0, 1_500_000])
+  })
+  it('할인 없으면 그대로', () => {
+    expect(applyDiscounts(sched, 0)).toEqual(sched)
+  })
+  it('얼리버드: 마감일 당일까지 포함', () => {
+    expect(earlyBirdApplies('2026-11-30', '2026-11-30', 300_000)).toBe(true)
+    expect(earlyBirdApplies('2026-12-01', '2026-11-30', 300_000)).toBe(false)
+    expect(earlyBirdApplies('2026-11-01', null, 300_000)).toBe(false)
   })
 })

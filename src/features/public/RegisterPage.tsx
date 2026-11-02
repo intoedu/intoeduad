@@ -20,7 +20,7 @@ import {
 } from './registerApi'
 import { PassportPicker } from './PassportPicker'
 import { uploadPassport } from './passportUpload'
-import { DestructionNotice, ScheduleList } from './RegistrationParts'
+import { DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
 
 const GRADES = ['초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3', '기타']
 const ENGLISH_LEVELS = ['처음 배워요', '기초', '중급', '상급']
@@ -146,10 +146,10 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    getRegisterForm(slug)
+    getRegisterForm(slug, refCode)
       .then(setForm)
       .catch(() => setLoadError(true))
-  }, [slug])
+  }, [slug, refCode])
 
   // 소개 경로: 상담 기록 링크(t) > 학원 링크(ref) > 직접 선택
   useEffect(() => {
@@ -310,7 +310,7 @@ export function RegisterPage() {
       const error = err as SubmitError
       setSubmitError(error.message)
       if (error.code === 'FULL' || error.code === 'NOT_OPEN') {
-        getRegisterForm(slug).then(setForm)
+        getRegisterForm(slug, refCode).then(setForm)
       }
     } finally {
       setSubmitting(false)
@@ -669,7 +669,10 @@ export function RegisterPage() {
 
         {!waitlist && (
           <Section title="납부 안내" description="오늘 신청하시면 아래 일정으로 납부하시게 됩니다. 입금 계좌는 신청 완료 화면과 안내 메시지로 알려 드립니다.">
-            <ScheduleList lines={form.schedule ?? []} />
+            <div className="space-y-3">
+              <DiscountList discounts={form.discounts} />
+              <ScheduleList lines={form.schedule ?? []} />
+            </div>
           </Section>
         )}
 

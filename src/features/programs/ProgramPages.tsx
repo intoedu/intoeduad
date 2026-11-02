@@ -34,7 +34,7 @@ function daysUntil(date: string): number {
 // 목록
 // ---------------------------------------------------------------------------
 type Prep = { required_total: number; required_done: number; overdue: number; due_soon: number; needs_recheck: number }
-type ListItem = Program & { enrolled: number; waitlisted: number; prep?: Prep }
+type ListItem = Program & { enrolled: number; waitlisted: number; prep?: Prep; partnerDiscounts: string[] }
 
 export function ProgramsListPage() {
   const [items, setItems] = useState<ListItem[] | null>(null)
@@ -45,7 +45,13 @@ export function ProgramsListPage() {
       supabase.from('programs').select('*').is('deleted_at', null).order('start_date'),
       supabase.rpc('program_enrollment_counts'),
       supabase.rpc('program_prep_progress'),
-    ]).then(([p, c, prep]) => {
+      supabase.from('program_partner_discounts').select('program_id, amount, partners(name)'),
+    ]).then(([p, c, prep, disc]) => {
+      const discByProgram = new Map<string, string[]>()
+      for (const d of disc.data ?? []) {
+        const name = (d.partners as { name: string } | null)?.name ?? '학원'
+        discByProgram.set(d.program_id, [...(discByProgram.get(d.program_id) ?? []), `${name} −${won(d.amount)}`])
+      }
       const counts = new Map((c.data ?? []).map((x) => [x.program_id, x]))
       const preps = new Map(
         (prep.data ?? []).map((x) => [
@@ -65,6 +71,7 @@ export function ProgramsListPage() {
           enrolled: Number(counts.get(x.id)?.enrolled ?? 0),
           waitlisted: Number(counts.get(x.id)?.waitlisted ?? 0),
           prep: preps.get(x.id),
+          partnerDiscounts: discByProgram.get(x.id) ?? [],
         })),
       )
     })
@@ -121,6 +128,20 @@ export function ProgramsListPage() {
                       {' · '}
                       {won(p.total_price)}
                     </p>
+                    {(p.early_bird_discount || p.partnerDiscounts.length > 0) && (
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {p.early_bird_discount && p.early_bird_until && (
+                          <Badge tone={p.early_bird_until >= today ? 'green' : 'gray'}>
+                            얼리버드 −{won(p.early_bird_discount)} · {formatDateKo(p.early_bird_until)}까지{p.early_bird_until < today ? ' (종료)' : ''}
+                          </Badge>
+                        )}
+                        {p.partnerDiscounts.length > 0 && (
+                          <span title={p.partnerDiscounts.join(', ')}>
+                            <Badge tone="blue">학원 할인 {p.partnerDiscounts.length}곳: {p.partnerDiscounts.slice(0, 2).join(', ')}{p.partnerDiscounts.length > 2 ? ' 외' : ''}</Badge>
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-3 text-sm">
                     <span className="text-slate-700">

@@ -1,9 +1,25 @@
 import { formatDateLongKo } from '../../domain/dates'
 import { formatWon } from '../../domain/registration'
 import { PAYMENT_STATUS } from '../../lib/labels'
-import type { BankAccount, ScheduleLine } from './registerApi'
+import type { BankAccount, DiscountLine, ScheduleLine } from './registerApi'
 
 const KIND_LABEL: Record<string, string> = { deposit: '예약금', balance: '잔금', extra: '추가 납부' }
+
+// 적용된 캠프비 할인 (신청서 미리보기·완료 화면·신청 내용 확인 화면 공통)
+export function DiscountList({ discounts }: { discounts?: DiscountLine[] | null }) {
+  if (!discounts || discounts.length === 0) return null
+  return (
+    <ul className="space-y-1 rounded-xl bg-emerald-50 px-4 py-3 text-sm ring-1 ring-emerald-200" aria-label="적용된 할인">
+      {discounts.map((d, i) => (
+        <li key={i} className="flex justify-between gap-3">
+          <span className="text-emerald-900">{d.label}</span>
+          <span className="font-semibold text-emerald-800">−{formatWon(d.amount)}</span>
+        </li>
+      ))}
+      <li className="pt-1 text-xs text-emerald-800">할인 금액은 잔금(필요하면 예약금)에 반영되어 있습니다.</li>
+    </ul>
+  )
+}
 
 // 납부 일정 표 (신청서 미리보기·완료 화면·신청 내용 확인 화면 공통)
 export function ScheduleList({ lines }: { lines: Array<ScheduleLine & { paid?: number; status?: string }> }) {
@@ -17,7 +33,7 @@ export function ScheduleList({ lines }: { lines: Array<ScheduleLine & { paid?: n
             <div>
               <p className="font-medium text-slate-900">
                 {l.label}
-                {l.label !== KIND_LABEL[l.kind] && l.kind !== 'extra' ? ` (${KIND_LABEL[l.kind]})` : ''}
+                {!l.label.startsWith(KIND_LABEL[l.kind]) && l.kind !== 'extra' ? ` (${KIND_LABEL[l.kind]})` : ''}
               </p>
               <p className="text-slate-600">{formatDateLongKo(l.due_date)}까지</p>
             </div>

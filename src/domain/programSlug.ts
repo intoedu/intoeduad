@@ -61,11 +61,18 @@ export function programSlug(text: string, maxLength = 60): string {
     }
   }
   flushRest()
-  return parts
+  // 같은 영어 단어가 두 번 나오면 한 번만 (예: 이름 "겨울 미국 캠프" + 시즌 "2027 겨울" → winter 한 번). 숫자는 그대로.
+  const seen = new Set<string>()
+  const words = parts
     .join('')
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, maxLength)
-    .replace(/-+$/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean)
+    .filter((w) => {
+      if (/^\d+$/.test(w)) return true
+      if (seen.has(w)) return false
+      seen.add(w)
+      return true
+    })
+  return words.join('-').slice(0, maxLength).replace(/-+$/g, '')
 }

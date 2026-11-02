@@ -34,7 +34,7 @@ async function login(page, email) {
   await page.getByRole('link', { name: '+ 캠프 만들기' }).click()
   await page.getByLabel('프로그램 이름 (필수)').fill('겨울 스쿨링 캠프')
   await page.getByLabel('기수·시즌').fill('2027 1차')
-  check('신청서 링크 주소 자동 추천', (await page.getByLabel('신청서 링크 주소').inputValue()) === 'gyeoul-seukulring-kaempeu-2027-1cha', await page.getByLabel('신청서 링크 주소').inputValue())
+  check('신청서 링크 주소 자동 추천', (await page.getByLabel('신청서 링크 주소').inputValue()) === 'winter-schooling-camp-2027-1', await page.getByLabel('신청서 링크 주소').inputValue())
   await page.getByLabel('신청서 링크 주소').fill('winter-schooling-2027-1')
   await page.getByLabel('국가').fill('미국')
   await page.getByLabel('출국일(시작일)').fill('2027-01-02')

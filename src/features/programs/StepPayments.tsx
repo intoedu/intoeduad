@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Alert, Badge, Button, Card, Field, Input, Select } from '../../components/ui'
 import { addDays, formatDateKo } from '../../domain/dates'
-import { commissionNoticeDeadline, computeSchedule, validateRules, type DueRuleType, type PaymentKind, type PaymentRule } from '../../domain/paymentRules'
+import { applyDiscounts, commissionNoticeDeadline, computeSchedule, earlyBirdApplies, validateRules, type DueRuleType, type PaymentKind, type PaymentRule } from '../../domain/paymentRules'
 import { todayKst } from '../../lib/datetime'
 import { COMMISSION_PAY_RULE, DUE_RULE_LABELS } from '../../lib/labels'
 import { supabase } from '../../lib/supabase'
 import { won, type Program } from './api'
+import { loadPartnerDiscounts, PartnerDiscounts, type PartnerDiscount } from './PartnerDiscounts'
 
 type Row = {
   id?: string
@@ -60,6 +61,12 @@ export function StepPayments({
     ]
   })
   const [previewDate, setPreviewDate] = useState(todayKst())
+  const [previewPartner, setPreviewPartner] = useState('')
+  const [discounts, setDiscounts] = useState<PartnerDiscount[]>([])
+  const reloadDiscounts = useCallback(async () => setDiscounts(await loadPartnerDiscounts(program.id)), [program.id])
+  useEffect(() => {
+    void reloadDiscounts()
+  }, [reloadDiscounts])
   const [commission, setCommission] = useState(program.commission_amount?.toString() ?? '')
   const [noticeOn, setNoticeOn] = useState(program.commission_notice_sent_on ?? '')
   const [errors, setErrors] = useState<string[]>([])
@@ -67,9 +74,14 @@ export function StepPayments({
 
   const parsed = rows.map(toRule)
   const liveErrors = validateRules(parsed, program.total_price, program.start_date)
-  const preview = liveErrors.length === 0 || parsed.every((r) => r.due_rule_type !== 'fixed' || r.due_fixed_date)
+  const baseSchedule = liveErrors.length === 0 || parsed.every((r) => r.due_rule_type !== 'fixed' || r.due_fixed_date)
     ? computeSchedule(parsed.filter((r) => r.due_rule_type !== 'fixed' || r.due_fixed_date), previewDate, program.start_date)
     : []
+  // 미리보기 할인: 얼리버드(미리보기 날짜 기준) + 선택한 학원 할인
+  const ebOn = earlyBirdApplies(previewDate, program.early_bird_until, program.early_bird_discount)
+  const partnerCut = discounts.find((d) => d.partner_id === previewPartner)?.amount ?? 0
+  const discountTotal = (ebOn ? program.early_bird_discount ?? 0 : 0) + partnerCut
+  const preview = applyDiscounts(baseSchedule, discountTotal)
   const deposit = parsed.find((r) => r.kind === 'deposit')
   const noticeDeadline = commissionNoticeDeadline(program.start_date)
   const daysToNotice = Math.round((Date.parse(noticeDeadline) - Date.parse(todayKst())) / 86_400_000)
@@ -212,12 +224,38 @@ export function StepPayments({
       <Card>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <p className="font-semibold text-slate-900">미리보기</p>
-          <div className="w-48">
-            <Field label="이 날 신청하면">
-              <Input type="date" value={previewDate} onChange={(e) => setPreviewDate(e.target.value || todayKst())} />
-            </Field>
+          <div className="flex flex-wrap gap-3">
+            <div className="w-48">
+              <Field label="이 날 신청하면">
+                <Input type="date" value={previewDate} onChange={(e) => setPreviewDate(e.target.value || todayKst())} />
+              </Field>
+            </div>
+            {discounts.length > 0 && (
+              <div className="w-56">
+                <Field label="소개 학원">
+                  <Select value={previewPartner} onChange={(e) => setPreviewPartner(e.target.value)}>
+                    <option value="">학원 할인 없음</option>
+                    {discounts.map((d) => (
+                      <option key={d.partner_id} value={d.partner_id}>
+                        {d.partner_name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            )}
           </div>
         </div>
+        {(program.early_bird_discount || discountTotal > 0) && (
+          <p className="mb-2 text-sm text-slate-700">
+            {program.early_bird_discount && program.early_bird_until && (
+              <span className={ebOn ? 'text-emerald-700' : 'text-slate-500'}>
+                얼리버드 −{won(program.early_bird_discount)} ({formatDateKo(program.early_bird_until)}까지 신청){ebOn ? ' 적용' : ' 기한 지남'}
+              </span>
+            )}
+            {partnerCut > 0 && <span className="ml-2 text-emerald-700">학원 할인 −{won(partnerCut)} 적용</span>}
+          </p>
+        )}
         {preview.length === 0 ? (
           <p className="text-sm text-slate-500">규칙을 입력하면 납부 기한이 계산됩니다.</p>
         ) : (
@@ -238,6 +276,8 @@ export function StepPayments({
           {preview.find((p) => p.kind === 'balance') ? formatDateKo(preview.find((p) => p.kind === 'balance')!.due_date) : '-'}까지
         </p>
       </Card>
+
+      <PartnerDiscounts program={program} discounts={discounts} onChanged={reloadDiscounts} />
 
       {/* 커미션 — 내부 전용 */}
       <Card className="ring-amber-300">

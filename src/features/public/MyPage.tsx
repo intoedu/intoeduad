@@ -6,7 +6,7 @@ import { PASSPORT_STATUS, REGISTRATION_STATUS } from '../../lib/labels'
 import { PublicLayout } from './PublicLayout'
 import { getMySummary, type RegistrationSummary } from './registerApi'
 import { KakaoButton } from './RegisterPage'
-import { BankAccountBox, DestructionNotice, ScheduleList } from './RegistrationParts'
+import { BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
 
 // 고객용 신청 내용 확인 (읽기 전용, 여권 이미지·주소 없음)
 export function MyPage() {
@@ -101,6 +101,7 @@ export function MyPage() {
         {showPayments && (
           <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
             <h2 className="text-base font-bold text-slate-900">납부 현황</h2>
+            <DiscountList discounts={summary.discounts} />
             <ScheduleList lines={summary.schedule} />
             <BankAccountBox account={summary.bank_account} />
           </section>

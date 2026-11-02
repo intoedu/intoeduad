@@ -26,7 +26,13 @@ export function LoginPage() {
     e.preventDefault()
     setError('')
     setSubmitting(true)
-    const { error } = await supabase.auth.signInWithPassword({ email: toLoginEmail(email), password: toAuthPassword(password) })
+    const loginEmail = toLoginEmail(email)
+    const authPassword = toAuthPassword(password)
+    let { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: authPassword })
+    // 4자 규칙 이전에 정한 비밀번호(대문자 없는 10자 이상 등)는 꼬리표 없이 저장돼 있으므로 원래 값으로 한 번 더
+    if (error && authPassword !== password && password.length >= 6 && !error.message.includes('banned')) {
+      ;({ error } = await supabase.auth.signInWithPassword({ email: loginEmail, password }))
+    }
     setSubmitting(false)
     if (error) {
       setError(

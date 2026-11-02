@@ -723,6 +723,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"program_partner_discounts": {
+                  Row: {
+                    "amount": number,"created_at": string,"created_by": string | null,"id": string,"note": string | null,"partner_id": string,"program_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount": number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"partner_id": string,"program_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount"?: number,"created_at"?: string,"created_by"?: string | null,"id"?: string,"note"?: string | null,"partner_id"?: string,"program_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "program_partner_discounts_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_partner_discounts_partner_id_fkey"
+      columns: ["partner_id"]
+isOneToOne: false
+      referencedRelation: "partners"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_partner_discounts_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"program_payment_rules": {
                   Row: {
                     "amount": number,"created_at": string,"due_fixed_date": string | null,"due_offset_days": number | null,"due_rule_type": string,"id": string,"kind": string,"label": string,"program_id": string,"sort": number,"updated_at": string
@@ -815,14 +847,14 @@ isOneToOne: false
                   ]
                 },"programs": {
                   Row: {
-                    "capacity": number | null,"commission_amount": number | null,"commission_notice_sent_on": string | null,"copied_from": string | null,"country": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"destroy_after_days": number,"end_date": string,"form_config": NonNullable<Json>,"health_field_enabled": boolean,"id": string,"name": string,"passport_upload_enabled": boolean,"prep_override_reason": string | null,"recruit_start_date": string | null,"refund_policy_text": string | null,"refund_policy_version": number,"refund_rules": NonNullable<Json>,"season": string | null,"slug": string,"slug_locked": boolean,"start_date": string,"status": string,"third_party_recipients": NonNullable<Json>,"total_price": number,"type": string,"updated_at": string,"waitlist_enabled": boolean
+                    "capacity": number | null,"commission_amount": number | null,"commission_notice_sent_on": string | null,"copied_from": string | null,"country": string | null,"created_at": string,"created_by": string | null,"deleted_at": string | null,"description": string | null,"destroy_after_days": number,"early_bird_discount": number | null,"early_bird_until": string | null,"end_date": string,"form_config": NonNullable<Json>,"health_field_enabled": boolean,"id": string,"name": string,"passport_upload_enabled": boolean,"prep_override_reason": string | null,"recruit_start_date": string | null,"refund_policy_text": string | null,"refund_policy_version": number,"refund_rules": NonNullable<Json>,"season": string | null,"slug": string,"slug_locked": boolean,"start_date": string,"status": string,"third_party_recipients": NonNullable<Json>,"total_price": number,"type": string,"updated_at": string,"waitlist_enabled": boolean
                   }
                   ComputedFields: never
                   Insert: {
-                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date": string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name": string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug": string,"slug_locked"?: boolean,"start_date": string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type": string,"updated_at"?: string,"waitlist_enabled"?: boolean
+                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"early_bird_discount"?: number | null,"early_bird_until"?: string | null,"end_date": string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name": string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug": string,"slug_locked"?: boolean,"start_date": string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type": string,"updated_at"?: string,"waitlist_enabled"?: boolean
                   }
                   Update: {
-                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"end_date"?: string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name"?: string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug"?: string,"slug_locked"?: boolean,"start_date"?: string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type"?: string,"updated_at"?: string,"waitlist_enabled"?: boolean
+                    "capacity"?: number | null,"commission_amount"?: number | null,"commission_notice_sent_on"?: string | null,"copied_from"?: string | null,"country"?: string | null,"created_at"?: string,"created_by"?: string | null,"deleted_at"?: string | null,"description"?: string | null,"destroy_after_days"?: number,"early_bird_discount"?: number | null,"early_bird_until"?: string | null,"end_date"?: string,"form_config"?: NonNullable<Json>,"health_field_enabled"?: boolean,"id"?: string,"name"?: string,"passport_upload_enabled"?: boolean,"prep_override_reason"?: string | null,"recruit_start_date"?: string | null,"refund_policy_text"?: string | null,"refund_policy_version"?: number,"refund_rules"?: NonNullable<Json>,"season"?: string | null,"slug"?: string,"slug_locked"?: boolean,"start_date"?: string,"status"?: string,"third_party_recipients"?: NonNullable<Json>,"total_price"?: number,"type"?: string,"updated_at"?: string,"waitlist_enabled"?: boolean
                   }
                   Relationships: [
                     {
@@ -899,14 +931,14 @@ isOneToOne: true
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
+                    "address": string | null,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"discount_amount": number,"discount_detail": NonNullable<Json>,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1288,6 +1320,11 @@ isOneToOne: false
               "adjusted": boolean,"amount": number,"due_date": string,"kind": string,"label": string,"rule_id": string,"sort": number
             }[]
                            },
+"compute_registration_schedule":
+{ Args: { "p_partner_id": string,"p_program_id": string,"p_registered_on": string }; Returns: {
+              "adjusted": boolean,"amount": number,"due_date": string,"kind": string,"label": string,"rule_id": string,"sort": number
+            }[]
+                           },
 "compute_registration_status":
 { Args: { "p_registration_id": string }; Returns: string
                            },
@@ -1458,7 +1495,7 @@ isOneToOne: false
             }[]
                            },
 "public_register_form":
-{ Args: { "p_slug": string }; Returns: Json
+{ Args: { "p_partner_code"?: string,"p_slug": string }; Returns: Json
                            },
 "queue_destruction_requests":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -1478,6 +1515,11 @@ isOneToOne: false
 "registration_consents":
 { Args: { "p_partner_name": string,"p_program_id": string }; Returns: {
               "body": string,"kind": string,"required": boolean,"title": string,"version": number
+            }[]
+                           },
+"registration_discounts":
+{ Args: { "p_partner_id": string,"p_program_id": string,"p_registered_on": string }; Returns: {
+              "amount": number,"kind": string,"label": string
             }[]
                            },
 "registration_field_modes":
