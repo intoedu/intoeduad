@@ -77,7 +77,15 @@ export function LeadsListPage() {
 
   return (
     <>
-      <PageHeader title="상담 신청" description="학부모 상담 신청을 확인하고 연락·상담·등록까지 진행 상황을 관리합니다." />
+      <PageHeader
+        title="상담 신청"
+        description="학부모 상담 신청을 확인하고 연락·상담·등록까지 진행 상황을 관리합니다."
+        actions={
+          <Link to="/admin/leads/new" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700">
+            + 상담 직접 등록
+          </Link>
+        }
+      />
 
       <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="상태 필터">
         {[{ value: '', label: '전체' }, ...Object.entries(LEAD_STATUS).map(([value, s]) => ({ value, label: s.label }))].map((s) => (

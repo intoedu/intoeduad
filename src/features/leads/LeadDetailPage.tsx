@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useLocation, useParams } from 'react-router'
 import { NotesPanel } from '../../components/shared/NotesPanel'
 import { Alert, Badge, Button, Card, Field, PageHeader, Select, Spinner } from '../../components/ui'
 import { publicSiteUrl } from '../../domain/links'
@@ -21,7 +21,11 @@ export function LeadDetailPage() {
   const [lead, setLead] = useState<LeadRow | null | undefined>(undefined)
   const [timeline, setTimeline] = useState<TimelineItem[]>([])
   const [staff, setStaff] = useState<Option[]>([])
-  const [message, setMessage] = useState<{ tone: 'green' | 'red'; text: string } | null>(null)
+  const location = useLocation()
+  const [message, setMessage] = useState<{ tone: 'green' | 'red'; text: string } | null>(() => {
+    const m = (location.state as { message?: string } | null)?.message
+    return m ? { tone: 'green', text: m } : null
+  })
 
   const load = useCallback(async () => {
     const row = await getLead(id)

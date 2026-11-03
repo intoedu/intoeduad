@@ -121,9 +121,18 @@ function OfficeRegistrations() {
         title="등록생"
         description="캠프 등록 신청과 납부 현황입니다. 줄을 누르면 등록생 상세(납부 기록·환불·여권)로 이동합니다."
         actions={
-          <Button variant="secondary" onClick={() => void exportCsv()} disabled={!filtered.length}>
-            명단 CSV (여권·건강 정보 제외)
-          </Button>
+          <>
+            {/* 현지 팀은 위에서 별도 화면으로 갈라지므로 여기는 관리자·직원만 */}
+            <Link
+              to={`/admin/registrations/new${programId ? `?program=${programId}` : ''}`}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              + 등록생 직접 추가
+            </Link>
+            <Button variant="secondary" onClick={() => void exportCsv()} disabled={!filtered.length}>
+              명단 CSV (여권·건강 정보 제외)
+            </Button>
+          </>
         }
       />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

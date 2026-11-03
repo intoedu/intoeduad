@@ -18,6 +18,7 @@ const PartnersListPage = lazy(() => import('./features/partners/PartnersListPage
 const PartnerNewPage = lazy(() => import('./features/partners/PartnerNewPage').then((m) => ({ default: m.PartnerNewPage })))
 const PartnerDetailPage = lazy(() => import('./features/partners/PartnerDetailPage').then((m) => ({ default: m.PartnerDetailPage })))
 const LeadsListPage = lazy(() => import('./features/leads/LeadsListPage').then((m) => ({ default: m.LeadsListPage })))
+const LeadNewPage = lazy(() => import('./features/leads/LeadNewPage').then((m) => ({ default: m.LeadNewPage })))
 const LeadDetailPage = lazy(() => import('./features/leads/LeadDetailPage').then((m) => ({ default: m.LeadDetailPage })))
 const ProgramsListPage = lazy(() => import('./features/programs/ProgramPages').then((m) => ({ default: m.ProgramsListPage })))
 const ProgramNewPage = lazy(() => import('./features/programs/ProgramPages').then((m) => ({ default: m.ProgramNewPage })))
@@ -31,6 +32,9 @@ const ConsentsPage = lazy(() => import('./features/settings/ConsentsPage').then(
 const RegisterPage = lazy(() => import('./features/public/RegisterPage').then((m) => ({ default: m.RegisterPage })))
 const RegisterDonePage = lazy(() => import('./features/public/RegisterDonePage').then((m) => ({ default: m.RegisterDonePage })))
 const PassportPage = lazy(() => import('./features/public/PassportPage').then((m) => ({ default: m.PassportPage })))
+const RegistrationNewPage = lazy(() =>
+  import('./features/registrations/RegistrationNewPage').then((m) => ({ default: m.RegistrationNewPage })),
+)
 const RegistrationDetailPage = lazy(() =>
   import('./features/registrations/RegistrationDetailPage').then((m) => ({ default: m.RegistrationDetailPage })),
 )
@@ -99,6 +103,7 @@ export const router = createBrowserRouter([
       { path: 'partners/stats', element: guarded(OFFICE, <PartnerStatsPage />) },
       { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
       { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
+      { path: 'leads/new', element: guarded(OFFICE, <LeadNewPage />) },
       { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },
       { path: 'programs', element: guarded(OFFICE, <ProgramsListPage />) },
       { path: 'programs/new', element: guarded(OFFICE, <ProgramNewPage />) },
@@ -106,6 +111,7 @@ export const router = createBrowserRouter([
       { path: 'prep', element: guarded(OFFICE, <PrepPage />) },
       { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
       { path: 'registrations', element: guarded(['admin', 'staff', 'viewer'], <RegistrationsPage />) },
+      { path: 'registrations/new', element: guarded(OFFICE, <RegistrationNewPage />) },
       { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
       { path: 'payments', element: guarded(OFFICE, <PaymentsPage />) },
       { path: 'commissions', element: guarded(OFFICE, <CommissionsPage />) },
