@@ -1,9 +1,48 @@
 import { formatDateLongKo } from '../../domain/dates'
 import { formatWon } from '../../domain/registration'
 import { PAYMENT_STATUS } from '../../lib/labels'
-import type { BankAccount, DiscountLine, ScheduleLine } from './registerApi'
+import { Link } from 'react-router'
+import { agencyServiceLabels } from '../../domain/agency'
+import type { AgencyInfo, BankAccount, DiscountLine, ScheduleLine } from './registerApi'
 
 const KIND_LABEL: Record<string, string> = { deposit: '예약금', balance: '잔금', extra: '추가 납부' }
+
+// 항공권·ESTA·보험 대행 선택과 출국 서류 정보 제출 안내 (완료 화면·신청 내용 확인 화면)
+export function AgencyBox({ agency, token }: { agency?: AgencyInfo | null; token?: string | null }) {
+  if (!agency) return null
+  if (agency.choice === 'self') {
+    return (
+      <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700 ring-1 ring-slate-200">
+        항공권·ESTA·여행자보험: <strong>직접 준비</strong>
+        <p className="mt-1 text-xs text-slate-500">ESTA 승인과 항공권 예약을 마치시면 카카오톡으로 알려 주세요. 대행으로 바꾸고 싶으시면 문의해 주세요.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-2 rounded-xl bg-brand-50 px-4 py-3 text-sm ring-1 ring-brand-100">
+      <p className="text-slate-800">
+        <strong>대행 신청:</strong> {agencyServiceLabels(agency.services)} · 대행료 {formatWon(agency.fee)}
+      </p>
+      {agency.travel_allowed && (
+        <>
+          <p className="text-xs text-slate-600">
+            {agency.travel_submitted_at
+              ? '출국 서류 정보를 받았습니다. 바뀐 내용이 있으면 다시 열어 고쳐 주세요.'
+              : '대행을 위해 출국하는 분의 여권 정보와 ESTA 신청 항목을 입력해 주세요.'}
+          </p>
+          {token && (
+            <Link
+              to={`/my/${token}/travel`}
+              className="inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+            >
+              {agency.travel_submitted_at ? '출국 서류 정보 확인·수정' : '출국 서류 정보 입력하기'}
+            </Link>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
 
 // 적용된 캠프비 할인 (신청서 미리보기·완료 화면·신청 내용 확인 화면 공통)
 export function DiscountList({ discounts }: { discounts?: DiscountLine[] | null }) {

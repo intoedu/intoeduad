@@ -3,7 +3,7 @@ import { formatDateLongKo } from '../../domain/dates'
 import { PublicLayout } from './PublicLayout'
 import type { RegisterDoneState } from './RegisterPage'
 import { KakaoButton } from './RegisterPage'
-import { BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
+import { AgencyBox, BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
 
 export function RegisterDonePage() {
   const state = useLocation().state as RegisterDoneState | null
@@ -54,6 +54,7 @@ export function RegisterDonePage() {
             <h2 className="text-base font-bold text-slate-900">납부 안내</h2>
             <DiscountList discounts={s.discounts} />
             <ScheduleList lines={s.schedule} />
+            <AgencyBox agency={s.agency} token={state?.myToken} />
             <BankAccountBox account={s.bank_account} />
           </section>
         )}

@@ -1,7 +1,7 @@
 import { supabase, type Tables } from '../../lib/supabase'
 
 export type Registration = Tables<'registrations'> & {
-  programs: Pick<Tables<'programs'>, 'id' | 'name' | 'season' | 'start_date' | 'end_date' | 'passport_upload_enabled' | 'total_price' | 'refund_rules' | 'type'> | null
+  programs: Pick<Tables<'programs'>, 'id' | 'name' | 'season' | 'start_date' | 'end_date' | 'passport_upload_enabled' | 'total_price' | 'refund_rules' | 'type' | 'agency_enabled'> | null
   partners: Pick<Tables<'partners'>, 'id' | 'name' | 'code'> | null
   partner_contacts: Pick<Tables<'partner_contacts'>, 'id' | 'name'> | null
 }
@@ -13,7 +13,7 @@ export async function getRegistration(id: string) {
     supabase
       .from('registrations')
       .select(
-        '*, programs(id, name, season, start_date, end_date, passport_upload_enabled, total_price, refund_rules, type), partners(id, name, code), partner_contacts(id, name)',
+        '*, programs(id, name, season, start_date, end_date, passport_upload_enabled, total_price, refund_rules, type, agency_enabled), partners(id, name, code), partner_contacts(id, name)',
       )
       .eq('id', id)
       .maybeSingle(),

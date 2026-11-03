@@ -1,6 +1,7 @@
 // 학부모 캠프 등록 신청 (비로그인 공개 신청서 /register/:slug)
 // - 공개 키(publishable)로만 호출. 개인정보를 다루는 DB 함수는 service role로만 실행한다.
 // - action: "prefill"(상담 기록 링크로 미리 채움) / "submit"(신청 저장) / "my"(고객용 신청 내용 확인)
+//           / "travel"·"travel_submit"(대행 신청자의 출국 서류 정보 — M17)
 // - 저장은 submit_registration()이 한 트랜잭션으로 처리(정원·납부 일정·동의 기록·확인 링크)
 // 여권 사진은 신청 저장 뒤 passport-upload로 따로 올린다(M8)
 // 납부 안내 알림톡(대기 접수는 대기 안내)·직원 알림은 DB가 발송 대기열에 넣고 message-sender가 보낸다(문안: docs/alimtalk-templates.md)
@@ -54,7 +55,11 @@ const ERRORS: Record<string, [number, string]> = {
   TOO_MANY_REQUESTS: [429, "같은 번호로 방금 신청하셨습니다. 잠시 후 다시 시도해 주세요."],
   CONSENT_REQUIRED: [400, "필수 동의 항목에 모두 동의해 주세요."],
   INVALID_INPUT: [400, "입력하신 내용을 다시 확인해 주세요."],
+  AGENCY_REQUIRED: [400, "항공권·ESTA·여행자보험 대행 여부와 항목을 선택해 주세요."],
+  NOT_ALLOWED: [403, "대행을 신청한 경우에만 출국 서류 정보를 낼 수 있습니다."],
 };
+
+const AGENCY_SERVICES = ["flight", "esta", "insurance"];
 
 // 신청 직후 알림 발송 함수를 깨운다(실패해도 매분 예약 작업이 다시 처리)
 function kickMessageSender(req: Request) {
@@ -109,6 +114,39 @@ export default {
       return reply(200, { summary: data });
     }
 
+    // 출국 서류 정보(대행 신청자): 불러오기 / 저장
+    if (action === "travel" || action === "travel_submit") {
+      const token = tokenOrNull(body.token);
+      if (!token) return reply(404, { error: "링크가 올바르지 않거나 만료되었습니다." });
+      if (action === "travel") {
+        const { data, error } = await ctx.supabaseAdmin.rpc("travel_form_by_token", { p_token: token });
+        if (error) {
+          console.error("travel_form_by_token failed", error.message);
+          return reply(500, { error: "정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." });
+        }
+        if (!data) return reply(404, { error: "링크가 올바르지 않거나 만료되었습니다." });
+        return reply(200, { form: data });
+      }
+      const travelers = Array.isArray(body.travelers) ? body.travelers.slice(0, 3) : [];
+      const rawAgree = (body.agree && typeof body.agree === "object" ? body.agree : {}) as Record<string, unknown>;
+      const { error } = await ctx.supabaseAdmin.rpc("travel_submit", {
+        p_token: token,
+        p: {
+          travelers,
+          agree: { travel_privacy: rawAgree.travel_privacy === true, travel_unique_id: rawAgree.travel_unique_id === true },
+        },
+      });
+      if (error) {
+        const code = error.hint ?? "";
+        if (code === "INVALID_INPUT" && /[가-힣]/.test(error.message)) return reply(400, { error: error.message, code });
+        const known = ERRORS[code];
+        if (known) return reply(known[0], { error: known[1], code });
+        console.error("travel_submit failed", error.message);
+        return reply(500, { error: "저장하지 못했습니다. 잠시 후 다시 시도해 주세요." });
+      }
+      return reply(200, { ok: true });
+    }
+
     if (action !== "submit") return reply(400, { error: "요청 형식이 올바르지 않습니다." });
 
     // 허니팟: 사람에게는 보이지 않는 칸이 채워져 있으면 저장하지 않고 성공처럼 응답
@@ -151,6 +189,10 @@ export default {
       special_notes: text(body.special_notes, 2000),
       health_notes: text(body.health_notes, 2000),
       agree,
+      agency_choice: body.agency_choice === "agency" || body.agency_choice === "self" ? body.agency_choice : null,
+      agency_services: Array.isArray(body.agency_services)
+        ? body.agency_services.filter((x): x is string => typeof x === "string" && AGENCY_SERVICES.includes(x))
+        : [],
       phone_hash: await phoneHash(phone),
     };
 

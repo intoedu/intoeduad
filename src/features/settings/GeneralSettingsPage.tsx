@@ -10,6 +10,7 @@ export function GeneralSettingsPage() {
   const [kakao, setKakao] = useState<string | null>(null)
   const [site, setSite] = useState('')
   const [bank, setBank] = useState<Bank>({ bank: '', number: '', holder: '' })
+  const [fees, setFees] = useState({ '1': '30000', '2': '50000', '3': '60000' })
   const [message, setMessage] = useState<{ tone: 'green' | 'red'; text: string } | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -17,13 +18,15 @@ export function GeneralSettingsPage() {
     supabase
       .from('settings')
       .select('key, value')
-      .in('key', ['kakao_channel_url', 'bank_account', 'public_site_url'])
+      .in('key', ['kakao_channel_url', 'bank_account', 'public_site_url', 'agency_fees'])
       .then(({ data }) => {
         const map = Object.fromEntries((data ?? []).map((r) => [r.key, r.value]))
         setKakao(typeof map.kakao_channel_url === 'string' ? map.kakao_channel_url : '')
         setSite(typeof map.public_site_url === 'string' ? map.public_site_url : '')
         const b = (map.bank_account ?? {}) as Partial<Bank>
         setBank({ bank: b.bank ?? '', number: b.number ?? '', holder: b.holder ?? '' })
+        const f = (map.agency_fees ?? {}) as Record<string, number>
+        setFees({ '1': String(f['1'] ?? 30000), '2': String(f['2'] ?? 50000), '3': String(f['3'] ?? 60000) })
       })
   }, [])
 
@@ -40,8 +43,11 @@ export function GeneralSettingsPage() {
     if (bank.number.trim() && !/^[0-9-]{6,30}$/.test(bank.number.trim())) {
       return setMessage({ tone: 'red', text: '계좌번호는 숫자와 하이픈(-)만 입력해 주세요.' })
     }
+    const feeNums = (['1', '2', '3'] as const).map((k) => Number(fees[k].replace(/[^0-9]/g, '')))
+    if (feeNums.some((n) => !n)) return setMessage({ tone: 'red', text: '대행료 3칸을 모두 입력해 주세요.' })
     setSaving(true)
     const { error } = await supabase.from('settings').upsert([
+      { key: 'agency_fees', value: { '1': feeNums[0], '2': feeNums[1], '3': feeNums[2] } },
       { key: 'kakao_channel_url', value: url },
       { key: 'public_site_url', value: siteUrl },
       { key: 'bank_account', value: { bank: bank.bank.trim(), number: bank.number.trim(), holder: bank.holder.trim() } },
@@ -82,6 +88,17 @@ export function GeneralSettingsPage() {
             <Field label="예금주">
               <Input value={bank.holder} onChange={(e) => setBank({ ...bank, holder: e.target.value })} />
             </Field>
+          </div>
+        </Card>
+        <Card>
+          <p className="mb-1 font-semibold text-slate-900">항공권·ESTA·여행자보험 대행료</p>
+          <p className="mb-3 text-sm text-slate-500">학부모가 고른 대행 항목 개수에 따른 금액입니다(항공권 요금·보험료·ESTA 수수료는 별도). 바꾸면 이후 신청부터 적용됩니다.</p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {(['1', '2', '3'] as const).map((k) => (
+              <Field key={k} label={k === '3' ? '3개 모두 선택(원)' : `${k}개 선택(원)`}>
+                <Input inputMode="numeric" value={fees[k]} onChange={(e) => setFees((f) => ({ ...f, [k]: e.target.value }))} />
+              </Field>
+            ))}
           </div>
         </Card>
         <Button onClick={() => void save()} disabled={saving}>

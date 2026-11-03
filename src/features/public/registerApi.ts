@@ -38,6 +38,7 @@ export type RegisterForm = {
   fields?: Record<RegisterFieldKey, FieldMode>
   schedule?: ScheduleLine[]
   discounts?: DiscountLine[]
+  agency?: { fees: Record<string, number> } | null
   destroy_date?: string
   consents?: RegisterConsent[]
   refund?: { version: number; body: string }
@@ -55,6 +56,15 @@ export type Prefill = {
 
 export type BankAccount = { bank: string; number: string; holder: string }
 
+// 항공권·ESTA·보험 대행 선택(M17)
+export type AgencyInfo = {
+  choice: 'agency' | 'self'
+  services: string[]
+  fee: number
+  travel_submitted_at: string | null
+  travel_allowed: boolean
+}
+
 // 적용된 캠프비 할인(얼리버드·학원 연계)
 export type DiscountLine = { kind: 'early_bird' | 'partner'; label: string; amount: number }
 
@@ -69,6 +79,7 @@ export type RegistrationSummary = {
   program: { name: string; season: string | null; country: string | null; start_date: string; end_date: string; end_plus_days: number }
   schedule: Array<ScheduleLine & { paid: number; status: 'scheduled' | 'partial' | 'paid' | 'overdue' | 'canceled' }>
   discounts?: DiscountLine[]
+  agency?: AgencyInfo | null
   bank_account: BankAccount | null
   kakao_channel_url: string | null
 }
@@ -98,6 +109,8 @@ export type RegistrationSubmission = {
   special_notes: string
   health_notes: string
   agree: Record<string, boolean>
+  agency_choice?: 'agency' | 'self' | null
+  agency_services?: string[]
   website: string
 }
 
@@ -147,4 +160,54 @@ export async function submitRegistration(body: RegistrationSubmission) {
 export async function getMySummary(token: string): Promise<RegistrationSummary> {
   const res = await invoke<{ summary: RegistrationSummary }>({ action: 'my', token }, '신청 내용을 불러오지 못했습니다.')
   return res.summary
+}
+
+// ---------------------------------------------------------------------------
+// 출국 서류 정보 (대행 신청자) — M17
+// ---------------------------------------------------------------------------
+export type TravelerInput = {
+  traveler_type: 'student' | 'guardian'
+  relation?: string
+  surname_en: string
+  given_name_en: string
+  gender: string
+  birth_date: string
+  birth_city_en: string
+  birth_country: string
+  other_citizenship: string
+  passport_no: string
+  passport_no_masked?: string | null
+  passport_issue_date: string
+  passport_expiry_date: string
+  father_name_en: string
+  mother_name_en: string
+  home_address_en: string
+  phone: string
+  email: string
+  employer: string
+  job_title: string
+  emergency_name: string
+  emergency_phone: string
+  memo: string
+}
+
+export type TravelForm = {
+  allowed: boolean
+  program: { name: string; season: string | null; start_date: string; end_date: string }
+  agency: { choice: string | null; services: string[]; fee: number }
+  student: { name_ko: string; name_en: string | null; birth_date: string | null; gender: string | null }
+  parent: { name: string; phone: string; email: string | null }
+  emergency: { name: string | null; phone: string | null }
+  submitted_at: string | null
+  travelers: Array<Partial<TravelerInput> & { traveler_type: 'student' | 'guardian'; sort: number }>
+  consents: Array<{ kind: string; version: number; title: string; body: string }>
+}
+
+export async function getTravelForm(token: string): Promise<TravelForm> {
+  const res = await invoke<{ form: TravelForm }>({ action: 'travel', token }, '정보를 불러오지 못했습니다.')
+  return res.form
+}
+
+export async function submitTravel(token: string, travelers: TravelerInput[], agree: Record<string, boolean>) {
+  return invoke<{ ok: boolean }>({ action: 'travel_submit', token, travelers, agree }, '저장하지 못했습니다. 잠시 후 다시 시도해 주세요.')
 }

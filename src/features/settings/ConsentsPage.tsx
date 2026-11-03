@@ -17,6 +17,8 @@ const PLACEHOLDERS: Record<string, string[]> = {
   reg_partner_share: ['partner_name'],
   destruction_notice: ['program_name', 'program_end_date', 'destroy_after_days', 'destroy_date'],
   refund_default: ['program_name'],
+  travel_privacy: ['program_name', 'ticketing_agent', 'destroy_after_days'],
+  travel_unique_id: ['destroy_after_days'],
 }
 
 const KIND_ORDER = Object.keys(CONSENT_KIND_LABELS)

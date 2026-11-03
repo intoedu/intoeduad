@@ -18,6 +18,8 @@ import {
   type RegisterForm,
   type RegistrationSummary,
 } from './registerApi'
+import { AgencyChooser } from '../../components/shared/AgencyChooser'
+import type { AgencyChoice, AgencyService } from '../../domain/agency'
 import { PassportPicker } from './PassportPicker'
 import { uploadPassport } from './passportUpload'
 import { DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
@@ -139,6 +141,7 @@ export function RegisterPage() {
 
   const [agree, setAgree] = useState<Record<string, boolean>>({})
   const [passportMode, setPassportMode] = useState<'' | 'now' | 'later'>('')
+  const [agency, setAgency] = useState<{ choice: AgencyChoice | ''; services: AgencyService[] }>({ choice: '', services: [] })
   const [passportFile, setPassportFile] = useState<File | null>(null)
   const [website, setWebsite] = useState('') // 허니팟
   const [attempted, setAttempted] = useState(false)
@@ -245,6 +248,10 @@ export function RegisterPage() {
       e.health = '건강 특이사항을 적으셨다면 민감정보 수집·이용에 동의해 주세요. 동의하지 않으시려면 내용을 지워 주세요.'
     }
     if (!agree.destruction_notice) e.destruction = '개인정보 파기 안내를 확인해 주세요.'
+    if (form?.agency) {
+      if (!agency.choice) e.agency = '항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.'
+      else if (agency.choice === 'agency' && agency.services.length === 0) e.agency = '대행할 항목을 하나 이상 골라 주세요.'
+    }
     if (form?.program.passport_upload_enabled && !form.is_full) {
       if (!passportMode) e.passport = '여권 사진을 지금 올리실지, 나중에 제출하실지 골라 주세요.'
       else if (passportMode === 'now' && !passportFile) e.passport = '여권 사진을 선택해 주세요. 지금 없으시면 "나중에 제출"을 골라 주세요.'
@@ -281,6 +288,8 @@ export function RegisterPage() {
         emergency_phone: normalizePhone(v.emergency_phone),
         health_notes: form.program.health_field_enabled ? v.health_notes : '',
         agree: { ...agree, reg_partner_share: hasPartner && !!agree.reg_partner_share },
+        agency_choice: form.agency ? agency.choice || null : null,
+        agency_services: form.agency && agency.choice === 'agency' ? agency.services : [],
         website,
       })
       // 여권 사진은 신청 저장 뒤 따로 올린다(신청과 파일 업로드 2단계 분리)
@@ -664,6 +673,12 @@ export function RegisterPage() {
                 {waitlist && <p className="text-xs text-slate-500">대기 접수는 자리가 확정된 뒤 여권 사진을 받습니다.</p>}
               </div>,
             )}
+          </Section>
+        )}
+
+        {form.agency && (
+          <Section title="항공권·ESTA·여행자보험 대행" description="대행을 원하시면 항목을 골라 주세요. 직접 준비하셔도 됩니다.">
+            <AgencyChooser fees={form.agency.fees} choice={agency.choice} services={agency.services} onChange={setAgency} error={errors.agency} />
           </Section>
         )}
 

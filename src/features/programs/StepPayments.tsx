@@ -69,6 +69,11 @@ export function StepPayments({
   }, [reloadDiscounts])
   const [commission, setCommission] = useState(program.commission_amount?.toString() ?? '')
   const [noticeOn, setNoticeOn] = useState(program.commission_notice_sent_on ?? '')
+  const [agencyEnabled, setAgencyEnabled] = useState(program.agency_enabled)
+  const [usContact, setUsContact] = useState(() => {
+    const c = (program.us_contact ?? {}) as { name?: string; address?: string; phone?: string }
+    return { name: c.name ?? '', address: c.address ?? '', phone: c.phone ?? '' }
+  })
   const [errors, setErrors] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
@@ -127,6 +132,8 @@ export function StepPayments({
         .update({
           commission_amount: commission === '' ? null : Number(commission.replace(/[^0-9]/g, '')),
           commission_notice_sent_on: noticeOn || null,
+          agency_enabled: agencyEnabled,
+          us_contact: { name: usContact.name.trim(), address: usContact.address.trim(), phone: usContact.phone.trim() },
         })
         .eq('id', program.id),
     )
@@ -278,6 +285,33 @@ export function StepPayments({
       </Card>
 
       <PartnerDiscounts program={program} discounts={discounts} onChanged={reloadDiscounts} />
+
+      {/* 항공권·ESTA·여행자보험 대행 (M17) */}
+      <Card>
+        <label className="flex items-start gap-2">
+          <input type="checkbox" className="mt-1 size-4" checked={agencyEnabled} onChange={(e) => setAgencyEnabled(e.target.checked)} />
+          <span>
+            <span className="font-semibold text-slate-900">신청서에서 항공권·ESTA·여행자보험 대행 여부 묻기</span>
+            <span className="block text-sm text-slate-600">
+              학부모가 "대행 / 직접 준비"와 대행 항목을 고릅니다. 대행료는 설정 → 기본 설정의 금액(기본 1개 3만·2개 5만·3개 6만 원)으로 납부 안내에 함께
+              들어가고, 대행을 고른 학부모는 신청 내용 확인 화면에서 출국 서류 정보(여권 영문 이름·ESTA 항목)를 냅니다.
+            </span>
+          </span>
+        </label>
+        {agencyEnabled && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <Field label="미국 내 연락처 이름 (ESTA)" hint="예: INTO EDU USA OFFICE">
+              <Input value={usContact.name} onChange={(e) => setUsContact((c) => ({ ...c, name: e.target.value }))} />
+            </Field>
+            <Field label="미국 내 체류 주소 (영문)" hint="ESTA 신청 시 담당자가 입력">
+              <Input value={usContact.address} onChange={(e) => setUsContact((c) => ({ ...c, address: e.target.value }))} />
+            </Field>
+            <Field label="미국 내 연락처 번호">
+              <Input value={usContact.phone} onChange={(e) => setUsContact((c) => ({ ...c, phone: e.target.value }))} />
+            </Field>
+          </div>
+        )}
+      </Card>
 
       {/* 커미션 — 내부 전용 */}
       <Card className="ring-amber-300">

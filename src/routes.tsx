@@ -50,6 +50,7 @@ const NotificationSettingsPage = lazy(() =>
 )
 const PartnerStatsPage = lazy(() => import('./features/partners/PartnerStatsPage').then((m) => ({ default: m.PartnerStatsPage })))
 const PassportLogsPage = lazy(() => import('./features/logs/PassportLogsPage').then((m) => ({ default: m.PassportLogsPage })))
+const TravelPage = lazy(() => import('./features/public/TravelPage').then((m) => ({ default: m.TravelPage })))
 const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
 const OFFICE: StaffRole[] = ['admin', 'staff']
@@ -82,6 +83,7 @@ export const router = createBrowserRouter([
   { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
   { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
   { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },
+  { path: '/my/:token/travel', element: <Lazy><TravelPage /></Lazy> },
   { path: '/passport/:token', element: <Lazy><PassportPage /></Lazy> },
 
   // 직원용

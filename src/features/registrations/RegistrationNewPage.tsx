@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { ENTRY_METHODS, entryErrorText, GRADES, PartnerPicker } from '../../components/admin/StaffEntryParts'
+import { AgencyChooser } from '../../components/shared/AgencyChooser'
+import { DEFAULT_AGENCY_FEES, type AgencyChoice, type AgencyFees, type AgencyService } from '../../domain/agency'
 import { Alert, Badge, Button, Card, Field, Input, PageHeader, Select, Textarea } from '../../components/ui'
 import { formatDateKo } from '../../domain/dates'
 import { normalizePhone } from '../../domain/phone'
@@ -23,6 +25,7 @@ type ProgramOption = {
   health_field_enabled: boolean
   passport_upload_enabled: boolean
   capacity: number | null
+  agency_enabled: boolean
 }
 
 const EMPTY = {
@@ -55,6 +58,8 @@ export function RegistrationNewPage() {
   const [agreeHealth, setAgreeHealth] = useState(false)
   const [agreeShare, setAgreeShare] = useState(false)
   const [notify, setNotify] = useState(false)
+  const [agency, setAgency] = useState<{ choice: AgencyChoice | ''; services: AgencyService[] }>({ choice: '', services: [] })
+  const [fees, setFees] = useState<AgencyFees>(DEFAULT_AGENCY_FEES)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState<{ id: string; status: string; myUrl: string; name: string } | null>(null)
@@ -63,10 +68,16 @@ export function RegistrationNewPage() {
   useEffect(() => {
     void supabase
       .from('programs')
-      .select('id, name, season, status, start_date, form_config, health_field_enabled, passport_upload_enabled, capacity')
+      .select('id, name, season, status, start_date, form_config, health_field_enabled, passport_upload_enabled, capacity, agency_enabled')
       .is('deleted_at', null)
       .order('start_date', { ascending: false })
       .then(({ data }) => setPrograms((data ?? []) as ProgramOption[]))
+    void supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'agency_fees')
+      .maybeSingle()
+      .then(({ data }) => data?.value && setFees(data.value as AgencyFees))
   }, [])
 
   const program = programs.find((p) => p.id === programId)
@@ -82,6 +93,8 @@ export function RegistrationNewPage() {
     if (!v.student_name_ko.trim() || !v.parent_name.trim()) return setError('학생 이름과 학부모 이름을 입력해 주세요.')
     if (!/^01[0-9]{8,9}$/.test(normalizePhone(v.parent_phone))) return setError('학부모 휴대폰 번호를 확인해 주세요.')
     if (!consent) return setError('학부모 동의를 받았는지 확인해 주세요.')
+    if (program.agency_enabled && !agency.choice) return setError('항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.')
+    if (program.agency_enabled && agency.choice === 'agency' && agency.services.length === 0) return setError('대행할 항목을 하나 이상 골라 주세요.')
     if (program.health_field_enabled && v.health_notes.trim() && !agreeHealth) return setError('건강 특이사항을 적었다면 민감정보 동의를 받았는지 확인해 주세요.')
     setSaving(true)
     const { data, error: err } = await supabase.rpc('admin_create_registration', {
@@ -100,6 +113,8 @@ export function RegistrationNewPage() {
         consent_confirmed: true,
         agree_health: agreeHealth,
         agree_partner_share: agreeShare,
+        agency_choice: program.agency_enabled ? agency.choice || null : null,
+        agency_services: program.agency_enabled && agency.choice === 'agency' ? agency.services : [],
         notify,
       },
     })
@@ -154,6 +169,7 @@ export function RegistrationNewPage() {
                 setAgreeHealth(false)
                 setAgreeShare(false)
                 setNotify(false)
+                setAgency({ choice: '', services: [] })
               }}
             >
               같은 캠프에 한 명 더 추가
@@ -304,6 +320,13 @@ export function RegistrationNewPage() {
                 </div>
               )}
             </Card>
+
+            {program.agency_enabled && (
+              <Card>
+                <p className="mb-3 font-semibold text-slate-900">항공권·ESTA·여행자보험 대행</p>
+                <AgencyChooser fees={fees} choice={agency.choice} services={agency.services} onChange={setAgency} />
+              </Card>
+            )}
 
             <Card>
               <p className="mb-3 font-semibold text-slate-900">소개 경로</p>

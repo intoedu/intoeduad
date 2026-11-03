@@ -10,6 +10,7 @@ import { waitingAttribution, type RegistrationStatus } from '../../domain/regist
 import { REGISTRATION_STATUS } from '../../lib/labels'
 import { useAuth } from '../auth/AuthProvider'
 import { CONSENT_RECORD_LABELS, getRegistration } from './api'
+import { AgencyTravelCard } from './AgencyTravelCard'
 import { PassportPanel } from './PassportPanel'
 import { PaymentsCard } from './PaymentsCard'
 import { RefundsCard, StatusActions } from './StatusCards'
@@ -118,6 +119,7 @@ export function RegistrationDetailPage() {
             onMessage={setMessage}
           />
           <RefundsCard key={r.status} registrationId={r.id} onChanged={load} onMessage={setMessage} />
+          <AgencyTravelCard registration={r} agencyEnabled={!!p?.agency_enabled} onChanged={() => void load()} onMessage={setMessage} />
           <CommissionSummary registrationId={r.id} />
           <AttributionCard table="registrations" row={r} isAdmin={profile?.role === 'admin'} onChanged={load} onMessage={setMessage} />
           <p className="-mt-2 text-xs text-slate-500">

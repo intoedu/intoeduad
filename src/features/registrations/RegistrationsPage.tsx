@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { NotesPanel } from '../../components/shared/NotesPanel'
 import { Badge, Button, EmptyState, Field, Input, PageHeader, Select, Spinner } from '../../components/ui'
+import { agencyServiceLabels } from '../../domain/agency'
 import { formatDateKo } from '../../domain/dates'
 import { formatPhone, normalizePhone } from '../../domain/phone'
 import { formatWon } from '../../domain/registration'
@@ -69,6 +70,10 @@ function OfficeRegistrations() {
       if (flag === 'passport' && r.passport_status !== 'pending') return false
       if (flag === 'overdue' && !(r.overdue_count && r.overdue_count > 0)) return false
       if (flag === 'attribution' && r.attribution_confirmed_at) return false
+      if (flag === 'agency' && r.agency_choice !== 'agency') return false
+      if (flag === 'agency_docs' && !(r.agency_choice === 'agency' && !r.travel_info_submitted_at)) return false
+      if (flag === 'self' && r.agency_choice !== 'self') return false
+      if (flag === 'agency_unset' && r.agency_choice) return false
       if (term && !(r.student_name_ko?.includes(term) || r.parent_name?.includes(term) || (digits.length >= 4 && r.parent_phone?.includes(digits)))) return false
       return true
     })
@@ -109,6 +114,13 @@ function OfficeRegistrations() {
       { header: '특이사항', value: (r) => r.special_notes },
       { header: '소개 학원', value: (r) => r.partners?.name ?? '' },
       { header: '여권 제출', value: (r) => PASSPORT_STATUS[r.passport_status] ?? r.passport_status },
+      {
+        header: '항공권·ESTA·보험 대행',
+        value: (r) => {
+          const b = board.get(r.id)
+          return b?.agency_choice === 'agency' ? agencyServiceLabels(b.agency_services ?? []) : b?.agency_choice === 'self' ? '직접 준비' : ''
+        },
+      },
       { header: '납부 예정 합계', value: (r) => board.get(r.id)?.total_due ?? 0 },
       { header: '납부 합계', value: (r) => board.get(r.id)?.total_paid ?? 0 },
     ])
@@ -163,6 +175,10 @@ function OfficeRegistrations() {
             <option value="overdue">납부 기한 지남</option>
             <option value="passport">여권 미제출</option>
             <option value="attribution">소개 경로 확인 필요</option>
+            <option value="agency">대행 신청(항공권·ESTA·보험)</option>
+            <option value="agency_docs">대행 — 출국 서류 정보 미제출</option>
+            <option value="self">직접 준비</option>
+            <option value="agency_unset">대행 여부 미선택</option>
           </Select>
         </Field>
         <Field label="검색(이름·번호)">
@@ -186,6 +202,7 @@ function OfficeRegistrations() {
                 <th className="px-4 py-2">다음 기한</th>
                 <th className="px-4 py-2">소개 학원</th>
                 <th className="px-4 py-2">여권</th>
+                <th className="px-4 py-2">대행</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -219,6 +236,18 @@ function OfficeRegistrations() {
                     <td className="px-4 py-2">{r.partner_name ?? '-'}</td>
                     <td className="px-4 py-2">
                       {r.passport_status === 'pending' ? <Badge tone="amber">미제출</Badge> : PASSPORT_STATUS[r.passport_status ?? ''] ?? '-'}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      {r.agency_choice === 'agency' ? (
+                        <Badge tone={r.travel_info_submitted_at ? 'blue' : 'amber'}>
+                          {agencyServiceLabels(r.agency_services ?? [])}
+                          {r.travel_info_submitted_at ? '' : ' · 서류 대기'}
+                        </Badge>
+                      ) : r.agency_choice === 'self' ? (
+                        <span className="text-slate-500">직접</span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
                   </tr>
                 )

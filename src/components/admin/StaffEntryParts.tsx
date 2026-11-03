@@ -105,6 +105,8 @@ export function entryErrorText(error: { message?: string; hint?: string; code?: 
   switch (error.hint) {
     case 'DUPLICATE':
       return '이미 같은 학생(이름·학부모 번호)으로 신청된 기록이 있습니다. 등록생 목록에서 확인해 주세요.'
+    case 'AGENCY_REQUIRED':
+      return msg ? `${msg}.` : '대행 여부를 선택해 주세요.'
     case 'FULL':
       return '정원이 마감되었고 대기 접수를 쓰지 않는 캠프입니다. 정원을 늘리거나 대기 접수를 켜 주세요.'
     case 'INVALID_INPUT':

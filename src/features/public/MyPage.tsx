@@ -6,7 +6,7 @@ import { PASSPORT_STATUS, REGISTRATION_STATUS } from '../../lib/labels'
 import { PublicLayout } from './PublicLayout'
 import { getMySummary, type RegistrationSummary } from './registerApi'
 import { KakaoButton } from './RegisterPage'
-import { BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
+import { AgencyBox, BankAccountBox, DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
 
 // 고객용 신청 내용 확인 (읽기 전용, 여권 이미지·주소 없음)
 export function MyPage() {
@@ -103,6 +103,7 @@ export function MyPage() {
             <h2 className="text-base font-bold text-slate-900">납부 현황</h2>
             <DiscountList discounts={summary.discounts} />
             <ScheduleList lines={summary.schedule} />
+            <AgencyBox agency={summary.agency} token={token} />
             <BankAccountBox account={summary.bank_account} />
           </section>
         )}
