@@ -43,4 +43,7 @@ export const CONSENT_RECORD_LABELS: Record<string, string> = {
   reg_partner_share: '소개 학원 제공(선택)',
   refund_policy: '환불 규정 확인',
   destruction_notice: '파기 안내 확인',
+  staff_entry: '담당자 동의 확인(직접 입력)',
+  travel_privacy: '출국 서류 대행 — 개인정보·국외 제공',
+  travel_unique_id: '출국 서류 대행 — 여권번호',
 }
