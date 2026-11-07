@@ -92,8 +92,8 @@ async function agreeAll(page, { health = false } = {}) {
   const body = privacyCard.getByLabel('본문')
   await body.fill((await body.inputValue()) + '\n5. 문의: 인투유학 카카오톡 채널')
   await privacyCard.getByRole('button', { name: '새 버전으로 저장' }).click()
-  check('동의 문구 v2 저장', await visible(admin.getByText('문구를 v2로 저장했습니다.', { exact: false })))
-  check('DB: 기존 v1 보존 + v2 추가', sql(`select string_agg(version::text, ',' order by version) from consent_documents where kind = 'reg_privacy'`) === '1,2')
+  check('동의 문구 새 버전(v3) 저장', await visible(admin.getByText('문구를 v3로 저장했습니다.', { exact: false })))
+  check('DB: 기존 v1·v2 보존 + v3 추가', sql(`select string_agg(version::text, ',' order by version) from consent_documents where kind = 'reg_privacy'`) === '1,2,3')
   await admin.screenshot({ path: `${OUT}/m7-consents.png`, fullPage: true })
 
   // 3) 공개 단계: 제3자 제공 대상 미입력 경고
@@ -111,7 +111,7 @@ async function agreeAll(page, { health = false } = {}) {
   check('소개 경로 자동 표시', await visible(parent.getByText('대전 인투학원 김상담 선생님 소개로 신청합니다.', { exact: false })))
   check('납부 안내: 예약금·잔금 미리보기', await visible(parent.getByText('1,000,000원')) && await visible(parent.getByText('4,000,000원')))
   check('제3자 제공 문구에 기관 치환', (await parent.content()).includes('Lincoln School'))
-  check('동의 문구 최신 버전(v2) 표시', (await parent.content()).includes('5. 문의: 인투유학 카카오톡 채널'))
+  check('동의 문구 최신 버전(v3) 표시', (await parent.content()).includes('5. 문의: 인투유학 카카오톡 채널'))
   check('파기 안내 상자', await visible(parent.getByRole('note', { name: '개인정보 파기 안내' })))
   check('여권 제출 선택', await visible(parent.getByText('지금 올리기', { exact: true })))
   let w = await parent.evaluate(() => document.documentElement.scrollWidth)
@@ -144,8 +144,8 @@ async function agreeAll(page, { health = false } = {}) {
       (select name from partner_contacts where id = partner_contact_id) from registrations where program_id = '${pid}' and student_name_ko = '이바다'`)
   check('DB: 등록(신청 접수·영문 대문자·링크 경로·학원 제공 동의·실장)', reg === 'received|LEE BADA|link|true|김상담', reg)
   check('DB: 납부 일정 2건', sql(`select count(*) from payment_schedules s join registrations r on r.id = s.registration_id where r.program_id = '${pid}'`) === '2')
-  check('DB: 동의 기록에 v2 문구 저장', sql(`select document_version from consent_records c join registrations r on r.id = c.registration_id
-    where r.program_id = '${pid}' and c.kind = 'reg_privacy'`) === '2')
+  check('DB: 동의 기록에 최신(v3) 문구 저장', sql(`select document_version from consent_records c join registrations r on r.id = c.registration_id
+    where r.program_id = '${pid}' and c.kind = 'reg_privacy'`) === '3')
   check('DB: 건강 정보 저장', sql(`select count(*) from registration_health_notes h join registrations r on r.id = h.registration_id where r.program_id = '${pid}'`) === '1')
 
   // 5) 신청 내용 확인 페이지

@@ -139,6 +139,7 @@ async function login(page, email) {
 
   // 9) 공개 신청서: 프로그램은 보이고 커미션은 없음
   const pub = await browser.newPage({ viewport: { width: 375, height: 812 } })
+  await pub.addInitScript(() => sessionStorage.setItem('intoedu:member-gate-dismissed', '1')) // 회원가입 안내 창은 m19에서 확인
   pub.on('pageerror', (e) => errors.push(e.message))
   await pub.goto(`${BASE}/apply`)
   check('공개 신청서: 새 캠프가 관심 프로그램에 표시', await visible(pub.getByText('겨울 스쿨링 캠프 (2027 1차)')))

@@ -69,6 +69,7 @@ const agreeTo = (page, title) => page.getByRole('checkbox', { name: new RegExp(`
 
     const csp = []
     const mobile = await browser.newPage({ viewport: { width: 375, height: 812 } })
+    await mobile.addInitScript(() => sessionStorage.setItem('intoedu:member-gate-dismissed', '1')) // 회원가입 안내 창은 m19에서 확인
     mobile.on('console', (m) => { if (/Content Security Policy|Refused to/i.test(m.text())) csp.push(m.text()) })
     mobile.on('pageerror', (e) => errors.push(e.message))
     await mobile.goto(`${PROD}/register/csp-e2e`)

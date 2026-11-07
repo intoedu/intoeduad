@@ -172,7 +172,7 @@ set local role authenticated;
 set local request.jwt.claims to '{"sub":"a7000000-0000-0000-0000-000000000002","role":"authenticated"}';
 select throws_ok($$select public.add_consent_version('reg_privacy', '제목', '본문')$$, '42501', null, '직원은 동의 문구 변경 불가');
 set local request.jwt.claims to '{"sub":"a7000000-0000-0000-0000-000000000001","role":"authenticated"}';
-select is(public.add_consent_version('reg_privacy', '[필수] 1. 개인정보 수집·이용 동의', '새 문구 {{program_name}}'), 2, '관리자: 새 버전(v2) 추가');
+select is(public.add_consent_version('reg_privacy', '[필수] 1. 개인정보 수집·이용 동의', '새 문구 {{program_name}}'), (select max(version) + 1 from public.consent_documents where kind = 'reg_privacy'), '관리자: 새 버전 추가(기존 최신 + 1)');
 
 select * from finish();
 rollback;

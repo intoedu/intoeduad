@@ -13,6 +13,10 @@ if (!url || !key) {
   throw new Error('VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY 환경변수를 설정해 주세요.')
 }
 
+// 공개 주소·키 (로그인 수단 확인 등 공개 API 호출용)
+export const SUPABASE_URL = url
+export const SUPABASE_PUBLISHABLE_KEY = key
+
 // 초대·비밀번호 재설정 링크 여부는 클라이언트가 주소의 토큰을 지우기 전에 기록해 둔다
 const hash = typeof window !== 'undefined' ? window.location.hash : ''
 export const openedFromAuthLink = hash.includes('type=invite') || hash.includes('type=recovery')

@@ -33,6 +33,10 @@ const RegisterPage = lazy(() => import('./features/public/RegisterPage').then((m
 const RegisterHubPage = lazy(() => import('./features/public/RegisterHubPage').then((m) => ({ default: m.RegisterHubPage })))
 const LinksPage = lazy(() => import('./features/links/LinksPage').then((m) => ({ default: m.LinksPage })))
 const FormsSettingsPage = lazy(() => import('./features/settings/FormsSettingsPage').then((m) => ({ default: m.FormsSettingsPage })))
+const AccountLoginPage = lazy(() => import('./features/account/AccountPages').then((m) => ({ default: m.AccountLoginPage })))
+const AccountCallbackPage = lazy(() => import('./features/account/AccountPages').then((m) => ({ default: m.AccountCallbackPage })))
+const AccountSetupPage = lazy(() => import('./features/account/AccountPages').then((m) => ({ default: m.AccountSetupPage })))
+const AccountPage = lazy(() => import('./features/account/AccountPages').then((m) => ({ default: m.AccountPage })))
 const RegisterDonePage = lazy(() => import('./features/public/RegisterDonePage').then((m) => ({ default: m.RegisterDonePage })))
 const PassportPage = lazy(() => import('./features/public/PassportPage').then((m) => ({ default: m.PassportPage })))
 const RegistrationNewPage = lazy(() =>
@@ -84,6 +88,10 @@ export const router = createBrowserRouter([
   { path: '/apply/done', element: <ApplyDonePage /> },
   { path: '/apply/:partnerCode', element: <ApplyPage /> },
   { path: '/register', element: <Lazy><RegisterHubPage /></Lazy> },
+  { path: '/account', element: <Lazy><AccountPage /></Lazy> },
+  { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
+  { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
+  { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
   { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
   { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
   { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },

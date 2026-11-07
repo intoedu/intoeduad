@@ -174,7 +174,8 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
-enable_signup = false
+# M19: 학부모 회원가입(운영도 가입 허용 상태). 직원 권한은 staff_profiles로만 생기므로 가입만으로는 직원 데이터 접근 불가.
+enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
@@ -418,6 +419,13 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+[functions.customer-account]
+enabled = true
+# 인증은 함수 안에서 withSupabase({ auth: "user" })로 검증
+verify_jwt = false
+import_map = "./functions/customer-account/deno.json"
+entrypoint = "./functions/customer-account/index.ts"
 
 [functions.admin-staff]
 enabled = true

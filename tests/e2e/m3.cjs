@@ -67,6 +67,7 @@ async function fillRequired(page, { student, parent, phone }) {
 
   // 2) 학부모: 상담실장 링크로 신청 (빈 제출 검증 → 정상 제출)
   const parent = await browser.newPage({ viewport: { width: 375, height: 812 } })
+  await parent.addInitScript(() => sessionStorage.setItem('intoedu:member-gate-dismissed', '1')) // 회원가입 안내 창은 m19에서 확인
   parent.on('pageerror', (e) => errors.push(e.message))
   await parent.goto(`${BASE}/apply/daejeon-into?c=kim`)
   check('실장 링크: 소개 경로 자동 표시', await visible(parent.getByText('대전 인투학원 김상담 선생님 소개로 신청합니다.', { exact: false })))

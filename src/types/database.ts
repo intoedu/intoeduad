@@ -255,6 +255,40 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"customer_profiles": {
+                  Row: {
+                    "address": string | null,"alt_contact": string | null,"created_at": string,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"id": string,"kakao_alt_phone": string | null,"kakao_use": boolean | null,"parent_email": string | null,"parent_name": string,"parent_phone": string,"privacy_agreed_at": string,"privacy_text": string,"privacy_version": number,"relation": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"alt_contact"?: string | null,"created_at"?: string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"id": string,"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"parent_email"?: string | null,"parent_name": string,"parent_phone": string,"privacy_agreed_at": string,"privacy_text": string,"privacy_version": number,"relation"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string | null,"alt_contact"?: string | null,"created_at"?: string,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"id"?: string,"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"parent_email"?: string | null,"parent_name"?: string,"parent_phone"?: string,"privacy_agreed_at"?: string,"privacy_text"?: string,"privacy_version"?: number,"relation"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"customer_students": {
+                  Row: {
+                    "birth_date": string | null,"created_at": string,"customer_id": string,"english_level": string | null,"gender": string | null,"grade": string | null,"id": string,"name_en": string | null,"name_ko": string,"school": string | null,"sort": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "birth_date"?: string | null,"created_at"?: string,"customer_id": string,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"name_en"?: string | null,"name_ko": string,"school"?: string | null,"sort"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "birth_date"?: string | null,"created_at"?: string,"customer_id"?: string,"english_level"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"name_en"?: string | null,"name_ko"?: string,"school"?: string | null,"sort"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customer_students_customer_id_fkey"
+      columns: ["customer_id"]
+isOneToOne: false
+      referencedRelation: "customer_profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"destruction_requests": {
                   Row: {
                     "approved_at": string | null,"approved_by": string | null,"created_at": string,"destroyed_items": Json | null,"due_date": string,"error": string | null,"executed_at": string | null,"held_at": string | null,"held_by": string | null,"hold_reason": string | null,"id": string,"lead_id": string | null,"program_id": string | null,"registration_id": string | null,"status": string,"updated_at": string
@@ -1451,6 +1485,15 @@ isOneToOne: false
 "current_staff_role":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"customer_delete_student":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"customer_save_profile":
+{ Args: { "p": Json }; Returns: undefined
+                           },
+"customer_save_student":
+{ Args: { "p": Json }; Returns: string
+                           },
 "dashboard_summary":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
@@ -1603,6 +1646,9 @@ isOneToOne: false
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "public_lead_form_config":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"public_member_consent":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "public_open_programs":

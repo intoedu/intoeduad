@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Alert, Button, Field, Input, Select, Spinner, Textarea } from '../../components/ui'
 import { formatDateLongKo } from '../../domain/dates'
 import { isValidMobile, isValidPhone, normalizePhone } from '../../domain/phone'
@@ -26,6 +26,9 @@ import { DestructionNotice, DiscountList, ScheduleList } from './RegistrationPar
 import { InflowField } from '../../components/shared/InflowField'
 import { QuestionFields } from '../../components/shared/QuestionFields'
 import { KakaoField } from '../../components/shared/KakaoField'
+import { ChildPicker } from '../account/ChildPicker'
+import { rememberFromForm, useCustomer, type CustomerStudent } from '../account/customerApi'
+import { formatPhone } from '../../domain/phone'
 import {
   CONSULTED_OPTIONS,
   CONTACT_UNKNOWN,
@@ -143,6 +146,10 @@ export function RegisterPage() {
   const contactCode = params.get('c')
   const token = params.get('t')
   const navigate = useNavigate()
+  const location = useLocation()
+  const { state: member } = useCustomer()
+  const [childId, setChildId] = useState('')
+  const [memberFilled, setMemberFilled] = useState(false)
 
   const [form, setForm] = useState<RegisterForm | null | undefined>(undefined)
   const [loadError, setLoadError] = useState(false)
@@ -216,6 +223,52 @@ export function RegisterPage() {
   }, [token, refCode, contactCode])
 
   const loadContacts = useCallback((partnerId: string) => listPartnerContacts(partnerId), [])
+
+  function childValues(c: CustomerStudent | null) {
+    return {
+      student_name_ko: c?.name_ko ?? '',
+      student_name_en: c?.name_en ?? '',
+      birth_date: c?.birth_date ?? '',
+      gender: c?.gender ?? '',
+      school: c?.school ?? '',
+      grade: c?.grade && GRADES.includes(c.grade) ? c.grade : '',
+      english_level: c?.english_level && ENGLISH_LEVELS.includes(c.english_level) ? c.english_level : '',
+    }
+  }
+
+  function pickChild(c: CustomerStudent | null) {
+    setChildId(c ? c.id : 'new')
+    setV((prev) => ({ ...prev, ...childValues(c) }))
+  }
+
+  // 회원 정보로 한 번 채운다(상담 기록 링크로 채운 칸·이미 적은 칸은 그대로)
+  useEffect(() => {
+    if (member.status !== 'member' || memberFilled) return
+    const p = member.profile
+    setMemberFilled(true)
+    const only = member.students.length === 1 ? member.students[0] : null
+    if (only) setChildId(only.id)
+    setV((prev) => {
+      const next = { ...prev }
+      const fill = (k: keyof Values, val: string | null | undefined) => {
+        if (!next[k] && val) next[k] = val
+      }
+      fill('parent_name', p.parent_name)
+      fill('parent_phone', formatPhone(p.parent_phone))
+      fill('parent_email', p.parent_email)
+      fill('address', p.address)
+      fill('emergency_name', p.emergency_name)
+      fill('emergency_relation', p.emergency_relation && EMERGENCY_RELATIONS.includes(p.emergency_relation) ? p.emergency_relation : '')
+      fill('emergency_phone', p.emergency_phone ? formatPhone(p.emergency_phone) : '')
+      if (only) for (const [k, val] of Object.entries(childValues(only))) fill(k as keyof Values, val)
+      return next
+    })
+    if (p.kakao_use !== null) {
+      setKakao((k) =>
+        k.use ? k : { use: p.kakao_use ? 'yes' : 'no', altPhone: p.kakao_alt_phone ? formatPhone(p.kakao_alt_phone) : '', altContact: p.alt_contact ?? '' },
+      )
+    }
+  }, [member, memberFilled])
 
   const set = (key: keyof Values) => (value: string) => setV((prev) => ({ ...prev, [key]: value }))
   const mode = (key: RegisterFieldKey): FieldMode => form?.fields?.[key] ?? 'optional'
@@ -347,6 +400,25 @@ export function RegisterPage() {
         studentName: v.student_name_ko.trim(),
         programName: form.program.season ? `${form.program.name} (${form.program.season})` : form.program.name,
       }
+      await rememberFromForm(
+        member,
+        {
+          name_ko: v.student_name_ko.trim(),
+          name_en: v.student_name_en.trim() ? normalizeEnglishName(v.student_name_en) : null,
+          birth_date: v.birth_date || null,
+          gender: v.gender || null,
+          school: v.school.trim() || null,
+          grade: v.grade || null,
+          english_level: v.english_level || null,
+        },
+        {
+          parent_email: v.parent_email,
+          address: v.address,
+          emergency_name: v.emergency_name,
+          emergency_relation: v.emergency_relation,
+          emergency_phone: normalizePhone(v.emergency_phone),
+        },
+      )
       navigate('/register/done', { replace: true, state })
     } catch (err) {
       const error = err as SubmitError
@@ -458,6 +530,20 @@ export function RegisterPage() {
         </div>
       )}
 
+      {member.status === 'guest' && !tokenValid && (
+        <p className="mb-4 rounded-xl bg-white px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
+          인투유학 회원이시면{' '}
+          <Link to={`/account/login?next=${encodeURIComponent(location.pathname + location.search)}`} className="font-semibold text-brand-600 underline">
+            로그인
+          </Link>
+          하고 저장된 정보로 바로 채우세요.
+        </p>
+      )}
+      {memberFilled && !tokenValid && (
+        <div className="mb-4">
+          <Alert tone="green">회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.</Alert>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Section title="알게 된 경로">
           {knownPartner ? (
@@ -516,6 +602,7 @@ export function RegisterPage() {
         </Section>
 
         <Section title="학생 정보">
+          {member.status === 'member' && !tokenValid && <ChildPicker students={member.students} value={childId} onPick={pickChild} />}
           {field(
             'student_name_ko',
             <Field label={label('student_name_ko', '학생 이름(한글)')} hint={fieldHelp(texts, 'student_name_ko')} error={errors.student_name_ko}>

@@ -72,6 +72,7 @@ async function login(page, id) {
 
   // 2) 학부모: 통합 상담 링크
   const parent = await browser.newPage({ viewport: { width: 375, height: 812 } })
+  await parent.addInitScript(() => sessionStorage.setItem('intoedu:member-gate-dismissed', '1')) // 회원가입 안내 창은 m19에서 확인
   parent.on('pageerror', (e) => errors.push(e.message))
   await parent.goto(`${BASE}/apply`)
   check('바꾼 질문 문구 표시', await visible(parent.getByLabel('자녀 학년 (선택)')))

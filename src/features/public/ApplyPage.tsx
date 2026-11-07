@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Alert, Button, Field, Input, Select, Spinner, Textarea } from '../../components/ui'
 import { isValidMobile, normalizePhone } from '../../domain/phone'
 import { CONTACT_ROLE_LABELS } from '../../lib/labels'
 import { InflowField } from '../../components/shared/InflowField'
 import { QuestionFields } from '../../components/shared/QuestionFields'
 import { KakaoField } from '../../components/shared/KakaoField'
+import { ChildPicker } from '../account/ChildPicker'
+import { MemberGate } from '../account/MemberGate'
+import { rememberFromForm, useCustomer, type CustomerStudent } from '../account/customerApi'
+import { formatPhone } from '../../domain/phone'
 import {
   CONTACT_UNKNOWN,
   EMPTY_INFLOW,
@@ -63,6 +67,11 @@ export function ApplyPage() {
   const [params] = useSearchParams()
   const contactCode = params.get('c')
   const navigate = useNavigate()
+  const location = useLocation()
+  // 회원: 저장된 정보로 신청서 채우기
+  const { state: member } = useCustomer()
+  const [childId, setChildId] = useState('')
+  const [memberFilled, setMemberFilled] = useState(false)
 
   const [config, setConfig] = useState<PublicFormConfig | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -123,6 +132,33 @@ export function ApplyPage() {
       cancelled = true
     }
   }, [partnerCode, contactCode])
+
+  function pickChild(c: CustomerStudent | null) {
+    setChildId(c ? c.id : 'new')
+    setStudentName(c ? c.name_ko : '')
+    setGrade(c?.grade && GRADES.includes(c.grade) ? c.grade : '')
+  }
+
+  // 회원 정보로 한 번 채운다(이미 적은 칸은 그대로)
+  useEffect(() => {
+    if (member.status !== 'member' || memberFilled) return
+    const p = member.profile
+    setMemberFilled(true)
+    setParentName((v) => v || p.parent_name)
+    setPhone((v) => v || formatPhone(p.parent_phone))
+    if (p.relation && RELATIONS.includes(p.relation)) setRelation((v) => v || p.relation!)
+    if (p.kakao_use !== null) {
+      setKakao((k) =>
+        k.use ? k : { use: p.kakao_use ? 'yes' : 'no', altPhone: p.kakao_alt_phone ? formatPhone(p.kakao_alt_phone) : '', altContact: p.alt_contact ?? '' },
+      )
+    }
+    if (member.students.length === 1) {
+      const c = member.students[0]
+      setChildId(c.id)
+      setStudentName((v) => v || c.name_ko)
+      if (c.grade && GRADES.includes(c.grade)) setGrade((v) => v || c.grade!)
+    }
+  }, [member, memberFilled])
 
   const loadContacts = useCallback((partnerId: string) => listPartnerContacts(partnerId), [])
   const modes = leadModes(config?.modes)
@@ -197,6 +233,7 @@ export function ApplyPage() {
         scheduledAt: result.scheduled_at,
         kakaoUrl: config?.kakao_channel_url || null,
       }
+      await rememberFromForm(member, { name_ko: studentName.trim(), grade: shown('grade') ? grade || null : null }, { relation })
       navigate('/apply/done', { replace: true, state })
     } catch (err) {
       const error = err as SubmitError
@@ -236,6 +273,22 @@ export function ApplyPage() {
 
   return (
     <PublicLayout>
+      <MemberGate state={member} next={location.pathname + location.search} />
+      {member.status === 'needs_setup' && (
+        <div className="mb-4">
+          <Alert tone="blue">
+            회원 정보를 아직 입력하지 않으셨습니다.{' '}
+            <a href={`/account/setup?next=${encodeURIComponent(location.pathname + location.search)}`} className="font-semibold underline">
+              회원 정보 입력하기
+            </a>
+          </Alert>
+        </div>
+      )}
+      {memberFilled && (
+        <div className="mb-4">
+          <Alert tone="green">회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.</Alert>
+        </div>
+      )}
       <div className="mb-5">
         <h1 className="text-xl font-bold text-slate-900">{config.title || '유학·캠프 상담 신청'}</h1>
         {config.intro && <p className="mt-1 text-sm whitespace-pre-line text-slate-600">{config.intro}</p>}
@@ -276,6 +329,7 @@ export function ApplyPage() {
         </Section>
 
         <Section title="자녀 정보">
+          {member.status === 'member' && <ChildPicker students={member.students} value={childId} onPick={pickChild} />}
           <div id="field-studentName">
             <Field label={label('student_name', '자녀 이름')} hint={fieldHelp(texts, 'student_name')} error={errors.studentName}>
               <Input autoComplete="off" value={studentName} onChange={(e) => setStudentName(e.target.value)} />

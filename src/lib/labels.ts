@@ -202,6 +202,7 @@ export const CONSENT_KIND_LABELS: Record<string, string> = {
   refund_default: '환불 규정 기본안',
   travel_privacy: '출국 서류 대행 — 개인정보 수집·이용·국외 제공',
   travel_unique_id: '출국 서류 대행 — 고유식별정보(여권번호)',
+  member_privacy: '학부모 회원 — 개인정보 수집·이용',
 }
 
 export const PAYMENT_METHOD: Record<string, string> = { transfer: '계좌이체', card: '카드', cash: '현금', other: '기타' }

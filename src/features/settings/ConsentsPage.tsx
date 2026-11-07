@@ -19,6 +19,7 @@ const PLACEHOLDERS: Record<string, string[]> = {
   refund_default: ['program_name'],
   travel_privacy: ['program_name', 'ticketing_agent', 'destroy_after_days'],
   travel_unique_id: ['destroy_after_days'],
+  member_privacy: [],
 }
 
 const KIND_ORDER = Object.keys(CONSENT_KIND_LABELS)
