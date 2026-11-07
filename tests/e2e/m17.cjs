@@ -65,6 +65,8 @@ async function login(page, id) {
   await parent.getByLabel(/^학년/).selectOption('초6')
   await parent.getByLabel('학부모 이름').fill('대행부모')
   await parent.getByLabel('휴대폰 번호').fill('010-1818-1818')
+  await parent.getByText('네, 사용해요', { exact: true }).click()
+  { const nc = parent.getByText('아니요, 처음이에요', { exact: true }); if (await nc.count()) await nc.click() }
   await parent.getByLabel(/^이메일/).fill('agency@example.com')
   await parent.getByLabel('이름', { exact: true }).fill('보호자')
   await parent.getByLabel('관계').selectOption('아버지')

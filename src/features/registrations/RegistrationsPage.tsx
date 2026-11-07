@@ -8,6 +8,8 @@ import { formatPhone, normalizePhone } from '../../domain/phone'
 import { formatWon } from '../../domain/registration'
 import { waitingAttribution, type RegistrationStatus } from '../../domain/registrationStatus'
 import { downloadCsv, toCsv } from '../../lib/csv'
+import { KakaoBadge } from '../../components/shared/IntakeInfo'
+import { answerText, CONSULTED_LABELS, savedAnswers } from '../../domain/formSettings'
 import { todayKst } from '../../lib/datetime'
 import { PASSPORT_STATUS, REGISTRATION_STATUS } from '../../lib/labels'
 import { supabase, type Views } from '../../lib/supabase'
@@ -74,6 +76,8 @@ function OfficeRegistrations() {
       if (flag === 'agency_docs' && !(r.agency_choice === 'agency' && !r.travel_info_submitted_at)) return false
       if (flag === 'self' && r.agency_choice !== 'self') return false
       if (flag === 'agency_unset' && r.agency_choice) return false
+      if (flag === 'lead_check' && !r.lead_check_needed) return false
+      if (flag === 'no_kakao' && r.kakao_use !== false) return false
       if (term && !(r.student_name_ko?.includes(term) || r.parent_name?.includes(term) || (digits.length >= 4 && r.parent_phone?.includes(digits)))) return false
       return true
     })
@@ -91,10 +95,19 @@ function OfficeRegistrations() {
     const { data } = await supabase
       .from('registrations')
       .select(
-        'id, status, registered_on, student_name_ko, student_name_en, birth_date, gender, school, grade, english_level, parent_name, parent_phone, parent_email, address, emergency_name, emergency_relation, emergency_phone, special_notes, passport_status, programs(name, season), partners(name)',
+        'id, status, registered_on, student_name_ko, student_name_en, birth_date, gender, school, grade, english_level, parent_name, parent_phone, parent_email, address, emergency_name, emergency_relation, emergency_phone, special_notes, passport_status, inflow_label, inflow_detail, consulted_before, kakao_use, kakao_alt_phone, alt_contact, answers, programs(name, season), partners(name)',
       )
       .in('id', ids)
     const board = new Map(filtered.map((r) => [r.id, r]))
+    // 추가 질문: 질문마다 한 열
+    const labels = [...new Set((data ?? []).flatMap((r) => savedAnswers(r.answers).map((a) => a.label)))]
+    const questionColumns = labels.map((label) => ({
+      header: label,
+      value: (r: { answers: unknown }) => {
+        const a = savedAnswers(r.answers).find((x) => x.label === label)
+        return a ? answerText(a.value) : ''
+      },
+    }))
     const csv = toCsv(data ?? [], [
       { header: '프로그램', value: (r) => (r.programs ? programLabel(r.programs) : '') },
       { header: '상태', value: (r) => REGISTRATION_STATUS[r.status]?.label ?? r.status },
@@ -113,6 +126,14 @@ function OfficeRegistrations() {
       { header: '비상 연락처', value: (r) => [r.emergency_name, r.emergency_relation, formatPhone(r.emergency_phone)].filter(Boolean).join(' ') },
       { header: '특이사항', value: (r) => r.special_notes },
       { header: '소개 학원', value: (r) => r.partners?.name ?? '' },
+      { header: '유입 경로', value: (r) => [r.inflow_label, r.inflow_detail].filter(Boolean).join(' · ') },
+      { header: '상담 신청 이력', value: (r) => (r.consulted_before ? CONSULTED_LABELS[r.consulted_before] : '') },
+      { header: '카카오톡', value: (r) => (r.kakao_use === false ? '미사용' : r.kakao_use ? '사용' : '') },
+      {
+        header: '카카오톡 대신 연락',
+        value: (r) => [r.kakao_alt_phone ? `카카오톡 ${formatPhone(r.kakao_alt_phone)}` : '', r.alt_contact ?? ''].filter(Boolean).join(' / '),
+      },
+      ...questionColumns,
       { header: '여권 제출', value: (r) => PASSPORT_STATUS[r.passport_status] ?? r.passport_status },
       {
         header: '항공권·ESTA·보험 대행',
@@ -179,6 +200,8 @@ function OfficeRegistrations() {
             <option value="agency_docs">대행 — 출국 서류 정보 미제출</option>
             <option value="self">직접 준비</option>
             <option value="agency_unset">대행 여부 미선택</option>
+            <option value="lead_check">상담 기록 연결 확인 필요</option>
+            <option value="no_kakao">카카오톡 미사용</option>
           </Select>
         </Field>
         <Field label="검색(이름·번호)">
@@ -226,6 +249,8 @@ function OfficeRegistrations() {
                           <Badge tone="amber">완납·소개 경로 확인 필요</Badge>
                         )}
                         {!!r.overdue_count && <Badge tone="red">기한 지남 {r.overdue_count}</Badge>}
+                        <KakaoBadge use={r.kakao_use} />
+                        {r.lead_check_needed && <Badge tone="amber">상담 연결 확인</Badge>}
                       </div>
                     </td>
                     <td className="px-4 py-2 text-right whitespace-nowrap">

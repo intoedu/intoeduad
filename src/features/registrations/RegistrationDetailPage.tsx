@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { AttributionCard } from '../../components/shared/AttributionCard'
 import { NotesPanel } from '../../components/shared/NotesPanel'
 import { Alert, Badge, Card, PageHeader, Spinner } from '../../components/ui'
@@ -11,6 +11,8 @@ import { REGISTRATION_STATUS } from '../../lib/labels'
 import { useAuth } from '../auth/AuthProvider'
 import { CONSENT_RECORD_LABELS, getRegistration } from './api'
 import { AgencyTravelCard } from './AgencyTravelCard'
+import { LeadLinkCard } from './LeadLinkCard'
+import { IntakeInfo, KakaoBadge } from '../../components/shared/IntakeInfo'
 import { PassportPanel } from './PassportPanel'
 import { PaymentsCard } from './PaymentsCard'
 import { RefundsCard, StatusActions } from './StatusCards'
@@ -60,7 +62,10 @@ export function RegistrationDetailPage() {
       <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <div className="space-y-4">
           <Card>
-            <p className="mb-3 font-semibold text-slate-900">신청 정보</p>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <p className="font-semibold text-slate-900">신청 정보</p>
+              <KakaoBadge use={r.kakao_use} />
+            </div>
             {destroyed ? (
               <p className="text-sm text-slate-500">{formatKst(r.destroyed_at)}에 개인정보가 파기되었습니다.</p>
             ) : (
@@ -89,6 +94,11 @@ export function RegistrationDetailPage() {
                   </div>
                 )}
               </dl>
+            )}
+            {!destroyed && (
+              <div className="mt-4 border-t border-slate-100 pt-4">
+                <IntakeInfo row={r} />
+              </div>
             )}
           </Card>
 
@@ -121,14 +131,10 @@ export function RegistrationDetailPage() {
           <RefundsCard key={r.status} registrationId={r.id} onChanged={load} onMessage={setMessage} />
           <AgencyTravelCard registration={r} agencyEnabled={!!p?.agency_enabled} onChanged={() => void load()} onMessage={setMessage} />
           <CommissionSummary registrationId={r.id} />
+          <LeadLinkCard registration={r} onChanged={() => void load()} onMessage={setMessage} />
           <AttributionCard table="registrations" row={r} isAdmin={profile?.role === 'admin'} onChanged={load} onMessage={setMessage} />
           <p className="-mt-2 text-xs text-slate-500">
             학원 제공 동의: {r.partner_id ? (r.partner_share_agreed ? '동의(학원 안내에 이름 표시)' : '미동의(학원 안내에서 이름 가림)') : '-'}
-            {r.lead_id && (
-              <Link to={`/admin/leads/${r.lead_id}`} className="ml-2 text-brand-600 hover:underline">
-                상담 기록 보기
-              </Link>
-            )}
           </p>
 
           {p?.passport_upload_enabled && !destroyed && <PassportPanel registrationId={r.id} passportStatus={r.passport_status} onChanged={() => void load()} />}

@@ -38,6 +38,7 @@ async function fillRequired(page, { student, parent, phone }) {
   await page.getByLabel('학년').selectOption('중1')
   await page.getByLabel('학부모 이름').fill(parent)
   await page.getByLabel('휴대폰 번호').fill(phone)
+  await page.getByText('네, 사용해요', { exact: true }).click()
   await page.getByLabel('자녀와의 관계').selectOption('어머니')
   await page.getByLabel(/\[필수\] 위 내용을 확인하였으며/).check()
   await page.getByLabel(/\[필수\] 자녀가 만 14세 미만인 경우/).check()
@@ -96,7 +97,8 @@ async function fillRequired(page, { student, parent, phone }) {
 
   // 3) 코드 없이 접속 → 학원 직접 선택 → 담당자 선택 칸
   await parent.goto(`${BASE}/apply`)
-  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '대전 인투학원 (대전)' })
+  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '학원 소개' })
+  await parent.getByLabel('소개해 준 학원').selectOption({ label: '대전 인투학원 (대전)' })
   check('학원 선택 후 선생님 선택 칸 표시', await visible(parent.getByLabel('소개해 주신 선생님 (선택)')))
   await parent.getByLabel('소개해 주신 선생님 (선택)').selectOption({ label: '김상담 상담실장' })
   await fillRequired(parent, { student: '이서연', parent: '이부모', phone: '010-3000-0002' })
@@ -113,7 +115,7 @@ async function fillRequired(page, { student, parent, phone }) {
   await fetch(`${API}/functions/v1/public-lead-submit`, {
     method: 'POST',
     headers: { apikey: KEY, 'content-type': 'application/json' },
-    body: JSON.stringify({ student_name: '선점', parent_name: '선점', parent_phone: '01030009999', agree_privacy: true, agree_guardian: true, slot_id: takenSlot }),
+    body: JSON.stringify({ student_name: '선점', student_grade: '중1', relation: '어머니', source_other: 'E2E', kakao_use: true, parent_name: '선점', parent_phone: '01030009999', agree_privacy: true, agree_guardian: true, slot_id: takenSlot }),
   })
   await parent.getByRole('button', { name: '상담 신청하기' }).click()
   check('마감 경합: 안내 문구', await visible(parent.getByText('선택하신 상담 시간이 방금 마감되었습니다', { exact: false })))

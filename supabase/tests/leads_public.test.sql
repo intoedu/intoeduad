@@ -56,7 +56,7 @@ select is(
     'partner_code', 'public-test', 'contact_code', 'jung',
     'student_name', '김학생', 'student_grade', '중1', 'interests', '["camp"]'::jsonb,
     'parent_name', '김부모', 'parent_phone', '010-1234-5678', 'relation', '어머니',
-    'topics', '["camp","cost"]'::jsonb, 'agree_privacy', true, 'agree_guardian', true,
+    'topics', '["camp","cost"]'::jsonb, 'kakao_use', true, 'agree_privacy', true, 'agree_guardian', true,
     'slot_id', 'f3000000-0000-0000-0000-000000000001', 'phone_hash', 'hash-a'
   )) ->> 'scheduled_at') is not null,
   true, '신청 + 상담 예약 성공'
@@ -82,31 +82,31 @@ select is(
 -- 같은 번호 단시간 재신청 차단
 select throws_ok(
   $$select public.submit_lead(jsonb_build_object('student_name','a','parent_name','b','parent_phone','01012345678',
-    'agree_privacy',true,'agree_guardian',true,'phone_hash','hash-a'))$$,
+    'kakao_use',true,'agree_privacy',true,'agree_guardian',true,'phone_hash','hash-a'))$$,
   'P0001', null, '같은 번호 10분 내 재신청 차단'
 );
 
 -- 찬 슬롯 예약 시도 → 신청 전체 취소
 select throws_ok(
   $$select public.submit_lead(jsonb_build_object('student_name','이학생','parent_name','이부모','parent_phone','01099998888',
-    'agree_privacy',true,'agree_guardian',true,'slot_id','f3000000-0000-0000-0000-000000000001','phone_hash','hash-b'))$$,
+    'student_grade','중2','relation','어머니','kakao_use',true,'agree_privacy',true,'agree_guardian',true,'slot_id','f3000000-0000-0000-0000-000000000001','phone_hash','hash-b'))$$,
   'P0001', null, '찬 슬롯 예약 거부'
 );
 select is((select count(*)::int from public.leads where student_name = '이학생'), 0, '슬롯 실패 시 신청도 저장되지 않음');
 
 -- 필수 동의 누락
 select throws_ok(
-  $$select public.submit_lead(jsonb_build_object('student_name','박','parent_name','박','parent_phone','01011112222','agree_privacy',true,'agree_guardian',false))$$,
+  $$select public.submit_lead(jsonb_build_object('student_name','박','parent_name','박','parent_phone','01011112222','kakao_use',true,'agree_privacy',true,'agree_guardian',false))$$,
   'P0001', null, '법정대리인 동의 없으면 거부'
 );
 
 -- 학원 소개 아님(기타 직접 입력)
 select set_config('test.other_lead', public.submit_lead(jsonb_build_object(
   'source_other', '블로그', 'student_name','최','parent_name','최','parent_phone','01033334444',
-  'agree_privacy',true,'agree_guardian',true)) ->> 'lead_id', true);
+  'student_grade','고1','relation','아버지','kakao_use',true,'agree_privacy',true,'agree_guardian',true)) ->> 'lead_id', true);
 select is(
   (select source_other from public.leads where id = current_setting('test.other_lead')::uuid),
-  '블로그', '기타 경로 직접 입력 저장'
+  '기타: 블로그', '기타 경로 직접 입력 저장(지난 화면 형식 → 유입 경로 "기타")'
 );
 
 select * from finish();

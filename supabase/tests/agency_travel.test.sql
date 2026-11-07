@@ -38,7 +38,7 @@ update public.programs set status = 'open' where id in ('c1700000-0000-0000-0000
 
 create temp table base (v jsonb);
 insert into base values ($${
-  "slug": "agency-t17", "student_name_ko": "대행학생", "student_name_en": "AGENCY KID", "birth_date": "2014-02-02", "gender": "male",
+  "slug": "agency-t17", "kakao_use": true, "source_other": "검색", "student_name_ko": "대행학생", "student_name_en": "AGENCY KID", "birth_date": "2014-02-02", "gender": "male",
   "grade": "초6", "parent_name": "대행부모", "parent_phone": "010-1700-0001", "parent_email": "a@b.co",
   "emergency_name": "x", "emergency_relation": "부", "emergency_phone": "010-1700-0009",
   "agree": {"reg_privacy": true, "reg_third_party": true, "reg_guardian": true, "refund": true, "destruction_notice": true}

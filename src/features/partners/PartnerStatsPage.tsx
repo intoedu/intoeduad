@@ -154,7 +154,49 @@ export function PartnerStatsPage() {
             </table>
           </div>
         )}
+        <InflowStats from={period.from} to={period.to} />
       </div>
     </>
+  )
+}
+
+// 유입 경로별 상담 신청·캠프 등록 건수(신청서의 "어디서 알게 되셨나요?")
+function InflowStats({ from, to }: { from: string; to: string }) {
+  const [rows, setRows] = useState<Array<{ label: string; leads: number; registrations: number }> | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    supabase.rpc('inflow_stats', { p_from: from, p_to: to }).then(({ data }) => !cancelled && setRows(data ?? []))
+    return () => {
+      cancelled = true
+    }
+  }, [from, to])
+  if (!rows) return null
+  return (
+    <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-slate-200">
+      <p className="px-4 pt-4 font-semibold text-slate-900">유입 경로별</p>
+      <p className="px-4 text-xs text-slate-500">신청서의 "어디서 알게 되셨나요?" 답 기준(같은 기간). 캠프 등록은 취소·환불 제외.</p>
+      {rows.length === 0 ? (
+        <p className="p-4 text-sm text-slate-500">이 기간에 기록이 없습니다.</p>
+      ) : (
+        <table className="mt-2 w-full text-sm">
+          <thead className="bg-slate-50 text-left text-xs text-slate-500">
+            <tr>
+              <th className="px-4 py-2">유입 경로</th>
+              <th className="px-4 py-2 text-right">상담 신청</th>
+              <th className="px-4 py-2 text-right">캠프 등록</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {rows.map((r) => (
+              <tr key={r.label}>
+                <td className="px-4 py-2">{r.label}</td>
+                <td className="px-4 py-2 text-right">{r.leads}</td>
+                <td className="px-4 py-2 text-right font-semibold">{r.registrations}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   )
 }

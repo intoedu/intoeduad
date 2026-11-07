@@ -1,7 +1,21 @@
 // 상담 신청 직접 등록 — 전화·방문·카카오톡 등으로 받은 상담 문의를 직원이 넣는다
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { ENTRY_METHODS, entryErrorText, GRADES, PartnerPicker } from '../../components/admin/StaffEntryParts'
+import { ENTRY_METHODS, entryErrorText, GRADES, useStaffFormExtras } from '../../components/admin/StaffEntryParts'
+import { InflowField } from '../../components/shared/InflowField'
+import { KakaoField } from '../../components/shared/KakaoField'
+import { QuestionFields } from '../../components/shared/QuestionFields'
+import {
+  EMPTY_INFLOW,
+  EMPTY_KAKAO,
+  cleanAnswers,
+  inflowPayload,
+  kakaoPayload,
+  validateAnswers,
+  type AnswerMap,
+  type InflowValue,
+  type KakaoValue,
+} from '../../domain/formSettings'
 import { Alert, Button, Card, Field, Input, PageHeader, Select, Textarea } from '../../components/ui'
 import { normalizePhone } from '../../domain/phone'
 import { supabase } from '../../lib/supabase'
@@ -22,7 +36,10 @@ export function LeadNewPage() {
   })
   const [interests, setInterests] = useState<string[]>([])
   const [programIds, setProgramIds] = useState<string[]>([])
-  const [source, setSource] = useState({ partnerId: '', contactId: '', sourceOther: '' })
+  const extras = useStaffFormExtras('lead', null)
+  const [inflow, setInflow] = useState<InflowValue>(EMPTY_INFLOW)
+  const [kakao, setKakao] = useState<KakaoValue>(EMPTY_KAKAO)
+  const [answers, setAnswers] = useState<AnswerMap>({})
   const [consent, setConsent] = useState(false)
   const [notify, setNotify] = useState(false)
   const [error, setError] = useState('')
@@ -38,6 +55,7 @@ export function LeadNewPage() {
       .then(({ data }) => setPrograms(data ?? []))
   }, [])
 
+  const answerErrors = validateAnswers(extras.questions, answers, false)
   const set = (k: keyof typeof v, value: string) => setV((prev) => ({ ...prev, [k]: value }))
   const toggle = (list: string[], value: string) => (list.includes(value) ? list.filter((x) => x !== value) : [...list, value])
 
@@ -48,6 +66,7 @@ export function LeadNewPage() {
     if (!v.student_name.trim() || !v.parent_name.trim()) return setError('학생 이름과 학부모 이름을 입력해 주세요.')
     if (!/^01[0-9]{8,9}$/.test(phone)) return setError('학부모 휴대폰 번호를 확인해 주세요.')
     if (!consent) return setError('고객에게 개인정보 수집·이용 동의를 받았는지 확인해 주세요.')
+    if (Object.keys(answerErrors).length > 0) return setError('추가 질문 답변 형식을 확인해 주세요.')
     setSaving(true)
     const { data, error: err } = await supabase.rpc('admin_create_lead', {
       p: {
@@ -59,9 +78,9 @@ export function LeadNewPage() {
         message: v.message.trim(),
         interests,
         program_ids: programIds,
-        partner_id: source.partnerId || null,
-        contact_id: source.contactId || null,
-        source_other: source.sourceOther.trim(),
+        ...inflowPayload(extras.inflow, inflow, false),
+        ...kakaoPayload(kakao),
+        answers: cleanAnswers(extras.questions, answers),
         entry_method: v.entry_method,
         consent_confirmed: true,
         notify,
@@ -151,9 +170,22 @@ export function LeadNewPage() {
         </Card>
 
         <Card>
-          <p className="mb-3 font-semibold text-slate-900">소개 경로</p>
-          <PartnerPicker partnerId={source.partnerId} contactId={source.contactId} sourceOther={source.sourceOther} onChange={setSource} />
+          <p className="mb-1 font-semibold text-slate-900">유입 경로·연락 방법</p>
+          <p className="mb-3 text-xs text-slate-500">학부모 신청서와 같은 질문입니다. 확인되지 않았으면 비워 두고 나중에 상세 화면에서 확인해 주세요.</p>
+          <div className="space-y-4">
+            {extras.inflow && (
+              <InflowField config={extras.inflow} value={inflow} onChange={setInflow} partners={extras.partners} loadContacts={extras.loadContacts} />
+            )}
+            <KakaoField value={kakao} onChange={setKakao} />
+          </div>
         </Card>
+
+        {extras.questions.length > 0 && (
+          <Card>
+            <p className="mb-3 font-semibold text-slate-900">추가 질문</p>
+            <QuestionFields questions={extras.questions} values={answers} onChange={setAnswers} errors={answerErrors} requiredMark={false} />
+          </Card>
+        )}
 
         <Card>
           <p className="mb-3 font-semibold text-slate-900">입력 방법·동의</p>

@@ -305,6 +305,32 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"form_questions": {
+                  Row: {
+                    "active": boolean,"created_at": string,"created_by": string | null,"form": string,"help": string | null,"id": string,"label": string,"options": (string)[],"program_id": string | null,"required": boolean,"sort": number,"type": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"form": string,"help"?: string | null,"id"?: string,"label": string,"options"?: (string)[],"program_id"?: string | null,"required"?: boolean,"sort"?: number,"type": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"created_by"?: string | null,"form"?: string,"help"?: string | null,"id"?: string,"label"?: string,"options"?: (string)[],"program_id"?: string | null,"required"?: boolean,"sort"?: number,"type"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "form_questions_created_by_fkey"
+      columns: ["created_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "form_questions_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: false
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"holidays": {
                   Row: {
                     "created_at": string,"created_by": string | null,"date": string,"name": string,"source": string | null,"verified": boolean
@@ -351,6 +377,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"inflow_channels": {
+                  Row: {
+                    "active": boolean,"created_at": string,"detail_label": string | null,"detail_required": boolean,"id": string,"kind": string,"label": string,"sort": number,"system_key": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "active"?: boolean,"created_at"?: string,"detail_label"?: string | null,"detail_required"?: boolean,"id"?: string,"kind"?: string,"label": string,"sort"?: number,"system_key"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "active"?: boolean,"created_at"?: string,"detail_label"?: string | null,"detail_required"?: boolean,"id"?: string,"kind"?: string,"label"?: string,"sort"?: number,"system_key"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"lead_program_interests": {
                   Row: {
                     "lead_id": string,"program_id": string
@@ -379,14 +419,14 @@ isOneToOne: false
                   ]
                 },"leads": {
                   Row: {
-                    "assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"entered_by": string | null,"entry_method": string | null,"id": string,"interests": (string)[],"message": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"relation": string | null,"source_other": string | null,"status": string,"student_grade": string | null,"student_name": string | null,"topics": (string)[],"updated_at": string
+                    "alt_contact": string | null,"answers": NonNullable<Json>,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"entered_by": string | null,"entry_method": string | null,"id": string,"inflow_channel_id": string | null,"inflow_detail": string | null,"inflow_label": string | null,"interests": (string)[],"kakao_alt_phone": string | null,"kakao_use": boolean | null,"message": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"relation": string | null,"source_other": string | null,"status": string,"student_grade": string | null,"student_name": string | null,"topics": (string)[],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
+                    "alt_contact"?: string | null,"answers"?: NonNullable<Json>,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"id"?: string,"inflow_channel_id"?: string | null,"inflow_detail"?: string | null,"inflow_label"?: string | null,"interests"?: (string)[],"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
                   }
                   Update: {
-                    "assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"id"?: string,"interests"?: (string)[],"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
+                    "alt_contact"?: string | null,"answers"?: NonNullable<Json>,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"id"?: string,"inflow_channel_id"?: string | null,"inflow_detail"?: string | null,"inflow_label"?: string | null,"interests"?: (string)[],"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"message"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"relation"?: string | null,"source_other"?: string | null,"status"?: string,"student_grade"?: string | null,"student_name"?: string | null,"topics"?: (string)[],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -406,6 +446,12 @@ isOneToOne: false
       columns: ["entered_by"]
 isOneToOne: false
       referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "leads_inflow_channel_id_fkey"
+      columns: ["inflow_channel_id"]
+isOneToOne: false
+      referencedRelation: "inflow_channels"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "leads_partner_contact_id_fkey"
@@ -963,14 +1009,14 @@ isOneToOne: false
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"agency_choice": string | null,"agency_fee": number,"agency_services": (string)[],"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"discount_amount": number,"discount_detail": NonNullable<Json>,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"entered_by": string | null,"entry_method": string | null,"gender": string | null,"grade": string | null,"id": string,"lead_id": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"travel_info_submitted_at": string | null,"updated_at": string
+                    "address": string | null,"agency_choice": string | null,"agency_fee": number,"agency_services": (string)[],"alt_contact": string | null,"answers": NonNullable<Json>,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"consulted_before": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"discount_amount": number,"discount_detail": NonNullable<Json>,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"entered_by": string | null,"entry_method": string | null,"gender": string | null,"grade": string | null,"id": string,"inflow_channel_id": string | null,"inflow_detail": string | null,"inflow_label": string | null,"kakao_alt_phone": string | null,"kakao_use": boolean | null,"lead_check_needed": boolean,"lead_id": string | null,"lead_link_method": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"travel_info_submitted_at": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "address"?: string | null,"agency_choice"?: string | null,"agency_fee"?: number,"agency_services"?: (string)[],"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"travel_info_submitted_at"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"agency_choice"?: string | null,"agency_fee"?: number,"agency_services"?: (string)[],"alt_contact"?: string | null,"answers"?: NonNullable<Json>,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"consulted_before"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"inflow_channel_id"?: string | null,"inflow_detail"?: string | null,"inflow_label"?: string | null,"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"lead_check_needed"?: boolean,"lead_id"?: string | null,"lead_link_method"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"travel_info_submitted_at"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "address"?: string | null,"agency_choice"?: string | null,"agency_fee"?: number,"agency_services"?: (string)[],"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"lead_id"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"travel_info_submitted_at"?: string | null,"updated_at"?: string
+                    "address"?: string | null,"agency_choice"?: string | null,"agency_fee"?: number,"agency_services"?: (string)[],"alt_contact"?: string | null,"answers"?: NonNullable<Json>,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"consulted_before"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"inflow_channel_id"?: string | null,"inflow_detail"?: string | null,"inflow_label"?: string | null,"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"lead_check_needed"?: boolean,"lead_id"?: string | null,"lead_link_method"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id"?: string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"travel_info_submitted_at"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -990,6 +1036,12 @@ isOneToOne: false
       columns: ["entered_by"]
 isOneToOne: false
       referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registrations_inflow_channel_id_fkey"
+      columns: ["inflow_channel_id"]
+isOneToOne: false
+      referencedRelation: "inflow_channels"
       referencedColumns: ["id"]
     },{
       foreignKeyName: "registrations_lead_id_fkey"
@@ -1262,7 +1314,7 @@ isOneToOne: false
                   ]
                 },"v_registration_board": {
                   Row: {
-                    "agency_choice": string | null,"agency_services": (string)[],"attribution_confirmed_at": string | null,"core_paid": boolean | null,"created_at": string,"destroyed_at": string | null,"id": string,"lead_id": string | null,"next_due_date": string | null,"overdue_count": number | null,"parent_name": string | null,"parent_phone": string | null,"partner_id": string | null,"partner_name": string | null,"passport_status": string,"program_id": string,"program_name": string,"program_season": string | null,"program_start": string,"registered_on": string,"status": string,"student_name_ko": string | null,"total_due": number | null,"total_paid": number | null,"travel_info_submitted_at": string | null
+                    "agency_choice": string | null,"agency_services": (string)[],"attribution_confirmed_at": string | null,"consulted_before": string | null,"core_paid": boolean | null,"created_at": string,"destroyed_at": string | null,"id": string,"inflow_label": string | null,"kakao_use": boolean | null,"lead_check_needed": boolean,"lead_id": string | null,"lead_link_method": string | null,"next_due_date": string | null,"overdue_count": number | null,"parent_name": string | null,"parent_phone": string | null,"partner_id": string | null,"partner_name": string | null,"passport_status": string,"program_id": string,"program_name": string,"program_season": string | null,"program_start": string,"registered_on": string,"status": string,"student_name_ko": string | null,"total_due": number | null,"total_paid": number | null,"travel_info_submitted_at": string | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -1368,6 +1420,9 @@ isOneToOne: false
 "clear_must_change_password":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
+"collect_form_answers":
+{ Args: { "p_answers": Json,"p_enforce": boolean,"p_form": string,"p_program_id": string }; Returns: Json
+                           },
 "complete_message":
 { Args: { "p_error": string,"p_log_id": string,"p_provider_id": string,"p_status": string,"p_to_hash": string,"p_to_masked": string }; Returns: undefined
                            },
@@ -1433,6 +1488,9 @@ isOneToOne: false
 "flag_prep_recheck":
 { Args: { "p_program_id": string,"p_reason": string }; Returns: undefined
                            },
+"form_field_texts":
+{ Args: { "p_form": string }; Returns: Json
+                           },
 "format_date_ko":
 { Args: { "p": string }; Returns: string
                            },
@@ -1444,6 +1502,11 @@ isOneToOne: false
                            },
 "hold_destruction":
 { Args: { "p_reason": string,"p_request_id": string }; Returns: undefined
+                           },
+"inflow_stats":
+{ Args: { "p_from": string,"p_to": string }; Returns: {
+              "label": string,"leads": number,"registrations": number
+            }[]
                            },
 "invoke_destruction_runner":
 { Args: Record<PropertyKey, never>; Returns: number
@@ -1468,6 +1531,9 @@ isOneToOne: false
                            },
 "kst_today":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"lead_field_modes":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "log_passport_access":
 { Args: { "p_action": string,"p_actor": string,"p_file_id": string,"p_ip": unknown,"p_user_agent": string }; Returns: undefined
@@ -1530,7 +1596,16 @@ isOneToOne: false
               "ends_at": string,"id": string,"starts_at": string
             }[]
                            },
+"public_form_questions":
+{ Args: { "p_form": string,"p_program_id": string }; Returns: Json
+                           },
+"public_inflow":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "public_lead_form_config":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"public_open_programs":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
 "public_partner_by_code":
@@ -1605,6 +1680,16 @@ isOneToOne: false
 "reset_commission_auto":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"resolve_inflow":
+{ Args: { "p": Json,"p_enforce": boolean,"p_partner_id": string }; Returns: {
+              "channel_id": string,"detail": string,"label": string,"source_text": string
+            }[]
+                           },
+"resolve_kakao":
+{ Args: { "p": Json,"p_enforce": boolean }; Returns: {
+              "alt_contact": string,"alt_phone": string,"kakao_use": boolean
+            }[]
+                           },
 "retry_message":
 { Args: { "p_log_id": string }; Returns: undefined
                            },
@@ -1616,6 +1701,9 @@ isOneToOne: false
                            },
 "set_registration_agency":
 { Args: { "p_choice": string,"p_registration_id": string,"p_services": (string)[] }; Returns: undefined
+                           },
+"set_registration_lead":
+{ Args: { "p_lead_id": string,"p_registration_id": string }; Returns: Json
                            },
 "staff_recipients":
 { Args: { "p_admin_only": boolean,"p_event": string }; Returns: {
@@ -1630,6 +1718,9 @@ isOneToOne: false
                            },
 "sync_commissions":
 { Args: { "p_registration_id": string }; Returns: undefined
+                           },
+"text_array_max_len":
+{ Args: { "p": (string)[] }; Returns: number
                            },
 "travel_consents":
 { Args: { "p_program_id": string }; Returns: {

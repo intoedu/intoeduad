@@ -2,6 +2,7 @@
 // - 공개 키(publishable)로만 호출. 개인정보를 다루는 DB 함수는 service role로만 실행한다.
 // - action: "prefill"(상담 기록 링크로 미리 채움) / "submit"(신청 저장) / "my"(고객용 신청 내용 확인)
 //           / "travel"·"travel_submit"(대행 신청자의 출국 서류 정보 — M17)
+// - 유입 경로(필수)·추가 질문 답변·상담 이력 답변(M18) — 같은 학생의 상담 기록 연결은 DB가 판단
 // - 저장은 submit_registration()이 한 트랜잭션으로 처리(정원·납부 일정·동의 기록·확인 링크)
 // 여권 사진은 신청 저장 뒤 passport-upload로 따로 올린다(M8)
 // 납부 안내 알림톡(대기 접수는 대기 안내)·직원 알림은 DB가 발송 대기열에 넣고 message-sender가 보낸다(문안: docs/alimtalk-templates.md)
@@ -21,6 +22,18 @@ function reply(status: number, body: Record<string, unknown>) {
 
 function text(value: unknown, max: number): string {
   return String(value ?? "").trim().slice(0, max);
+}
+
+// 추가 질문 답변: {질문 id: 글자 | 글자 배열} — 검사·정리는 DB(collect_form_answers)가 한 번 더 한다
+function answersOf(value: unknown): Record<string, string | string[]> {
+  const out: Record<string, string | string[]> = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return out;
+  for (const [k, v] of Object.entries(value as Record<string, unknown>).slice(0, 60)) {
+    if (!UUID_RE.test(k)) continue;
+    if (Array.isArray(v)) out[k] = v.slice(0, 30).map((x) => String(x ?? "").slice(0, 100));
+    else if (typeof v === "string" || typeof v === "number") out[k] = String(v).slice(0, 2000);
+  }
+  return out;
 }
 
 function uuidOrNull(value: unknown): string | null {
@@ -172,6 +185,13 @@ export default {
       partner_id: uuidOrNull(body.partner_id),
       contact_id: uuidOrNull(body.contact_id),
       source_other: text(body.source_other, 100) || null,
+      inflow_channel_id: uuidOrNull(body.inflow_channel_id),
+      inflow_detail: text(body.inflow_detail, 100) || null,
+      answers: answersOf(body.answers),
+      kakao_use: typeof body.kakao_use === "boolean" ? body.kakao_use : null,
+      kakao_alt_phone: String(body.kakao_alt_phone ?? "").replace(/\D/g, "").slice(0, 11) || null,
+      alt_contact: text(body.alt_contact, 100) || null,
+      consulted_before: ["yes", "no", "unsure"].includes(String(body.consulted_before)) ? String(body.consulted_before) : null,
       student_name_ko: text(body.student_name_ko, 50),
       student_name_en: text(body.student_name_en, 60),
       birth_date: text(body.birth_date, 10),
@@ -199,6 +219,9 @@ export default {
     const { data, error } = await ctx.supabaseAdmin.rpc("submit_registration", { p: payload });
     if (error) {
       const code = error.hint ?? "";
+      if ((code === "INFLOW_REQUIRED" || code === "QUESTION_REQUIRED" || code === "QUESTION_INVALID" || code === "KAKAO_REQUIRED") && /[가-힣]/.test(error.message)) {
+        return reply(400, { error: error.message, code });
+      }
       const known = ERRORS[code];
       if (known) return reply(known[0], { error: known[1], code });
       console.error("submit_registration failed", error.message);

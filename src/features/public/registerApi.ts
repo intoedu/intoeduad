@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase'
 import { SubmitError } from './publicApi'
+import type { AnswerMap, FieldText, InflowConfig, PublicQuestion } from '../../domain/formSettings'
 
 // 캠프 등록 신청서 — 조회는 개인정보 없는 공개 함수, 미리 채움·저장·확인은 Edge Function(public-register)
 export type FieldMode = 'required' | 'optional' | 'hidden'
@@ -36,6 +37,12 @@ export type RegisterForm = {
     health_field_enabled?: boolean
   }
   fields?: Record<RegisterFieldKey, FieldMode>
+  // M18 문구·유입 경로·추가 질문·상담 이력 질문
+  texts?: Record<string, FieldText>
+  intro?: string
+  inflow?: InflowConfig
+  questions?: PublicQuestion[]
+  consulted_label?: string
   schedule?: ScheduleLine[]
   discounts?: DiscountLine[]
   agency?: { fees: Record<string, number> } | null
@@ -92,6 +99,13 @@ export type RegistrationSubmission = {
   partner_id: string | null
   contact_id: string | null
   source_other: string | null
+  inflow_channel_id?: string | null
+  inflow_detail?: string | null
+  answers?: AnswerMap
+  kakao_use?: boolean | null
+  kakao_alt_phone?: string | null
+  alt_contact?: string | null
+  consulted_before?: 'yes' | 'no' | 'unsure' | null
   student_name_ko: string
   student_name_en: string
   birth_date: string

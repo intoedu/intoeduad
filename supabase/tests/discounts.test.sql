@@ -76,7 +76,7 @@ reset role;
 -- ---------------------------------------------------------------------------
 create temp table base (v jsonb);
 insert into base values ($${
-  "slug": "disc-t15", "student_name_ko": "할인학생", "student_name_en": "DC KID", "birth_date": "2015-03-02", "gender": "male",
+  "slug": "disc-t15", "kakao_use": true, "student_name_ko": "할인학생", "student_name_en": "DC KID", "birth_date": "2015-03-02", "gender": "male",
   "grade": "초6", "parent_name": "부모", "parent_phone": "010-1500-0001", "parent_email": "a@b.co",
   "emergency_name": "x", "emergency_relation": "부", "emergency_phone": "010-1500-0009",
   "agree": {"reg_privacy": true, "reg_third_party": true, "reg_guardian": true, "refund": true, "destruction_notice": true}

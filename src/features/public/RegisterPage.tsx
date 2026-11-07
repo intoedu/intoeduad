@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router'
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Alert, Button, Field, Input, Select, Spinner, Textarea } from '../../components/ui'
 import { formatDateLongKo } from '../../domain/dates'
 import { isValidMobile, isValidPhone, normalizePhone } from '../../domain/phone'
@@ -23,13 +23,31 @@ import type { AgencyChoice, AgencyService } from '../../domain/agency'
 import { PassportPicker } from './PassportPicker'
 import { uploadPassport } from './passportUpload'
 import { DestructionNotice, DiscountList, ScheduleList } from './RegistrationParts'
+import { InflowField } from '../../components/shared/InflowField'
+import { QuestionFields } from '../../components/shared/QuestionFields'
+import { KakaoField } from '../../components/shared/KakaoField'
+import {
+  CONSULTED_OPTIONS,
+  CONTACT_UNKNOWN,
+  EMPTY_INFLOW,
+  EMPTY_KAKAO,
+  kakaoPayload,
+  validateKakao,
+  type KakaoValue,
+  PARTNER_NOT_LISTED,
+  cleanAnswers,
+  fieldHelp,
+  fieldLabel,
+  inflowPayload,
+  validateAnswers,
+  validateInflow,
+  type AnswerMap,
+  type InflowValue,
+} from '../../domain/formSettings'
 
 const GRADES = ['초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3', '기타']
 const ENGLISH_LEVELS = ['처음 배워요', '기초', '중급', '상급']
 const EMERGENCY_RELATIONS = ['어머니', '아버지', '조부모', '친척', '기타']
-const OTHER = '__other__'
-const NONE = '__none__'
-const UNKNOWN = '__unknown__'
 
 export type RegisterDoneState = {
   waitlisted: boolean
@@ -134,10 +152,14 @@ export function RegisterPage() {
   const [knownPartner, setKnownPartner] = useState<{ id: string; name: string } | null>(null)
   const [knownContact, setKnownContact] = useState<{ id: string; name: string } | null>(null)
   const [partners, setPartners] = useState<Array<{ id: string; name: string; region: string | null }>>([])
-  const [partnerChoice, setPartnerChoice] = useState('')
-  const [sourceOther, setSourceOther] = useState('')
+  // 링크로 학원이 정해졌을 때 선생님 고르기
   const [contacts, setContacts] = useState<PublicContact[]>([])
   const [contactChoice, setContactChoice] = useState('')
+  // 링크가 없으면 유입 경로(필수)
+  const [inflow, setInflow] = useState<InflowValue>(EMPTY_INFLOW)
+  const [consulted, setConsulted] = useState<'' | 'yes' | 'no' | 'unsure'>('')
+  const [answers, setAnswers] = useState<AnswerMap>({})
+  const [kakao, setKakao] = useState<KakaoValue>(EMPTY_KAKAO)
 
   const [agree, setAgree] = useState<Record<string, boolean>>({})
   const [passportMode, setPassportMode] = useState<'' | 'now' | 'later'>('')
@@ -193,11 +215,7 @@ export function RegisterPage() {
     }
   }, [token, refCode, contactCode])
 
-  async function choosePartner(value: string) {
-    setPartnerChoice(value)
-    setContactChoice('')
-    setContacts(value && value !== OTHER && value !== NONE ? await listPartnerContacts(value) : [])
-  }
+  const loadContacts = useCallback((partnerId: string) => listPartnerContacts(partnerId), [])
 
   const set = (key: keyof Values) => (value: string) => setV((prev) => ({ ...prev, [key]: value }))
   const mode = (key: RegisterFieldKey): FieldMode => form?.fields?.[key] ?? 'optional'
@@ -206,14 +224,20 @@ export function RegisterPage() {
 
   const consents = form?.consents ?? []
   const doc = (kind: string): RegisterConsent | undefined => consents.find((c) => c.kind === kind)
-  const partnerName = knownPartner?.name ?? partners.find((p) => p.id === partnerChoice)?.name ?? null
+  const partnerName =
+    knownPartner?.name ??
+    (inflow.partnerId && inflow.partnerId !== PARTNER_NOT_LISTED ? (partners.find((p) => p.id === inflow.partnerId)?.name ?? null) : null)
+  const texts = form?.texts
+  const label = (key: string, fallback: string, optional = false) => `${fieldLabel(texts, key, fallback)}${optional ? ' (선택)' : ''}`
+  const questions = form?.questions ?? []
   const hasPartner = !!partnerName
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {}
     const today = todayKst()
-    if (!knownPartner && !partnerChoice) e.partner = '알게 된 경로를 선택해 주세요.'
-    if (partnerChoice === OTHER && !sourceOther.trim()) e.sourceOther = '알게 된 경로를 적어 주세요.'
+    const inflowError = form?.inflow ? validateInflow(form.inflow, inflow, !!knownPartner) : null
+    if (inflowError) e.inflow = inflowError
+    if (!tokenValid && form?.consulted_label && !consulted) e.consulted = '상담 신청 여부를 골라 주세요.'
     if (!v.student_name_ko.trim()) e.student_name_ko = '학생 이름을 입력해 주세요.'
     if (shown('student_name_en')) {
       if (req('student_name_en') && !v.student_name_en.trim()) e.student_name_en = '여권과 같은 영문 이름을 입력해 주세요.'
@@ -229,6 +253,8 @@ export function RegisterPage() {
     if (shown('english_level') && req('english_level') && !v.english_level) e.english_level = '영어 수준을 선택해 주세요.'
     if (!v.parent_name.trim()) e.parent_name = '학부모 이름을 입력해 주세요.'
     if (!isValidMobile(normalizePhone(v.parent_phone))) e.parent_phone = '휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)'
+    const kakaoError = validateKakao(kakao)
+    if (kakaoError) e.kakao = kakaoError
     if (shown('parent_email')) {
       if (req('parent_email') && !v.parent_email.trim()) e.parent_email = '이메일을 입력해 주세요.'
       else if (v.parent_email.trim() && !isValidEmail(v.parent_email)) e.parent_email = '이메일 형식을 확인해 주세요.'
@@ -247,6 +273,7 @@ export function RegisterPage() {
     if (form?.program.health_field_enabled && v.health_notes.trim() && !agree.reg_health) {
       e.health = '건강 특이사항을 적으셨다면 민감정보 수집·이용에 동의해 주세요. 동의하지 않으시려면 내용을 지워 주세요.'
     }
+    for (const [id, msg] of Object.entries(validateAnswers(questions, answers))) e[`q-${id}`] = msg
     if (!agree.destruction_notice) e.destruction = '개인정보 파기 안내를 확인해 주세요.'
     if (form?.agency) {
       if (!agency.choice) e.agency = '항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.'
@@ -272,15 +299,21 @@ export function RegisterPage() {
 
     setSubmitting(true)
     try {
-      // 우선순위(상담 기록 > 학원 링크 > 직접 선택)는 DB가 다시 판단한다
+      // 우선순위(상담 기록 > 학원 링크 > 직접 선택)와 같은 학생의 상담 기록 연결은 DB가 다시 판단한다
+      const route = inflowPayload(form.inflow, inflow, !!knownPartner)
       const res = await submitRegistration({
         slug,
         token: tokenValid ? token : null,
         partner_code: refCode,
         contact_code: contactCode,
-        partner_id: !knownPartner && partnerChoice && partnerChoice !== OTHER && partnerChoice !== NONE ? partnerChoice : null,
-        contact_id: !knownContact && contactChoice && contactChoice !== UNKNOWN ? contactChoice : null,
-        source_other: partnerChoice === OTHER ? sourceOther.trim() : null,
+        partner_id: route.partner_id,
+        contact_id: route.contact_id ?? (knownPartner && !knownContact && contactChoice && contactChoice !== CONTACT_UNKNOWN ? contactChoice : null),
+        source_other: null,
+        inflow_channel_id: route.inflow_channel_id,
+        inflow_detail: route.inflow_detail,
+        answers: cleanAnswers(questions, answers),
+        ...kakaoPayload(kakao),
+        consulted_before: tokenValid ? 'yes' : consulted || null,
         ...v,
         student_name_ko: v.student_name_ko.trim(),
         student_name_en: v.student_name_en.trim() ? normalizeEnglishName(v.student_name_en) : '',
@@ -372,6 +405,14 @@ export function RegisterPage() {
   const waitlist = !!form.is_full
   const errors: Record<string, string> = attempted ? validate() : {}
   const field = (key: string, node: ReactNode) => <div id={`field-${key}`}>{node}</div>
+  const questionErrors = Object.fromEntries(
+    Object.entries(errors)
+      .filter(([k]) => k.startsWith('q-'))
+      .map(([k, v]) => [k.slice(2), v]),
+  )
+  const hubQuery = new URLSearchParams()
+  if (refCode) hubQuery.set('ref', refCode)
+  if (contactCode) hubQuery.set('c', contactCode)
 
   return (
     <PublicLayout>
@@ -400,6 +441,12 @@ export function RegisterPage() {
           )}
         </dl>
         {p.description && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">{p.description}</p>}
+        {form.intro && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">{form.intro}</p>}
+        {!tokenValid && (
+          <Link to={`/register${hubQuery.size ? `?${hubQuery}` : ''}`} className="mt-3 inline-block text-sm text-brand-600 hover:underline">
+            ← 다른 캠프 보기
+          </Link>
+        )}
       </div>
 
       {waitlist && (
@@ -418,32 +465,17 @@ export function RegisterPage() {
               <strong>{knownPartner.name}</strong>
               {knownContact ? ` ${knownContact.name} 선생님` : ''} 소개로 신청합니다.
             </div>
-          ) : (
-            field(
-              'partner',
-              <Field label="어디서 알게 되셨나요?" error={errors.partner}>
-                <Select value={partnerChoice} onChange={(e) => void choosePartner(e.target.value)}>
-                  <option value="">선택해 주세요</option>
-                  {partners.map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {x.name}
-                      {x.region ? ` (${x.region})` : ''}
-                    </option>
-                  ))}
-                  <option value={OTHER}>기타 (직접 입력)</option>
-                  <option value={NONE}>해당 없음</option>
-                </Select>
-              </Field>,
-            )
-          )}
-          {partnerChoice === OTHER &&
-            field(
-              'sourceOther',
-              <Field label="알게 된 경로" error={errors.sourceOther}>
-                <Input value={sourceOther} placeholder="예: 지인 소개, 블로그" onChange={(e) => setSourceOther(e.target.value)} />
-              </Field>,
-            )}
-          {!knownContact && contacts.length > 0 && (
+          ) : form.inflow ? (
+            <InflowField
+              config={form.inflow}
+              value={inflow}
+              onChange={setInflow}
+              partners={partners}
+              loadContacts={loadContacts}
+              error={errors.inflow}
+            />
+          ) : null}
+          {knownPartner && !knownContact && contacts.length > 0 && (
             <Field label="소개해 주신 선생님 (선택)">
               <Select value={contactChoice} onChange={(e) => setContactChoice(e.target.value)}>
                 <option value="">선택 안 함</option>
@@ -452,16 +484,41 @@ export function RegisterPage() {
                     {c.name} {CONTACT_ROLE_LABELS[c.role] ?? ''}
                   </option>
                 ))}
-                <option value={UNKNOWN}>잘 모르겠어요</option>
+                <option value={CONTACT_UNKNOWN}>잘 모르겠어요</option>
               </Select>
             </Field>
           )}
+          {!tokenValid &&
+            form.consulted_label &&
+            field(
+              'consulted',
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium text-slate-700">{form.consulted_label}</legend>
+                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={form.consulted_label}>
+                  {CONSULTED_OPTIONS.map((o) => (
+                    <label
+                      key={o.value}
+                      className={`cursor-pointer rounded-xl px-3 py-2.5 text-center text-sm ring-1 has-focus-visible:outline-2 has-focus-visible:outline-brand-600 ${
+                        consulted === o.value ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-300'
+                      }`}
+                    >
+                      <input type="radio" name="consulted" className="sr-only" checked={consulted === o.value} onChange={() => setConsulted(o.value)} />
+                      {o.label}
+                    </label>
+                  ))}
+                </div>
+                {consulted === 'yes' && (
+                  <p className="mt-2 text-xs text-slate-500">상담 때 남기신 학부모 휴대폰 번호와 학생 이름을 같게 적어 주시면 상담 내용과 연결됩니다.</p>
+                )}
+                {errors.consulted && <p className="mt-1 text-xs text-red-600">{errors.consulted}</p>}
+              </fieldset>,
+            )}
         </Section>
 
         <Section title="학생 정보">
           {field(
             'student_name_ko',
-            <Field label="학생 이름(한글)" error={errors.student_name_ko}>
+            <Field label={label('student_name_ko', '학생 이름(한글)')} hint={fieldHelp(texts, 'student_name_ko')} error={errors.student_name_ko}>
               <Input autoComplete="off" value={v.student_name_ko} onChange={(e) => set('student_name_ko')(e.target.value)} />
             </Field>,
           )}
@@ -469,8 +526,8 @@ export function RegisterPage() {
             field(
               'student_name_en',
               <Field
-                label={`영문 이름(여권과 동일)${req('student_name_en') ? '' : ' (선택)'}`}
-                hint="여권에 적힌 그대로 입력해 주세요. 항공권 발권에 사용합니다."
+                label={label('student_name_en', '영문 이름(여권과 동일)', !req('student_name_en'))}
+                hint={fieldHelp(texts, 'student_name_en', '여권에 적힌 그대로 입력해 주세요. 항공권 발권에 사용합니다.')}
                 error={errors.student_name_en}
               >
                 <Input
@@ -486,7 +543,7 @@ export function RegisterPage() {
           {shown('birth_date') &&
             field(
               'birth_date',
-              <Field label={`생년월일${req('birth_date') ? '' : ' (선택)'}`} error={errors.birth_date}>
+              <Field label={label('birth_date', '생년월일', !req('birth_date'))} hint={fieldHelp(texts, 'birth_date')} error={errors.birth_date}>
                 <Input type="date" max={todayKst()} value={v.birth_date} onChange={(e) => set('birth_date')(e.target.value)} />
               </Field>,
             )}
@@ -494,7 +551,7 @@ export function RegisterPage() {
             field(
               'gender',
               <div>
-                <p className="mb-2 text-sm font-medium text-slate-700">성별{req('gender') ? '' : ' (선택)'}</p>
+                <p className="mb-2 text-sm font-medium text-slate-700">{label('gender', '성별', !req('gender'))}</p>
                 <div className="flex gap-2" role="radiogroup" aria-label="성별">
                   {[
                     { value: 'male', label: '남' },
@@ -517,14 +574,14 @@ export function RegisterPage() {
           {shown('school') &&
             field(
               'school',
-              <Field label={`학교${req('school') ? '' : ' (선택)'}`} error={errors.school}>
+              <Field label={label('school', '학교', !req('school'))} hint={fieldHelp(texts, 'school')} error={errors.school}>
                 <Input value={v.school} onChange={(e) => set('school')(e.target.value)} />
               </Field>,
             )}
           {shown('grade') &&
             field(
               'grade',
-              <Field label={`학년${req('grade') ? '' : ' (선택)'}`} error={errors.grade}>
+              <Field label={label('grade', '학년', !req('grade'))} hint={fieldHelp(texts, 'grade')} error={errors.grade}>
                 <Select value={v.grade} onChange={(e) => set('grade')(e.target.value)}>
                   <option value="">선택해 주세요</option>
                   {GRADES.map((g) => (
@@ -538,7 +595,7 @@ export function RegisterPage() {
           {shown('english_level') &&
             field(
               'english_level',
-              <Field label={`영어 수준${req('english_level') ? '' : ' (선택)'}`} error={errors.english_level}>
+              <Field label={label('english_level', '영어 수준', !req('english_level'))} hint={fieldHelp(texts, 'english_level')} error={errors.english_level}>
                 <Select value={v.english_level} onChange={(e) => set('english_level')(e.target.value)}>
                   <option value="">선택해 주세요</option>
                   {ENGLISH_LEVELS.map((g) => (
@@ -554,13 +611,13 @@ export function RegisterPage() {
         <Section title="학부모 정보">
           {field(
             'parent_name',
-            <Field label="학부모 이름" error={errors.parent_name}>
+            <Field label={label('parent_name', '학부모 이름')} hint={fieldHelp(texts, 'parent_name')} error={errors.parent_name}>
               <Input autoComplete="name" value={v.parent_name} onChange={(e) => set('parent_name')(e.target.value)} />
             </Field>,
           )}
           {field(
             'parent_phone',
-            <Field label="휴대폰 번호" hint="납부 안내를 이 번호로 보내 드립니다." error={errors.parent_phone}>
+            <Field label={label('parent_phone', '휴대폰 번호')} hint={fieldHelp(texts, 'parent_phone', '납부 안내를 이 번호로 보내 드립니다.')} error={errors.parent_phone}>
               <Input
                 type="tel"
                 inputMode="tel"
@@ -571,24 +628,28 @@ export function RegisterPage() {
               />
             </Field>,
           )}
+          <KakaoField value={kakao} onChange={setKakao} error={errors.kakao} />
           {shown('parent_email') &&
             field(
               'parent_email',
-              <Field label={`이메일${req('parent_email') ? '' : ' (선택)'}`} error={errors.parent_email}>
+              <Field label={label('parent_email', '이메일', !req('parent_email'))} hint={fieldHelp(texts, 'parent_email')} error={errors.parent_email}>
                 <Input type="email" inputMode="email" autoComplete="email" value={v.parent_email} onChange={(e) => set('parent_email')(e.target.value)} />
               </Field>,
             )}
           {shown('address') &&
             field(
               'address',
-              <Field label={`주소${req('address') ? '' : ' (선택)'}`} error={errors.address}>
+              <Field label={label('address', '주소', !req('address'))} hint={fieldHelp(texts, 'address')} error={errors.address}>
                 <Input autoComplete="street-address" value={v.address} onChange={(e) => set('address')(e.target.value)} />
               </Field>,
             )}
         </Section>
 
         {shown('emergency') && (
-          <Section title={`비상 연락처${req('emergency') ? '' : ' (선택)'}`} description="프로그램 기간 중 학부모님과 연락이 닿지 않을 때 연락드릴 분입니다.">
+          <Section
+            title={label('emergency', '비상 연락처', !req('emergency'))}
+            description={fieldHelp(texts, 'emergency', '프로그램 기간 중 학부모님과 연락이 닿지 않을 때 연락드릴 분입니다.')}
+          >
             {field(
               'emergency_name',
               <Field label="이름" error={errors.emergency_name}>
@@ -620,8 +681,8 @@ export function RegisterPage() {
               field(
                 'special_notes',
                 <Field
-                  label={`특이사항${req('special_notes') ? '' : ' (선택)'}`}
-                  hint={p.health_field_enabled ? '건강 관련 내용은 아래 건강 특이사항 항목에 적어 주세요.' : undefined}
+                  label={label('special_notes', '특이사항', !req('special_notes'))}
+                  hint={fieldHelp(texts, 'special_notes', p.health_field_enabled ? '건강 관련 내용은 아래 건강 특이사항 항목에 적어 주세요.' : undefined)}
                   error={errors.special_notes}
                 >
                   <Textarea rows={3} maxLength={2000} value={v.special_notes} onChange={(e) => set('special_notes')(e.target.value)} />
@@ -673,6 +734,12 @@ export function RegisterPage() {
                 {waitlist && <p className="text-xs text-slate-500">대기 접수는 자리가 확정된 뒤 여권 사진을 받습니다.</p>}
               </div>,
             )}
+          </Section>
+        )}
+
+        {questions.length > 0 && (
+          <Section title="추가 질문">
+            <QuestionFields questions={questions} values={answers} onChange={setAnswers} errors={questionErrors} />
           </Section>
         )}
 

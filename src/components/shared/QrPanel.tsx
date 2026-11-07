@@ -9,6 +9,8 @@ type Props = {
   locked: boolean
   // 처음 배포(복사·다운로드)할 때 코드를 잠근다
   onLock: () => Promise<boolean>
+  // 코드가 없는 공용 링크는 잠금 표시를 하지 않는다
+  showLock?: boolean
 }
 
 // Blob URL로 내려받아야 파일 이름이 지켜진다. 다운로드가 시작될 시간을 준 뒤 URL을 해제한다.
@@ -23,7 +25,7 @@ function download(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(href), 10_000)
 }
 
-export function QrPanel({ title, url, fileBaseName, locked, onLock }: Props) {
+export function QrPanel({ title, url, fileBaseName, locked, onLock, showLock = true }: Props) {
   const [preview, setPreview] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -64,7 +66,7 @@ export function QrPanel({ title, url, fileBaseName, locked, onLock }: Props) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-medium text-slate-900">{title}</p>
-          {locked ? <Badge tone="green">배포됨 · 코드 잠금</Badge> : <Badge>배포 전</Badge>}
+          {showLock && (locked ? <Badge tone="green">배포됨 · 코드 잠금</Badge> : <Badge>배포 전</Badge>)}
         </div>
         <p className="mt-1 break-all font-mono text-xs text-slate-600">{url}</p>
         <div className="mt-3 flex flex-wrap gap-2">

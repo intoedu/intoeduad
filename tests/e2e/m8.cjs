@@ -27,7 +27,7 @@ async function login(page, email) {
 const agreeTo = (page, title) => page.getByRole('checkbox', { name: new RegExp(`^${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) })
 
 async function fillAndAgree(page, ko, phone) {
-  await page.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '해당 없음' })
+  await page.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '인스타그램' })
   await page.getByLabel('학생 이름(한글)').fill(ko)
   await page.getByLabel(/영문 이름/).fill('HONG GILDONG')
   await page.getByLabel(/생년월일/).fill('2015-03-02')
@@ -35,6 +35,8 @@ async function fillAndAgree(page, ko, phone) {
   await page.getByLabel(/^학년/).selectOption('초6')
   await page.getByLabel('학부모 이름').fill('홍엄마')
   await page.getByLabel('휴대폰 번호').fill(phone)
+  await page.getByText('네, 사용해요', { exact: true }).click()
+  { const nc = page.getByText('아니요, 처음이에요', { exact: true }); if (await nc.count()) await nc.click() }
   await page.getByLabel(/^이메일/).fill('mom@example.com')
   await page.getByLabel('이름', { exact: true }).fill('홍아빠')
   await page.getByLabel('연락처', { exact: true }).fill('010-3333-4444')

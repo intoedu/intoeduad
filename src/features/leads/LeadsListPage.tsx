@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Badge, Card, EmptyState, Input, PageHeader, Select, Spinner } from '../../components/ui'
+import { KakaoBadge } from '../../components/shared/IntakeInfo'
 import { formatPhone } from '../../domain/phone'
 import { formatKstWithDay } from '../../lib/datetime'
 import { CONSULT_METHOD, LEAD_STATUS } from '../../lib/labels'
@@ -172,10 +173,17 @@ export function LeadsListPage() {
                         </span>
                       )}
                       {!r.attribution_confirmed_at && <Badge tone="amber">소개 경로 미확인</Badge>}
+                      <KakaoBadge use={r.kakao_use} />
                     </div>
                     <p className="mt-1 text-sm text-slate-500">
                       신청 {formatKstWithDay(r.created_at)} ·{' '}
-                      {r.partner ? `${r.partner.name}${r.contact ? ` ${r.contact.name}` : ''}` : r.source_other ? `기타: ${r.source_other}` : '학원 소개 아님'}
+                      {r.partner
+                        ? `${r.partner.name}${r.contact ? ` ${r.contact.name}` : ''}`
+                        : r.inflow_label
+                          ? r.source_other || r.inflow_label
+                          : r.source_other
+                            ? `기타: ${r.source_other}`
+                            : '유입 경로 미기록'}
                       {r.interests_programs.length > 0 &&
                         ` · ${r.interests_programs
                           .map((ip) => ip.program?.name)

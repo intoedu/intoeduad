@@ -83,6 +83,7 @@ async function waitStatus(purpose, relatedId) {
     headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'content-type': 'application/json' },
     body: JSON.stringify({ action: 'submit', slug: 'msg-e2e', student_name_ko: '알림학생', student_name_en: 'ALIM', birth_date: '2015-01-01', gender: 'male', grade: '초6',
       parent_name: '알림부모', parent_phone: '010-4444-5678', parent_email: 'p@example.com', emergency_name: '아빠', emergency_phone: '01099998888',
+      kakao_use: true, source_other: 'E2E', consulted_before: 'no',
       agree: { reg_privacy: true, reg_third_party: true, reg_guardian: true, refund: true, destruction_notice: true } }),
   })
   check('등록 신청 접수', r.status === 200)
@@ -116,7 +117,7 @@ async function waitStatus(purpose, relatedId) {
   sql(`update settings set value = jsonb_set(value, '{enabled}', 'false') where key = 'solapi'`)
   await fetch(`${API}/functions/v1/public-lead-submit`, {
     method: 'POST', headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ student_name: '꺼짐학생', parent_name: '부모', parent_phone: '01055554444', agree_privacy: true, agree_guardian: true }),
+    body: JSON.stringify({ student_name: '꺼짐학생', student_grade: '중1', relation: '어머니', source_other: 'E2E', kakao_use: true, parent_name: '부모', parent_phone: '01055554444', agree_privacy: true, agree_guardian: true }),
   })
   const lead = sql(`select id from leads where student_name = '꺼짐학생'`)
   check('알림 꺼짐 → 보내지 않음', (await waitStatus('lead_received', lead)) === 'skipped')

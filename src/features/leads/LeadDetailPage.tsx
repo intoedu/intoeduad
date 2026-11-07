@@ -12,6 +12,7 @@ import { getLead, loadTimeline, type LeadRow, type TimelineItem } from './api'
 import { ConsultationCard } from './ConsultationCard'
 import { MessageHistory } from '../messages/MessagesPage'
 import { AttributionCard } from '../../components/shared/AttributionCard'
+import { IntakeInfo, KakaoBadge } from '../../components/shared/IntakeInfo'
 
 type Option = { id: string; name: string }
 
@@ -133,7 +134,10 @@ export function LeadDetailPage() {
 
           {/* 신청 내용 */}
           <Card>
-            <p className="mb-3 font-semibold text-slate-900">신청 내용</p>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <p className="font-semibold text-slate-900">신청 내용</p>
+              <KakaoBadge use={lead.kakao_use} />
+            </div>
             {destroyed ? (
               <p className="text-sm text-slate-500">보유 기간이 지나 개인정보가 파기되었습니다.</p>
             ) : (
@@ -165,6 +169,11 @@ export function LeadDetailPage() {
                   <Item label="자세한 내용" value={<span className="whitespace-pre-wrap">{lead.message ?? '-'}</span>} />
                 </div>
               </dl>
+            )}
+            {!destroyed && (
+              <div className="mt-4 border-t border-slate-100 pt-4">
+                <IntakeInfo row={lead} />
+              </div>
             )}
           </Card>
 

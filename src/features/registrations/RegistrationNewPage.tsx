@@ -2,7 +2,22 @@
 // 학부모 신청서와 같은 저장 규칙(필수 항목·납부 일정 자동 생성·얼리버드·학원별 할인·정원/대기)을 쓴다.
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
-import { ENTRY_METHODS, entryErrorText, GRADES, PartnerPicker } from '../../components/admin/StaffEntryParts'
+import { ENTRY_METHODS, entryErrorText, GRADES, useStaffFormExtras } from '../../components/admin/StaffEntryParts'
+import { InflowField } from '../../components/shared/InflowField'
+import { KakaoField } from '../../components/shared/KakaoField'
+import { QuestionFields } from '../../components/shared/QuestionFields'
+import {
+  EMPTY_INFLOW,
+  EMPTY_KAKAO,
+  PARTNER_NOT_LISTED,
+  cleanAnswers,
+  inflowPayload,
+  kakaoPayload,
+  validateAnswers,
+  type AnswerMap,
+  type InflowValue,
+  type KakaoValue,
+} from '../../domain/formSettings'
 import { AgencyChooser } from '../../components/shared/AgencyChooser'
 import { DEFAULT_AGENCY_FEES, type AgencyChoice, type AgencyFees, type AgencyService } from '../../domain/agency'
 import { Alert, Badge, Button, Card, Field, Input, PageHeader, Select, Textarea } from '../../components/ui'
@@ -52,7 +67,10 @@ export function RegistrationNewPage() {
   const [programs, setPrograms] = useState<ProgramOption[]>([])
   const [programId, setProgramId] = useState(params.get('program') ?? '')
   const [v, setV] = useState(EMPTY)
-  const [source, setSource] = useState({ partnerId: '', contactId: '', sourceOther: '' })
+  const extras = useStaffFormExtras('registration', programId || null)
+  const [inflow, setInflow] = useState<InflowValue>(EMPTY_INFLOW)
+  const [kakao, setKakao] = useState<KakaoValue>(EMPTY_KAKAO)
+  const [answers, setAnswers] = useState<AnswerMap>({})
   const [method, setMethod] = useState('paper')
   const [consent, setConsent] = useState(false)
   const [agreeHealth, setAgreeHealth] = useState(false)
@@ -93,6 +111,7 @@ export function RegistrationNewPage() {
     if (!v.student_name_ko.trim() || !v.parent_name.trim()) return setError('학생 이름과 학부모 이름을 입력해 주세요.')
     if (!/^01[0-9]{8,9}$/.test(normalizePhone(v.parent_phone))) return setError('학부모 휴대폰 번호를 확인해 주세요.')
     if (!consent) return setError('학부모 동의를 받았는지 확인해 주세요.')
+    if (Object.keys(validateAnswers(extras.questions, answers, false)).length > 0) return setError('추가 질문 답변 형식을 확인해 주세요.')
     if (program.agency_enabled && !agency.choice) return setError('항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.')
     if (program.agency_enabled && agency.choice === 'agency' && agency.services.length === 0) return setError('대행할 항목을 하나 이상 골라 주세요.')
     if (program.health_field_enabled && v.health_notes.trim() && !agreeHealth) return setError('건강 특이사항을 적었다면 민감정보 동의를 받았는지 확인해 주세요.')
@@ -106,9 +125,9 @@ export function RegistrationNewPage() {
         emergency_phone: v.emergency_phone ? normalizePhone(v.emergency_phone) : '',
         health_notes: program.health_field_enabled ? v.health_notes : '',
         program_id: program.id,
-        partner_id: source.partnerId || null,
-        contact_id: source.contactId || null,
-        source_other: source.sourceOther.trim(),
+        ...inflowPayload(extras.inflow, inflow, false),
+        ...kakaoPayload(kakao),
+        answers: cleanAnswers(extras.questions, answers),
         entry_method: method,
         consent_confirmed: true,
         agree_health: agreeHealth,
@@ -164,7 +183,9 @@ export function RegistrationNewPage() {
                 setDone(null)
                 setCopied(false)
                 setV(EMPTY)
-                setSource({ partnerId: '', contactId: '', sourceOther: '' })
+                setInflow(EMPTY_INFLOW)
+                setKakao(EMPTY_KAKAO)
+                setAnswers({})
                 setConsent(false)
                 setAgreeHealth(false)
                 setAgreeShare(false)
@@ -329,10 +350,31 @@ export function RegistrationNewPage() {
             )}
 
             <Card>
-              <p className="mb-3 font-semibold text-slate-900">소개 경로</p>
-              <PartnerPicker partnerId={source.partnerId} contactId={source.contactId} sourceOther={source.sourceOther} onChange={setSource} />
-              <p className="mt-2 text-xs text-slate-500">학원을 고르면 그 학원의 할인이 있을 때 자동으로 적용되고, 커미션 대상이 됩니다(소개 경로 확인은 등록생 상세에서).</p>
+              <p className="mb-3 font-semibold text-slate-900">유입 경로·연락 방법</p>
+              <div className="space-y-4">
+                {extras.inflow && (
+                  <InflowField config={extras.inflow} value={inflow} onChange={setInflow} partners={extras.partners} loadContacts={extras.loadContacts} />
+                )}
+                <KakaoField value={kakao} onChange={setKakao} />
+              </div>
+              <p className="mt-2 text-xs text-slate-500">
+                "학원 소개"에서 학원을 고르면 그 학원의 할인이 있을 때 자동으로 적용되고, 커미션 대상이 됩니다(소개 경로 확인은 등록생 상세에서). 같은 학부모 번호·학생
+                이름의 상담 기록이 있으면 자동으로 연결됩니다.
+              </p>
             </Card>
+
+            {extras.questions.length > 0 && (
+              <Card>
+                <p className="mb-3 font-semibold text-slate-900">추가 질문</p>
+                <QuestionFields
+                  questions={extras.questions}
+                  values={answers}
+                  onChange={setAnswers}
+                  errors={validateAnswers(extras.questions, answers, false)}
+                  requiredMark={false}
+                />
+              </Card>
+            )}
 
             <Card>
               <p className="mb-3 font-semibold text-slate-900">입력 방법·동의 확인</p>
@@ -361,7 +403,7 @@ export function RegistrationNewPage() {
                   <span>[선택] 건강 특이사항(민감정보) 수집·이용 동의를 받았습니다.</span>
                 </label>
               )}
-              {source.partnerId && (
+              {inflow.partnerId && inflow.partnerId !== PARTNER_NOT_LISTED && (
                 <label className="mt-3 flex items-start gap-2 text-sm text-slate-800">
                   <input type="checkbox" className="mt-0.5 size-4" checked={agreeShare} onChange={(e) => setAgreeShare(e.target.checked)} />
                   <span>[선택] 소개 학원에 학생 이름·등록 여부를 알리는 것에 동의를 받았습니다.</span>

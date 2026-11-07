@@ -4,6 +4,7 @@ import { Tabs } from '../../components/ui'
 const TABS = [
   { value: '/admin/settings/staff', label: '직원 관리' },
   { value: '/admin/settings/general', label: '기본 설정' },
+  { value: '/admin/settings/forms', label: '신청서 질문' },
   { value: '/admin/settings/consents', label: '동의·안내 문구' },
   { value: '/admin/settings/notifications', label: '알림' },
 ]

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { Alert, Badge, Button, Card, PageHeader, Spinner, Tabs } from '../../components/ui'
-import { applyLink, publicSiteUrl } from '../../domain/links'
+import { applyLink, publicSiteUrl, registerHubLink } from '../../domain/links'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
 import { AgreementsSection } from './AgreementsSection'
@@ -180,6 +180,13 @@ export function PartnerDetailPage() {
             title="학원 상담 신청 링크"
             url={applyLink(base, partner.code)}
             fileBaseName={`인투유학_상담신청_${partner.name}`}
+            locked={partner.code_locked}
+            onLock={lockPartnerCode}
+          />
+          <QrPanel
+            title="학원 캠프 신청 링크 (모집 중인 모든 캠프)"
+            url={registerHubLink(base, partner.code)}
+            fileBaseName={`인투유학_캠프신청_${partner.name}`}
             locked={partner.code_locked}
             onLock={lockPartnerCode}
           />

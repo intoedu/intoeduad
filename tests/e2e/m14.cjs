@@ -73,7 +73,7 @@ const agreeTo = (page, title) => page.getByRole('checkbox', { name: new RegExp(`
     mobile.on('pageerror', (e) => errors.push(e.message))
     await mobile.goto(`${PROD}/register/csp-e2e`)
     check('CSP 아래 신청서 표시', await visible(mobile.getByRole('heading', { name: /CSP 캠프.*등록 신청/ })))
-    await mobile.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '해당 없음' })
+    await mobile.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '인스타그램' })
     await mobile.getByLabel('학생 이름(한글)').fill('보안학생')
     await mobile.getByLabel(/영문 이름/).fill('SECURE KID')
     await mobile.getByLabel(/생년월일/).fill('2015-03-02')
@@ -81,6 +81,8 @@ const agreeTo = (page, title) => page.getByRole('checkbox', { name: new RegExp(`
     await mobile.getByLabel(/^학년/).selectOption('초6')
     await mobile.getByLabel('학부모 이름').fill('보안부모')
     await mobile.getByLabel('휴대폰 번호').fill('010-7777-1234')
+    await mobile.getByText('네, 사용해요', { exact: true }).click()
+    { const nc = mobile.getByText('아니요, 처음이에요', { exact: true }); if (await nc.count()) await nc.click() }
     await mobile.getByLabel(/^이메일/).fill('p@example.com')
     await mobile.getByLabel('이름', { exact: true }).fill('아빠')
     await mobile.getByLabel('연락처', { exact: true }).fill('010-3333-4444')

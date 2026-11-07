@@ -31,6 +31,8 @@ async function fillStudent(page, { ko, en, phone }) {
   await page.getByLabel(/^학년/).selectOption('초6')
   await page.getByLabel('학부모 이름').fill('이엄마')
   await page.getByLabel('휴대폰 번호').fill(phone)
+  await page.getByText('네, 사용해요', { exact: true }).click()
+  { const nc = page.getByText('아니요, 처음이에요', { exact: true }); if (await nc.count()) await nc.click() }
   await page.getByLabel(/^이메일/).fill('mom@example.com')
   await page.getByLabel('이름', { exact: true }).fill('이아빠')
   await page.getByLabel('관계').selectOption('아버지')
@@ -166,7 +168,9 @@ async function agreeAll(page, { health = false } = {}) {
   check('미리 채움: 학생 이름', (await parent.getByLabel('학생 이름(한글)').inputValue()) === '김하늘')
   check('미리 채움: 학부모 번호', (await parent.getByLabel('휴대폰 번호').inputValue()) === '01077778888')
   check('학원 정보 없으면 경로 선택', await visible(parent.getByLabel('어디서 알게 되셨나요?')))
-  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '해당 없음' })
+  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '인스타그램' })
+  check('상담 기록 링크로 오면 상담 이력 질문 없음', (await parent.getByText('아니요, 처음이에요', { exact: true }).count()) === 0)
+  await parent.getByText('네, 사용해요', { exact: true }).click()
   await parent.getByLabel(/영문 이름/).fill('KIM HANEUL')
   await parent.getByLabel(/생년월일/).fill('2016-05-05')
   await parent.getByText('남', { exact: true }).click()
@@ -185,14 +189,14 @@ async function agreeAll(page, { health = false } = {}) {
   await parent.goto(`${BASE}/register/us-school-e2e`)
   check('정원 도달: 대기 접수 안내', await visible(parent.getByText('대기 접수', { exact: false })))
   check('대기: 납부 안내 미표시', (await parent.getByRole('heading', { name: '납부 안내' }).count()) === 0)
-  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '기타 (직접 입력)' })
+  await parent.getByLabel('어디서 알게 되셨나요?').selectOption({ label: '기타' })
   await parent.getByLabel('알게 된 경로').fill('지인 소개')
   await fillStudent(parent, { ko: '박세번', en: 'PARK SEBEON', phone: '010-9999-0000' })
   await agreeAll(parent)
   await parent.getByRole('button', { name: '대기 신청하기' }).click()
   check('대기 접수 완료 화면', await visible(parent.getByRole('heading', { name: '대기 접수되었습니다' }), 15000))
   check('DB: 대기·납부 일정 없음·경로 직접 입력', sql(`select status || '|' || (select count(*) from payment_schedules where registration_id = r.id) || '|' || source_other
-    from registrations r where student_name_ko = '박세번'`) === 'waitlisted|0|지인 소개')
+    from registrations r where student_name_ko = '박세번'`) === 'waitlisted|0|기타: 지인 소개')
 
   // 8) 모집 마감·모집 전
   sql(`update programs set status = 'closed' where id = '${pid}'`)

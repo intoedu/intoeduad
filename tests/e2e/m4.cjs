@@ -26,7 +26,7 @@ async function submitLead(body) {
   const res = await fetch(`${API}/functions/v1/public-lead-submit`, {
     method: 'POST',
     headers: { apikey: KEY, 'content-type': 'application/json' },
-    body: JSON.stringify({ agree_privacy: true, agree_guardian: true, ...body }),
+    body: JSON.stringify({ agree_privacy: true, agree_guardian: true, kakao_use: true, ...body }),
   })
   return res.status
 }

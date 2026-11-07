@@ -1,8 +1,28 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { Alert, Button, Field, Input, Select, Spinner, Textarea } from '../../components/ui'
 import { isValidMobile, normalizePhone } from '../../domain/phone'
 import { CONTACT_ROLE_LABELS } from '../../lib/labels'
+import { InflowField } from '../../components/shared/InflowField'
+import { QuestionFields } from '../../components/shared/QuestionFields'
+import { KakaoField } from '../../components/shared/KakaoField'
+import {
+  CONTACT_UNKNOWN,
+  EMPTY_INFLOW,
+  EMPTY_KAKAO,
+  kakaoPayload,
+  validateKakao,
+  type KakaoValue,
+  cleanAnswers,
+  fieldHelp,
+  fieldLabel,
+  inflowPayload,
+  leadModes,
+  validateAnswers,
+  validateInflow,
+  type AnswerMap,
+  type InflowValue,
+} from '../../domain/formSettings'
 import { ChoiceChips, PublicLayout, Section } from './PublicLayout'
 import {
   getFormConfig,
@@ -31,8 +51,6 @@ const TOPICS = [
   { value: 'schedule', label: '일정' },
   { value: 'other', label: '기타' },
 ]
-const OTHER = '__other__'
-const UNKNOWN = '__unknown__'
 
 export type ApplyDoneState = {
   studentName: string
@@ -52,12 +70,13 @@ export function ApplyPage() {
   // 링크로 들어온 학원
   const [linkedPartner, setLinkedPartner] = useState<{ id: string; name: string; contacts: PublicContact[] } | null>(null)
   const [linkedContact, setLinkedContact] = useState<PublicContact | null>(null)
-  // 직접 고르는 학원
+  // 링크가 없으면 유입 경로를 고른다(학원 소개면 학원·선생님)
   const [partners, setPartners] = useState<Array<{ id: string; name: string; region: string | null }>>([])
-  const [partnerChoice, setPartnerChoice] = useState('')
-  const [sourceOther, setSourceOther] = useState('')
-  const [contacts, setContacts] = useState<PublicContact[]>([])
+  const [inflow, setInflow] = useState<InflowValue>(EMPTY_INFLOW)
+  // 링크로 온 학원의 선생님 (링크에 선생님 코드가 없을 때)
   const [contactChoice, setContactChoice] = useState('')
+  const [answers, setAnswers] = useState<AnswerMap>({})
+  const [kakao, setKakao] = useState<KakaoValue>(EMPTY_KAKAO)
 
   const [studentName, setStudentName] = useState('')
   const [grade, setGrade] = useState('')
@@ -93,7 +112,6 @@ export function ApplyPage() {
       if (cancelled) return
       if (found) {
         setLinkedPartner(found)
-        setContacts(found.contacts)
         setLinkedContact(found.contacts.find((c) => c.code === contactCode?.toLowerCase()) ?? null)
       } else {
         // 코드가 없거나 잘못된 링크면 학원을 직접 고르게 한다
@@ -106,22 +124,32 @@ export function ApplyPage() {
     }
   }, [partnerCode, contactCode])
 
-  async function choosePartner(value: string) {
-    setPartnerChoice(value)
-    setContactChoice('')
-    setContacts(value && value !== OTHER ? await listPartnerContacts(value) : [])
-  }
+  const loadContacts = useCallback((partnerId: string) => listPartnerContacts(partnerId), [])
+  const modes = leadModes(config?.modes)
+  const shown = (k: keyof typeof modes) => modes[k] !== 'hidden'
+  const req = (k: keyof typeof modes) => modes[k] === 'required'
+  const texts = config?.texts
+  const label = (k: string, fallback: string, optionalMark = false) =>
+    `${fieldLabel(texts, k, fallback)}${optionalMark ? ' (선택)' : ''}`
+  const questions = config?.questions ?? []
 
   function validate(): Record<string, string> {
     const next: Record<string, string> = {}
-    if (!linkedPartner && !partnerChoice) next.partner = '알게 된 경로를 선택해 주세요.'
-    if (partnerChoice === OTHER && !sourceOther.trim()) next.sourceOther = '알게 된 경로를 적어 주세요.'
+    const inflowError = config ? validateInflow(config.inflow, inflow, !!linkedPartner) : null
+    if (inflowError) next.inflow = inflowError
     if (!studentName.trim()) next.studentName = '자녀 이름을 입력해 주세요.'
-    if (!grade) next.grade = '학년을 선택해 주세요.'
+    if (shown('grade') && req('grade') && !grade) next.grade = '학년을 선택해 주세요.'
+    if (shown('interests') && req('interests') && interests.length === 0) next.interests = '관심 분야를 골라 주세요.'
+    if (shown('programs') && req('programs') && programs.length > 0 && programIds.length === 0) next.programs = '관심 프로그램을 골라 주세요.'
     if (!parentName.trim()) next.parentName = '학부모 이름을 입력해 주세요.'
     if (!isValidMobile(normalizePhone(phone))) next.phone = '휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)'
-    if (!relation) next.relation = '자녀와의 관계를 선택해 주세요.'
+    const kakaoError = validateKakao(kakao)
+    if (kakaoError) next.kakao = kakaoError
+    if (shown('relation') && req('relation') && !relation) next.relation = '자녀와의 관계를 선택해 주세요.'
     if (wantSlot && !slot) next.slot = '상담 희망 날짜와 시간을 골라 주세요. 원하지 않으시면 체크를 해제해 주세요.'
+    if (shown('topics') && req('topics') && topics.length === 0) next.topics = '상담 받고 싶은 내용을 골라 주세요.'
+    if (shown('message') && req('message') && !message.trim()) next.message = '자세한 내용을 적어 주세요.'
+    for (const [id, msg] of Object.entries(validateAnswers(questions, answers))) next[`q-${id}`] = msg
     if (!agreePrivacy || !agreeGuardian) next.consent = '필수 동의 항목에 모두 동의해 주세요.'
     return next
   }
@@ -139,22 +167,26 @@ export function ApplyPage() {
 
     setSubmitting(true)
     try {
-      const chosenContact = linkedContact ? null : contactChoice && contactChoice !== UNKNOWN ? contactChoice : null
+      const route = inflowPayload(config?.inflow, inflow, !!linkedPartner)
+      const linkedContactChoice = linkedPartner && !linkedContact && contactChoice && contactChoice !== CONTACT_UNKNOWN ? contactChoice : null
       const result = await submitLead({
         partner_code: linkedPartner ? partnerCode : null,
         contact_code: linkedContact?.code ?? null,
-        partner_id: !linkedPartner && partnerChoice !== OTHER ? partnerChoice : null,
-        contact_id: chosenContact,
-        source_other: partnerChoice === OTHER ? sourceOther.trim() : null,
+        partner_id: route.partner_id,
+        contact_id: route.contact_id ?? linkedContactChoice,
+        inflow_channel_id: route.inflow_channel_id,
+        inflow_detail: route.inflow_detail,
+        answers: cleanAnswers(questions, answers),
+        ...kakaoPayload(kakao),
         student_name: studentName.trim(),
-        student_grade: grade,
-        interests,
-        program_ids: programIds,
+        student_grade: shown('grade') ? grade : '',
+        interests: shown('interests') ? interests : [],
+        program_ids: shown('programs') ? programIds : [],
         parent_name: parentName.trim(),
         parent_phone: normalizePhone(phone),
-        relation,
-        topics,
-        message: message.trim(),
+        relation: shown('relation') ? relation : '',
+        topics: shown('topics') ? topics : [],
+        message: shown('message') ? message.trim() : '',
         slot_id: wantSlot && slot ? slot.id : null,
         agree_privacy: agreePrivacy,
         agree_guardian: agreeGuardian,
@@ -196,104 +228,104 @@ export function ApplyPage() {
   const errors: Record<string, string> = attempted ? validate() : {}
   const privacyDoc = config.consents.find((c) => c.kind === 'lead_privacy')
   const guardianDoc = config.consents.find((c) => c.kind === 'lead_guardian')
+  const questionErrors = Object.fromEntries(
+    Object.entries(errors)
+      .filter(([k]) => k.startsWith('q-'))
+      .map(([k, v]) => [k.slice(2), v]),
+  )
 
   return (
     <PublicLayout>
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-slate-900">유학·캠프 상담 신청</h1>
-        <p className="mt-1 text-sm text-slate-600">
-          아래 내용을 남겨 주시면 인투유학 담당자가 확인 후 연락드립니다. 입력은 2~3분이면 충분합니다.
-        </p>
+        <h1 className="text-xl font-bold text-slate-900">{config.title || '유학·캠프 상담 신청'}</h1>
+        {config.intro && <p className="mt-1 text-sm whitespace-pre-line text-slate-600">{config.intro}</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         <Section title="알게 된 경로">
           {linkedPartner ? (
-            <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
-              <strong>{linkedPartner.name}</strong>
-              {linkedContact ? ` ${linkedContact.name} 선생님` : ''} 소개로 신청합니다.
-            </div>
-          ) : (
-            <div id="field-partner">
-              <Field label="어디서 알게 되셨나요?" error={errors.partner}>
-                <Select value={partnerChoice} onChange={(e) => void choosePartner(e.target.value)}>
-                  <option value="">선택해 주세요</option>
-                  {partners.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                      {p.region ? ` (${p.region})` : ''}
-                    </option>
-                  ))}
-                  <option value={OTHER}>기타 (직접 입력)</option>
-                </Select>
-              </Field>
-            </div>
-          )}
-          {partnerChoice === OTHER && (
-            <div id="field-sourceOther">
-              <Field label="알게 된 경로" error={errors.sourceOther}>
-                <Input value={sourceOther} placeholder="예: 지인 소개, 블로그" onChange={(e) => setSourceOther(e.target.value)} />
-              </Field>
-            </div>
-          )}
-          {!linkedContact && contacts.length > 0 && (
-            <Field label="소개해 주신 선생님 (선택)">
-              <Select value={contactChoice} onChange={(e) => setContactChoice(e.target.value)}>
-                <option value="">선택 안 함</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} {CONTACT_ROLE_LABELS[c.role] ?? ''}
-                  </option>
-                ))}
-                <option value={UNKNOWN}>잘 모르겠어요</option>
-              </Select>
-            </Field>
-          )}
+            <>
+              <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
+                <strong>{linkedPartner.name}</strong>
+                {linkedContact ? ` ${linkedContact.name} 선생님` : ''} 소개로 신청합니다.
+              </div>
+              {!linkedContact && linkedPartner.contacts.length > 0 && (
+                <Field label="소개해 주신 선생님 (선택)">
+                  <Select value={contactChoice} onChange={(e) => setContactChoice(e.target.value)}>
+                    <option value="">선택 안 함</option>
+                    {linkedPartner.contacts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {CONTACT_ROLE_LABELS[c.role] ?? ''}
+                      </option>
+                    ))}
+                    <option value={CONTACT_UNKNOWN}>잘 모르겠어요</option>
+                  </Select>
+                </Field>
+              )}
+            </>
+          ) : config.inflow ? (
+            <InflowField
+              config={config.inflow}
+              value={inflow}
+              onChange={setInflow}
+              partners={partners}
+              loadContacts={loadContacts}
+              error={errors.inflow}
+            />
+          ) : null}
         </Section>
 
         <Section title="자녀 정보">
           <div id="field-studentName">
-            <Field label="자녀 이름" error={errors.studentName}>
+            <Field label={label('student_name', '자녀 이름')} hint={fieldHelp(texts, 'student_name')} error={errors.studentName}>
               <Input autoComplete="off" value={studentName} onChange={(e) => setStudentName(e.target.value)} />
             </Field>
           </div>
-          <div id="field-grade">
-            <Field label="학년" error={errors.grade}>
-              <Select value={grade} onChange={(e) => setGrade(e.target.value)}>
-                <option value="">선택해 주세요</option>
-                {GRADES.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">관심 분야 (복수 선택)</p>
-            <ChoiceChips name="interests" options={INTERESTS} values={interests} onChange={setInterests} />
-          </div>
-          {programs.length > 0 && (
-            <div>
-              <p className="mb-2 text-sm font-medium text-slate-700">관심 프로그램 (복수 선택)</p>
+          {shown('grade') && (
+            <div id="field-grade">
+              <Field label={label('grade', '학년', !req('grade'))} hint={fieldHelp(texts, 'grade')} error={errors.grade}>
+                <Select value={grade} onChange={(e) => setGrade(e.target.value)}>
+                  <option value="">선택해 주세요</option>
+                  {GRADES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          )}
+          {shown('interests') && (
+            <div id="field-interests">
+              <p className="mb-2 text-sm font-medium text-slate-700">{label('interests', '관심 분야 (복수 선택)')}</p>
+              {fieldHelp(texts, 'interests') && <p className="-mt-1 mb-2 text-xs text-slate-500">{fieldHelp(texts, 'interests')}</p>}
+              <ChoiceChips name="interests" options={INTERESTS} values={interests} onChange={setInterests} />
+              {errors.interests && <p className="mt-1 text-xs text-red-600">{errors.interests}</p>}
+            </div>
+          )}
+          {shown('programs') && programs.length > 0 && (
+            <div id="field-programs">
+              <p className="mb-2 text-sm font-medium text-slate-700">{label('programs', '관심 프로그램 (복수 선택)')}</p>
+              {fieldHelp(texts, 'programs') && <p className="-mt-1 mb-2 text-xs text-slate-500">{fieldHelp(texts, 'programs')}</p>}
               <ChoiceChips
                 name="programs"
                 options={programs.map((p) => ({ value: p.id, label: p.season ? `${p.name} (${p.season})` : p.name }))}
                 values={programIds}
                 onChange={setProgramIds}
               />
+              {errors.programs && <p className="mt-1 text-xs text-red-600">{errors.programs}</p>}
             </div>
           )}
         </Section>
 
         <Section title="학부모 정보">
           <div id="field-parentName">
-            <Field label="학부모 이름" error={errors.parentName}>
+            <Field label={label('parent_name', '학부모 이름')} hint={fieldHelp(texts, 'parent_name')} error={errors.parentName}>
               <Input autoComplete="name" value={parentName} onChange={(e) => setParentName(e.target.value)} />
             </Field>
           </div>
           <div id="field-phone">
-            <Field label="휴대폰 번호" error={errors.phone}>
+            <Field label={label('parent_phone', '휴대폰 번호')} hint={fieldHelp(texts, 'parent_phone')} error={errors.phone}>
               <Input
                 type="tel"
                 inputMode="tel"
@@ -304,50 +336,73 @@ export function ApplyPage() {
               />
             </Field>
           </div>
-          <div id="field-relation">
-            <Field label="자녀와의 관계" error={errors.relation}>
-              <Select value={relation} onChange={(e) => setRelation(e.target.value)}>
-                <option value="">선택해 주세요</option>
-                {RELATIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          </div>
-        </Section>
-
-        <Section
-          title="상담 희망 일시 (선택)"
-          description="상담 방식(전화 또는 화상)은 문의 내용에 맞춰 담당자가 안내드립니다."
-        >
-          <label className="flex items-center gap-2 text-sm text-slate-800">
-            <input
-              type="checkbox"
-              className="size-5"
-              checked={wantSlot}
-              onChange={(e) => {
-                setWantSlot(e.target.checked)
-                if (!e.target.checked) setSlot(null)
-              }}
-            />
-            원하는 상담 날짜·시간을 고를게요
-          </label>
-          {wantSlot && (
-            <div id="field-slot">
-              <SlotPicker value={slot} onChange={setSlot} reloadKey={slotReload} />
-              {errors.slot && <p className="mt-2 text-xs text-red-600">{errors.slot}</p>}
+          <KakaoField value={kakao} onChange={setKakao} error={errors.kakao} />
+          {shown('relation') && (
+            <div id="field-relation">
+              <Field label={label('relation', '자녀와의 관계', !req('relation'))} hint={fieldHelp(texts, 'relation')} error={errors.relation}>
+                <Select value={relation} onChange={(e) => setRelation(e.target.value)}>
+                  <option value="">선택해 주세요</option>
+                  {RELATIONS.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
             </div>
           )}
         </Section>
 
-        <Section title="상담 받고 싶은 내용">
-          <ChoiceChips name="topics" options={TOPICS} values={topics} onChange={setTopics} />
-          <Field label="자세한 내용 (선택)">
-            <Textarea rows={4} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} />
-          </Field>
-        </Section>
+        {shown('slot') && (
+          <Section
+            title="상담 희망 일시 (선택)"
+            description={fieldHelp(texts, 'slot', '상담 방식(전화 또는 화상)은 문의 내용에 맞춰 담당자가 안내드립니다.')}
+          >
+            <label className="flex items-center gap-2 text-sm text-slate-800">
+              <input
+                type="checkbox"
+                className="size-5"
+                checked={wantSlot}
+                onChange={(e) => {
+                  setWantSlot(e.target.checked)
+                  if (!e.target.checked) setSlot(null)
+                }}
+              />
+              {fieldLabel(texts, 'slot', '원하는 상담 날짜·시간을 고를게요')}
+            </label>
+            {wantSlot && (
+              <div id="field-slot">
+                <SlotPicker value={slot} onChange={setSlot} reloadKey={slotReload} />
+                {errors.slot && <p className="mt-2 text-xs text-red-600">{errors.slot}</p>}
+              </div>
+            )}
+          </Section>
+        )}
+
+        {(shown('topics') || shown('message')) && (
+          <Section title={fieldLabel(texts, 'topics', '상담 받고 싶은 내용')}>
+            {shown('topics') && (
+              <div id="field-topics">
+                {fieldHelp(texts, 'topics') && <p className="mb-2 text-xs text-slate-500">{fieldHelp(texts, 'topics')}</p>}
+                <ChoiceChips name="topics" options={TOPICS} values={topics} onChange={setTopics} />
+                {errors.topics && <p className="mt-1 text-xs text-red-600">{errors.topics}</p>}
+              </div>
+            )}
+            {shown('message') && (
+              <div id="field-message">
+                <Field label={label('message', '자세한 내용', !req('message'))} hint={fieldHelp(texts, 'message')} error={errors.message}>
+                  <Textarea rows={4} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} />
+                </Field>
+              </div>
+            )}
+          </Section>
+        )}
+
+        {questions.length > 0 && (
+          <Section title="추가 질문">
+            <QuestionFields questions={questions} values={answers} onChange={setAnswers} errors={questionErrors} />
+          </Section>
+        )}
 
         <Section title="개인정보 수집·이용 동의">
           {privacyDoc && (

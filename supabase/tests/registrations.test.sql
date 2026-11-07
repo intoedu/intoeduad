@@ -61,7 +61,7 @@ insert into public.access_tokens (token_hash, purpose, lead_id, expires_at) valu
 -- 기본 제출값
 create temp table base (v jsonb);
 insert into base values ($${
-  "slug": "us-school-t7",
+  "slug": "us-school-t7", "kakao_use": true,
   "student_name_ko": "이바다", "student_name_en": "lee  bada", "birth_date": "2015-03-02", "gender": "female",
   "school": "숨긴 항목", "grade": "초6", "english_level": "중급",
   "parent_name": "이엄마", "parent_phone": "010-1111-2222", "parent_email": "Mom@Example.com", "address": "대전 서구",

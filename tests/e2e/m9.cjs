@@ -29,7 +29,7 @@ async function apply(name, phone) {
     body: JSON.stringify({
       action: 'submit', slug: 'pay-e2e', partner_code: 'daejeon-into', student_name_ko: name, student_name_en: 'TEST STUDENT', birth_date: '2015-01-01',
       gender: 'female', grade: '초6', parent_name: `${name}엄마`, parent_phone: phone, parent_email: 'p@example.com', emergency_name: '아빠',
-      emergency_phone: '01099998888', health_notes: '', agree: { reg_privacy: true, reg_third_party: true, reg_guardian: true, refund: true, destruction_notice: true },
+      emergency_phone: '01099998888', health_notes: '', kakao_use: true, consulted_before: 'no', agree: { reg_privacy: true, reg_third_party: true, reg_guardian: true, refund: true, destruction_notice: true },
     }),
   })
   return (await r.json()).status

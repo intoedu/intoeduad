@@ -30,6 +30,9 @@ const GeneralSettingsPage = lazy(() => import('./features/settings/GeneralSettin
 const ConsentsPage = lazy(() => import('./features/settings/ConsentsPage').then((m) => ({ default: m.ConsentsPage })))
 // 등록 신청서는 상담 신청서와 별도 묶음으로 내려받는다
 const RegisterPage = lazy(() => import('./features/public/RegisterPage').then((m) => ({ default: m.RegisterPage })))
+const RegisterHubPage = lazy(() => import('./features/public/RegisterHubPage').then((m) => ({ default: m.RegisterHubPage })))
+const LinksPage = lazy(() => import('./features/links/LinksPage').then((m) => ({ default: m.LinksPage })))
+const FormsSettingsPage = lazy(() => import('./features/settings/FormsSettingsPage').then((m) => ({ default: m.FormsSettingsPage })))
 const RegisterDonePage = lazy(() => import('./features/public/RegisterDonePage').then((m) => ({ default: m.RegisterDonePage })))
 const PassportPage = lazy(() => import('./features/public/PassportPage').then((m) => ({ default: m.PassportPage })))
 const RegistrationNewPage = lazy(() =>
@@ -80,6 +83,7 @@ export const router = createBrowserRouter([
   { path: '/apply', element: <ApplyPage /> },
   { path: '/apply/done', element: <ApplyDonePage /> },
   { path: '/apply/:partnerCode', element: <ApplyPage /> },
+  { path: '/register', element: <Lazy><RegisterHubPage /></Lazy> },
   { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
   { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
   { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },
@@ -106,6 +110,7 @@ export const router = createBrowserRouter([
       { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
       { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
       { path: 'leads/new', element: guarded(OFFICE, <LeadNewPage />) },
+      { path: 'links', element: guarded(OFFICE, <LinksPage />) },
       { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },
       { path: 'programs', element: guarded(OFFICE, <ProgramsListPage />) },
       { path: 'programs/new', element: guarded(OFFICE, <ProgramNewPage />) },
@@ -126,6 +131,7 @@ export const router = createBrowserRouter([
       { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },
       { path: 'settings/general', element: guarded(['admin'], <GeneralSettingsPage />) },
       { path: 'settings/consents', element: guarded(['admin'], <ConsentsPage />) },
+      { path: 'settings/forms', element: guarded(['admin'], <FormsSettingsPage />) },
       { path: 'settings/notifications', element: guarded(['admin'], <NotificationSettingsPage />) },
       ...comingSoonRoutes,
       { path: '*', element: <NotFoundPage /> },

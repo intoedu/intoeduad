@@ -1,8 +1,19 @@
 import { supabase } from '../../lib/supabase'
+import type { AnswerMap, FieldMode, FieldText, InflowConfig, PublicQuestion } from '../../domain/formSettings'
 
 // 공개 신청 폼에서 쓰는 조회 — 모두 개인정보 없는 전용 함수(RPC)만 호출한다
 export type PublicConsent = { kind: string; version: number; title: string; body: string }
-export type PublicFormConfig = { kakao_channel_url: string | null; consents: PublicConsent[] }
+export type PublicFormConfig = {
+  kakao_channel_url: string | null
+  consents: PublicConsent[]
+  // M18 신청서 문구·질문
+  title?: string
+  intro?: string
+  modes?: Partial<Record<string, FieldMode>>
+  texts?: Record<string, FieldText>
+  inflow?: InflowConfig
+  questions?: PublicQuestion[]
+}
 export type PublicContact = { id: string; name: string; role: string; code?: string }
 export type PublicPartner = { id: string; name: string; contacts: PublicContact[] }
 export type PublicSlot = { id: string; starts_at: string; ends_at: string }
@@ -35,6 +46,27 @@ export async function listPrograms() {
   return data ?? []
 }
 
+// 통합 캠프 신청 링크(/register): 모집 중인 캠프
+export type OpenProgram = {
+  slug: string
+  type: string
+  name: string
+  season: string | null
+  country: string | null
+  start_date: string | null
+  end_date: string | null
+  total_price: number | null
+  is_full: boolean
+  waitlist_enabled: boolean
+  early_bird: { amount: number; until: string } | null
+}
+
+export async function listOpenPrograms(): Promise<OpenProgram[]> {
+  const { data, error } = await supabase.rpc('public_open_programs')
+  if (error) throw error
+  return (data as unknown as OpenProgram[]) ?? []
+}
+
 export async function listAvailableSlots(from: string, to: string): Promise<PublicSlot[]> {
   const { data } = await supabase.rpc('public_available_slots', { p_from: from, p_to: to })
   return data ?? []
@@ -46,6 +78,12 @@ export type LeadSubmission = {
   partner_id?: string | null
   contact_id?: string | null
   source_other?: string | null
+  inflow_channel_id?: string | null
+  inflow_detail?: string | null
+  answers?: AnswerMap
+  kakao_use?: boolean | null
+  kakao_alt_phone?: string | null
+  alt_contact?: string | null
   student_name: string
   student_grade: string
   interests: string[]

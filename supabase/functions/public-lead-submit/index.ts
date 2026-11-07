@@ -1,6 +1,7 @@
 // 학부모 상담 신청 접수 (비로그인 공개 폼)
 // - 공개 키(publishable)로만 호출 가능, 저장은 submit_lead()가 한 트랜잭션으로 처리
 // - 허니팟·입력 검증·같은 번호 단시간 중복 제출 제한(번호는 해시로만 비교)
+// - 유입 경로(필수)·추가 질문 답변(M18)
 // 접수 확인 알림톡·직원 알림은 DB가 발송 대기열에 넣고 message-sender가 보낸다
 import { withSupabase } from "@supabase/server";
 
@@ -21,6 +22,18 @@ function text(value: unknown, max: number): string {
 
 function list(value: unknown, allowed: Set<string>): string[] {
   return Array.isArray(value) ? [...new Set(value.map(String).filter((v) => allowed.has(v)))] : [];
+}
+
+// 추가 질문 답변: {질문 id: 글자 | 글자 배열} — 검사·정리는 DB(collect_form_answers)가 한 번 더 한다
+function answersOf(value: unknown): Record<string, string | string[]> {
+  const out: Record<string, string | string[]> = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return out;
+  for (const [k, v] of Object.entries(value as Record<string, unknown>).slice(0, 60)) {
+    if (!UUID_RE.test(k)) continue;
+    if (Array.isArray(v)) out[k] = v.slice(0, 30).map((x) => String(x ?? "").slice(0, 100));
+    else if (typeof v === "string" || typeof v === "number") out[k] = String(v).slice(0, 2000);
+  }
+  return out;
 }
 
 function uuidOrNull(value: unknown): string | null {
@@ -93,6 +106,12 @@ export default {
       partner_id: uuidOrNull(body.partner_id),
       contact_id: uuidOrNull(body.contact_id),
       source_other: text(body.source_other, 100) || null,
+      inflow_channel_id: uuidOrNull(body.inflow_channel_id),
+      inflow_detail: text(body.inflow_detail, 100) || null,
+      answers: answersOf(body.answers),
+      kakao_use: typeof body.kakao_use === "boolean" ? body.kakao_use : null,
+      kakao_alt_phone: String(body.kakao_alt_phone ?? "").replace(/\D/g, "").slice(0, 11) || null,
+      alt_contact: text(body.alt_contact, 100) || null,
       student_name: studentName,
       student_grade: grade || null,
       interests: list(body.interests, INTERESTS),
@@ -116,6 +135,10 @@ export default {
       }
       if (code === "TOO_MANY_REQUESTS") {
         return reply(429, { error: "같은 번호로 방금 신청하셨습니다. 잠시 후 다시 시도해 주세요.", code });
+      }
+      // 유입 경로·추가 질문 안내는 DB 메시지(질문 이름 포함)를 그대로 보여 준다
+      if ((code === "INFLOW_REQUIRED" || code === "QUESTION_REQUIRED" || code === "QUESTION_INVALID" || code === "KAKAO_REQUIRED") && /[가-힣]/.test(error.message)) {
+        return reply(400, { error: error.message, code });
       }
       if (code === "INVALID_INPUT" || code === "CONSENT_REQUIRED") {
         return reply(400, { error: "입력하신 내용을 다시 확인해 주세요.", code });

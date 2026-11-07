@@ -1,7 +1,9 @@
 // 관리자·직원 직접 입력 공통: 입력 방법, 소개 학원·상담실장 선택, 오류 문구
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Field, Input, Select } from '../ui'
 import { supabase } from '../../lib/supabase'
+import type { InflowConfig, PublicQuestion } from '../../domain/formSettings'
+import type { InflowPartner } from '../shared/InflowField'
 
 export const ENTRY_METHODS = [
   { value: 'phone', label: '전화' },
@@ -113,4 +115,44 @@ export function entryErrorText(error: { message?: string; hint?: string; code?: 
       return msg && /[가-힣]/.test(msg) ? `${msg}.` : '입력값을 확인해 주세요.'
   }
   return msg && /[가-힣]/.test(msg) ? msg : '저장하지 못했습니다.'
+}
+
+// ---------------------------------------------------------------------------
+// M18 직원 직접 입력: 유입 경로 · 추가 질문 (학부모 신청서와 같은 목록, 필수 검사는 하지 않음)
+// ---------------------------------------------------------------------------
+export function useStaffFormExtras(form: 'lead' | 'registration', programId: string | null) {
+  const [inflow, setInflow] = useState<InflowConfig | null>(null)
+  const [partners, setPartners] = useState<InflowPartner[]>([])
+  const [questions, setQuestions] = useState<PublicQuestion[]>([])
+
+  useEffect(() => {
+    void Promise.all([
+      supabase.from('inflow_channels').select('id, label, kind, detail_label, detail_required').eq('active', true).order('sort').order('created_at'),
+      supabase.from('settings').select('value').eq('key', 'form_settings').maybeSingle(),
+      supabase.from('partners').select('id, name, region').eq('active', true).is('deleted_at', null).order('name'),
+    ]).then(([ch, st, pa]) => {
+      const label = ((st.data?.value ?? {}) as { inflow_label?: string }).inflow_label || '어디서 알게 되셨나요?'
+      setInflow({ label, channels: (ch.data ?? []) as InflowConfig['channels'] })
+      setPartners(pa.data ?? [])
+    })
+  }, [])
+
+  useEffect(() => {
+    let q = supabase.from('form_questions').select('id, label, help, type, options, required, program_id, sort, created_at').eq('form', form).eq('active', true)
+    q = form === 'registration' && programId ? q.or(`program_id.is.null,program_id.eq.${programId}`) : q.is('program_id', null)
+    void q.then(({ data }) =>
+      setQuestions(
+        [...(data ?? [])]
+          .sort((a, b) => Number(!!a.program_id) - Number(!!b.program_id) || a.sort - b.sort || a.created_at.localeCompare(b.created_at))
+          .map((x) => ({ id: x.id, label: x.label, help: x.help, type: x.type as PublicQuestion['type'], options: x.options, required: x.required })),
+      ),
+    )
+  }, [form, programId])
+
+  const loadContacts = useCallback(async (partnerId: string) => {
+    const { data } = await supabase.from('partner_contacts').select('id, name, role').eq('partner_id', partnerId).eq('active', true).order('name')
+    return data ?? []
+  }, [])
+
+  return { inflow, partners, questions, loadContacts }
 }

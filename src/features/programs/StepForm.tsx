@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { QuestionsEditor } from '../../components/admin/QuestionsEditor'
 import { Alert, Button, Card } from '../../components/ui'
 import { supabase } from '../../lib/supabase'
 import { fieldModes, FORM_FIELDS, type FieldMode, type Program } from './api'
@@ -16,6 +17,13 @@ export function StepForm({ program, onSaved }: { program: Program; onSaved: (mes
   const [health, setHealth] = useState(program.health_field_enabled)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  // 저장 전인 항목은 설정의 "새 캠프 기본값"을 따른다(DB와 같은 계산)
+  useEffect(() => {
+    supabase.rpc('registration_field_modes', { p_config: program.form_config ?? {} }).then(({ data }) => {
+      if (data && typeof data === 'object') setModes(fieldModes({ fields: data }))
+    })
+  }, [program.form_config])
 
   async function save() {
     setSaving(true)
@@ -86,6 +94,13 @@ export function StepForm({ program, onSaved }: { program: Program; onSaved: (mes
       <Button onClick={() => void save()} disabled={saving}>
         {saving ? '저장 중…' : '신청서 항목 저장'}
       </Button>
+      <Card>
+        <p className="mb-1 font-semibold text-slate-900">이 캠프만의 추가 질문</p>
+        <p className="mb-3 text-sm text-slate-500">
+          예: 티셔츠 사이즈, 룸메이트 희망. 모든 캠프 공통 질문과 질문 문구는 설정 → 신청서 질문(관리자)에서 관리합니다. "다음 기수로 복제"하면 함께 복사됩니다.
+        </p>
+        <QuestionsEditor form="registration" programId={program.id} />
+      </Card>
     </div>
   )
 }
