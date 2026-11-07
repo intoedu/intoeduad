@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router'
-import { enabledProviders, signInWithProvider, useCustomer, type CustomerState, type Provider } from './customerApi'
+import { anyLoginMethod, signInWithProvider, useCustomer, useLoginMethods, type CustomerState, type Provider } from './customerApi'
 
 const DISMISS_KEY = 'intoedu:member-gate-dismissed'
 
@@ -15,14 +15,11 @@ function dismissed() {
 // 상담 신청서를 열면 먼저 묻는 창: 회원가입(카카오·구글·이메일) 후 진행 / 비회원으로 신청
 export function MemberGate({ state, next }: { state: CustomerState; next: string }) {
   const [open, setOpen] = useState(() => !dismissed())
-  const [providers, setProviders] = useState<{ kakao: boolean; google: boolean; email: boolean } | null>(null)
+  const providers = useLoginMethods()
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (open && state.status === 'guest') enabledProviders().then(setProviders)
-  }, [open, state.status])
-
-  if (!open || state.status !== 'guest' || !providers) return null
+  // 켜진 로그인 수단이 없으면 묻지 않는다
+  if (!open || state.status !== 'guest' || !providers || !anyLoginMethod(providers)) return null
 
   function close() {
     try {
@@ -91,6 +88,7 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
 // 공개 화면 머리글의 회원 링크
 export function AccountHeaderLink() {
   const { state } = useCustomer()
+  const methods = useLoginMethods()
   if (state.status === 'member' || state.status === 'needs_setup') {
     return (
       <Link to="/account" className="text-sm font-medium text-brand-600">
@@ -98,7 +96,7 @@ export function AccountHeaderLink() {
       </Link>
     )
   }
-  if (state.status === 'guest') {
+  if (state.status === 'guest' && anyLoginMethod(methods)) {
     return (
       <Link to={`/account/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`} className="text-sm text-slate-500">
         로그인

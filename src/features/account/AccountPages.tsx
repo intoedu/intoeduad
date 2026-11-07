@@ -175,6 +175,9 @@ export function AccountLoginPage() {
             </Section>
           )}
           {!providers.email && message && <Alert tone={message.tone}>{message.text}</Alert>}
+          {!providers.kakao && !providers.google && !providers.email && (
+            <Alert tone="blue">회원 로그인은 준비 중입니다. 회원가입 없이 신청하실 수 있습니다.</Alert>
+          )}
           <Link to={next === '/account' ? '/apply' : next} className="block text-center text-sm text-slate-500 hover:underline">
             회원가입 없이 신청하기
           </Link>

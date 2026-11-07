@@ -49,16 +49,43 @@ export function useCustomer() {
   return { state: current, reload }
 }
 
+// 이메일 회원가입·로그인: 인증 메일을 보낼 메일 서버(SMTP)를 연결하기 전까지 운영에서는 숨긴다(2026-11-07 결정 C).
+// 메일 서버를 연결한 뒤 배포 환경변수 VITE_MEMBER_EMAIL_SIGNUP=on 으로 다시 켠다. 개발·시험 환경에서는 항상 켠다.
+const EMAIL_SIGNUP_ON = !import.meta.env.PROD || import.meta.env.VITE_MEMBER_EMAIL_SIGNUP === 'on'
+
+export type LoginMethods = { kakao: boolean; google: boolean; email: boolean }
+let cached: Promise<LoginMethods> | null = null
+
 // 켜져 있는 로그인 수단(관리자가 Supabase에서 켠 것만 버튼으로 보인다)
-export async function enabledProviders(): Promise<{ kakao: boolean; google: boolean; email: boolean }> {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_PUBLISHABLE_KEY } })
-    const json = (await res.json()) as { external?: Record<string, boolean>; disable_signup?: boolean }
-    const ext = json.external ?? {}
-    return { kakao: !!ext.kakao, google: !!ext.google, email: !!ext.email && !json.disable_signup }
-  } catch {
-    return { kakao: false, google: false, email: true }
-  }
+export function enabledProviders(): Promise<LoginMethods> {
+  cached ??= (async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_PUBLISHABLE_KEY } })
+      const json = (await res.json()) as { external?: Record<string, boolean>; disable_signup?: boolean }
+      const ext = json.external ?? {}
+      return { kakao: !!ext.kakao, google: !!ext.google, email: EMAIL_SIGNUP_ON && !!ext.email && !json.disable_signup }
+    } catch {
+      return { kakao: false, google: false, email: false }
+    }
+  })()
+  return cached
+}
+
+export function anyLoginMethod(m: LoginMethods | null) {
+  return !!m && (m.kakao || m.google || m.email)
+}
+
+// 로그인 수단(하나도 없으면 회원 안내·로그인 링크를 숨긴다)
+export function useLoginMethods() {
+  const [methods, setMethods] = useState<LoginMethods | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    enabledProviders().then((m) => !cancelled && setMethods(m))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  return methods
 }
 
 function callbackUrl(next: string) {

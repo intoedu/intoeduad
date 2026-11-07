@@ -27,7 +27,7 @@ import { InflowField } from '../../components/shared/InflowField'
 import { QuestionFields } from '../../components/shared/QuestionFields'
 import { KakaoField } from '../../components/shared/KakaoField'
 import { ChildPicker } from '../account/ChildPicker'
-import { rememberFromForm, useCustomer, type CustomerStudent } from '../account/customerApi'
+import { anyLoginMethod, rememberFromForm, useCustomer, useLoginMethods, type CustomerStudent } from '../account/customerApi'
 import { formatPhone } from '../../domain/phone'
 import {
   CONSULTED_OPTIONS,
@@ -148,6 +148,7 @@ export function RegisterPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { state: member } = useCustomer()
+  const loginMethods = useLoginMethods()
   const [childId, setChildId] = useState('')
   const [memberFilled, setMemberFilled] = useState(false)
 
@@ -530,7 +531,7 @@ export function RegisterPage() {
         </div>
       )}
 
-      {member.status === 'guest' && !tokenValid && (
+      {member.status === 'guest' && !tokenValid && anyLoginMethod(loginMethods) && (
         <p className="mb-4 rounded-xl bg-white px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
           인투유학 회원이시면{' '}
           <Link to={`/account/login?next=${encodeURIComponent(location.pathname + location.search)}`} className="font-semibold text-brand-600 underline">
