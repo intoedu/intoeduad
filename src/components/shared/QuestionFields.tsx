@@ -1,5 +1,7 @@
 import { Field, Input, Select, Textarea } from '../ui'
 import { YES_NO, type AnswerMap, type AnswerValue, type PublicQuestion } from '../../domain/formSettings'
+import { useLang } from '../../i18n/context'
+import { optionText } from '../../i18n/text'
 
 // 추가 질문 입력칸 (학부모 신청서·직원 직접 입력 공용)
 export function QuestionFields({
@@ -17,10 +19,12 @@ export function QuestionFields({
   requiredMark?: boolean
 }) {
   const set = (id: string, v: AnswerValue) => onChange({ ...values, [id]: v })
+  // 질문·보기는 관리자가 한국어로 만든다. 영어 화면에서는 고정 문구(선택·예/아니오)만 영어로 바꾸고 저장 값은 그대로 둔다
+  const { lang, tr } = useLang()
   return (
     <div className="space-y-4">
       {questions.map((q) => {
-        const label = `${q.label}${q.required && requiredMark ? '' : ' (선택)'}`
+        const label = `${q.label}${q.required && requiredMark ? '' : tr(' (선택)', ' (optional)')}`
         const error = errors?.[q.id]
         const value = values[q.id]
         const text = typeof value === 'string' ? value : ''
@@ -50,7 +54,7 @@ export function QuestionFields({
             {q.type === 'dropdown' && (
               <Field label={label} hint={q.help ?? undefined} error={error}>
                 <Select value={text} onChange={(e) => set(q.id, e.target.value)}>
-                  <option value="">선택해 주세요</option>
+                  <option value="">{tr('선택해 주세요', 'Please select')}</option>
                   {q.options.map((o) => (
                     <option key={o} value={o}>
                       {o}
@@ -72,7 +76,7 @@ export function QuestionFields({
                       }`}
                     >
                       <input type="radio" name={`q-${q.id}`} className="sr-only" checked={text === o} onChange={() => set(q.id, o)} />
-                      {o}
+                      {q.type === 'yes_no' ? optionText(o, lang) : o}
                     </label>
                   ))}
                 </div>

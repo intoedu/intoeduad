@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { Alert, Button, Field, Input, Select, Spinner, Textarea } from '../../components/ui'
-import { formatDateLongKo } from '../../domain/dates'
 import { isValidMobile, isValidPhone, normalizePhone } from '../../domain/phone'
-import { formatWon, isValidBirthDate, isValidEmail, isValidEnglishName, normalizeEnglishName } from '../../domain/registration'
+import { isValidBirthDate, isValidEmail, isValidEnglishName, normalizeEnglishName } from '../../domain/registration'
 import { todayKst } from '../../lib/datetime'
 import { CONTACT_ROLE_LABELS } from '../../lib/labels'
 import { PublicLayout, Section } from './PublicLayout'
@@ -29,6 +28,9 @@ import { KakaoField } from '../../components/shared/KakaoField'
 import { ChildPicker } from '../account/ChildPicker'
 import { anyLoginMethod, rememberFromForm, useCustomer, useLoginMethods, type CustomerStudent } from '../account/customerApi'
 import { formatPhone } from '../../domain/phone'
+import { useLang } from '../../i18n/context'
+import { errorText, formatDateLong, formatMoney, optionText } from '../../i18n/text'
+import { ConsentKoreanNote } from '../../i18n/lang'
 import {
   CONSULTED_OPTIONS,
   CONTACT_UNKNOWN,
@@ -42,6 +44,7 @@ import {
   fieldHelp,
   fieldLabel,
   inflowPayload,
+  inflowText,
   validateAnswers,
   validateInflow,
   type AnswerMap,
@@ -113,12 +116,13 @@ function ConsentItem({
   onChange: (v: boolean) => void
   label: string
 }) {
+  const { tr } = useLang()
   return (
     <div className="rounded-xl ring-1 ring-slate-200">
       <details className="group">
         <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-800">
           {doc.title}
-          <span className="ml-1 text-xs font-normal text-brand-600 group-open:hidden">내용 보기</span>
+          <span className="ml-1 text-xs font-normal text-brand-600 group-open:hidden">{tr('내용 보기', 'View')}</span>
         </summary>
         <div className="max-h-60 overflow-y-auto border-t border-slate-100 bg-slate-50 px-4 py-3 text-xs leading-relaxed whitespace-pre-wrap text-slate-600">
           {doc.body}
@@ -147,6 +151,7 @@ export function RegisterPage() {
   const token = params.get('t')
   const navigate = useNavigate()
   const location = useLocation()
+  const { lang, en, tr } = useLang()
   const { state: member } = useCustomer()
   const loginMethods = useLoginMethods()
   const [childId, setChildId] = useState('')
@@ -281,61 +286,64 @@ export function RegisterPage() {
   const partnerName =
     knownPartner?.name ??
     (inflow.partnerId && inflow.partnerId !== PARTNER_NOT_LISTED ? (partners.find((p) => p.id === inflow.partnerId)?.name ?? null) : null)
-  const texts = form?.texts
-  const label = (key: string, fallback: string, optional = false) => `${fieldLabel(texts, key, fallback)}${optional ? ' (선택)' : ''}`
+  // 영어 화면에서는 관리자가 한국어로 바꾼 항목 이름·도움말 대신 영어 기본 문구를 쓴다
+  const texts = en ? null : form?.texts
+  const label = (key: string, fallback: string, enText: string, optional = false) =>
+    `${en ? enText : fieldLabel(texts, key, fallback)}${optional ? tr(' (선택)', ' (optional)') : ''}`
+  const help = (key: string, ko?: string, enText?: string) => (en ? enText : fieldHelp(texts, key, ko))
   const questions = form?.questions ?? []
   const hasPartner = !!partnerName
 
   function validate(): Record<string, string> {
     const e: Record<string, string> = {}
     const today = todayKst()
-    const inflowError = form?.inflow ? validateInflow(form.inflow, inflow, !!knownPartner) : null
+    const inflowError = form?.inflow ? validateInflow(form.inflow, inflow, !!knownPartner, lang) : null
     if (inflowError) e.inflow = inflowError
-    if (!tokenValid && form?.consulted_label && !consulted) e.consulted = '상담 신청 여부를 골라 주세요.'
-    if (!v.student_name_ko.trim()) e.student_name_ko = '학생 이름을 입력해 주세요.'
+    if (!tokenValid && form?.consulted_label && !consulted) e.consulted = tr('상담 신청 여부를 골라 주세요.', "Please tell us whether you have requested a consultation before.")
+    if (!v.student_name_ko.trim()) e.student_name_ko = tr('학생 이름을 입력해 주세요.', "Please enter the student's name.")
     if (shown('student_name_en')) {
-      if (req('student_name_en') && !v.student_name_en.trim()) e.student_name_en = '여권과 같은 영문 이름을 입력해 주세요.'
-      else if (v.student_name_en.trim() && !isValidEnglishName(v.student_name_en)) e.student_name_en = '영문 알파벳으로 입력해 주세요. (예: HONG GILDONG)'
+      if (req('student_name_en') && !v.student_name_en.trim()) e.student_name_en = tr('여권과 같은 영문 이름을 입력해 주세요.', "Please enter the student's name exactly as in the passport.")
+      else if (v.student_name_en.trim() && !isValidEnglishName(v.student_name_en)) e.student_name_en = tr('영문 알파벳으로 입력해 주세요. (예: HONG GILDONG)', "Please use English letters only. (e.g. HONG GILDONG)")
     }
     if (shown('birth_date')) {
-      if (req('birth_date') && !v.birth_date) e.birth_date = '생년월일을 입력해 주세요.'
-      else if (v.birth_date && !isValidBirthDate(v.birth_date, today)) e.birth_date = '생년월일을 확인해 주세요.'
+      if (req('birth_date') && !v.birth_date) e.birth_date = tr('생년월일을 입력해 주세요.', "Please enter the date of birth.")
+      else if (v.birth_date && !isValidBirthDate(v.birth_date, today)) e.birth_date = tr('생년월일을 확인해 주세요.', "Please check the date of birth.")
     }
-    if (shown('gender') && req('gender') && !v.gender) e.gender = '성별을 선택해 주세요.'
-    if (shown('school') && req('school') && !v.school.trim()) e.school = '학교를 입력해 주세요.'
-    if (shown('grade') && req('grade') && !v.grade) e.grade = '학년을 선택해 주세요.'
-    if (shown('english_level') && req('english_level') && !v.english_level) e.english_level = '영어 수준을 선택해 주세요.'
-    if (!v.parent_name.trim()) e.parent_name = '학부모 이름을 입력해 주세요.'
-    if (!isValidMobile(normalizePhone(v.parent_phone))) e.parent_phone = '휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)'
-    const kakaoError = validateKakao(kakao)
+    if (shown('gender') && req('gender') && !v.gender) e.gender = tr('성별을 선택해 주세요.', "Please select the gender.")
+    if (shown('school') && req('school') && !v.school.trim()) e.school = tr('학교를 입력해 주세요.', "Please enter the school.")
+    if (shown('grade') && req('grade') && !v.grade) e.grade = tr('학년을 선택해 주세요.', "Please select a grade.")
+    if (shown('english_level') && req('english_level') && !v.english_level) e.english_level = tr('영어 수준을 선택해 주세요.', "Please select the English level.")
+    if (!v.parent_name.trim()) e.parent_name = tr('학부모 이름을 입력해 주세요.', "Please enter the parent's name.")
+    if (!isValidMobile(normalizePhone(v.parent_phone))) e.parent_phone = tr('휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)', "Please enter a valid Korean mobile number. (e.g. 010-1234-5678)")
+    const kakaoError = validateKakao(kakao, lang)
     if (kakaoError) e.kakao = kakaoError
     if (shown('parent_email')) {
-      if (req('parent_email') && !v.parent_email.trim()) e.parent_email = '이메일을 입력해 주세요.'
-      else if (v.parent_email.trim() && !isValidEmail(v.parent_email)) e.parent_email = '이메일 형식을 확인해 주세요.'
+      if (req('parent_email') && !v.parent_email.trim()) e.parent_email = tr('이메일을 입력해 주세요.', "Please enter an email address.")
+      else if (v.parent_email.trim() && !isValidEmail(v.parent_email)) e.parent_email = tr('이메일 형식을 확인해 주세요.', "Please check the email address.")
     }
-    if (shown('address') && req('address') && !v.address.trim()) e.address = '주소를 입력해 주세요.'
+    if (shown('address') && req('address') && !v.address.trim()) e.address = tr('주소를 입력해 주세요.', "Please enter the address.")
     if (shown('emergency')) {
-      if (req('emergency') && !v.emergency_name.trim()) e.emergency_name = '비상 연락처 이름을 입력해 주세요.'
-      if (req('emergency') && !v.emergency_phone.trim()) e.emergency_phone = '비상 연락처 번호를 입력해 주세요.'
-      else if (v.emergency_phone.trim() && !isValidPhone(normalizePhone(v.emergency_phone))) e.emergency_phone = '연락처를 확인해 주세요.'
+      if (req('emergency') && !v.emergency_name.trim()) e.emergency_name = tr('비상 연락처 이름을 입력해 주세요.', "Please enter the emergency contact's name.")
+      if (req('emergency') && !v.emergency_phone.trim()) e.emergency_phone = tr('비상 연락처 번호를 입력해 주세요.', "Please enter the emergency contact number.")
+      else if (v.emergency_phone.trim() && !isValidPhone(normalizePhone(v.emergency_phone))) e.emergency_phone = tr('연락처를 확인해 주세요.', "Please check the phone number.")
     }
-    if (shown('special_notes') && req('special_notes') && !v.special_notes.trim()) e.special_notes = '특이사항을 입력해 주세요. 없으면 "없음"이라고 적어 주세요.'
+    if (shown('special_notes') && req('special_notes') && !v.special_notes.trim()) e.special_notes = tr('특이사항을 입력해 주세요. 없으면 "없음"이라고 적어 주세요.', "Please enter any special notes, or write \"None\".")
 
     const requiredKinds = consents.filter((c) => c.required).map((c) => c.kind)
     const missing = requiredKinds.filter((k) => !agree[k])
-    if (missing.length > 0 || !agree.refund) e.consent = '필수 동의 항목에 모두 동의해 주세요.'
+    if (missing.length > 0 || !agree.refund) e.consent = tr('필수 동의 항목에 모두 동의해 주세요.', "Please agree to all required items.")
     if (form?.program.health_field_enabled && v.health_notes.trim() && !agree.reg_health) {
-      e.health = '건강 특이사항을 적으셨다면 민감정보 수집·이용에 동의해 주세요. 동의하지 않으시려면 내용을 지워 주세요.'
+      e.health = tr('건강 특이사항을 적으셨다면 민감정보 수집·이용에 동의해 주세요. 동의하지 않으시려면 내용을 지워 주세요.', "If you entered health notes, please agree to the collection and use of sensitive information, or delete the notes.")
     }
-    for (const [id, msg] of Object.entries(validateAnswers(questions, answers))) e[`q-${id}`] = msg
-    if (!agree.destruction_notice) e.destruction = '개인정보 파기 안내를 확인해 주세요.'
+    for (const [id, msg] of Object.entries(validateAnswers(questions, answers, true, lang))) e[`q-${id}`] = msg
+    if (!agree.destruction_notice) e.destruction = tr('개인정보 파기 안내를 확인해 주세요.', "Please confirm the personal data deletion notice.")
     if (form?.agency) {
-      if (!agency.choice) e.agency = '항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.'
-      else if (agency.choice === 'agency' && agency.services.length === 0) e.agency = '대행할 항목을 하나 이상 골라 주세요.'
+      if (!agency.choice) e.agency = tr('항공권·ESTA·여행자보험 대행 여부를 선택해 주세요.', "Please choose whether you want us to arrange flights, ESTA and travel insurance.")
+      else if (agency.choice === 'agency' && agency.services.length === 0) e.agency = tr('대행할 항목을 하나 이상 골라 주세요.', "Please choose at least one item.")
     }
     if (form?.program.passport_upload_enabled && !form.is_full) {
-      if (!passportMode) e.passport = '여권 사진을 지금 올리실지, 나중에 제출하실지 골라 주세요.'
-      else if (passportMode === 'now' && !passportFile) e.passport = '여권 사진을 선택해 주세요. 지금 없으시면 "나중에 제출"을 골라 주세요.'
+      if (!passportMode) e.passport = tr('여권 사진을 지금 올리실지, 나중에 제출하실지 골라 주세요.', "Please choose whether to upload the passport photo now or later.")
+      else if (passportMode === 'now' && !passportFile) e.passport = tr('여권 사진을 선택해 주세요. 지금 없으시면 "나중에 제출"을 골라 주세요.', "Please choose a passport photo, or select \"Submit later\".")
     }
     return e
   }
@@ -423,7 +431,7 @@ export function RegisterPage() {
       navigate('/register/done', { replace: true, state })
     } catch (err) {
       const error = err as SubmitError
-      setSubmitError(error.message)
+      setSubmitError(errorText(error.code, error.message, lang))
       if (error.code === 'FULL' || error.code === 'NOT_OPEN') {
         getRegisterForm(slug, refCode).then(setForm)
       }
@@ -435,7 +443,7 @@ export function RegisterPage() {
   if (loadError) {
     return (
       <PublicLayout>
-        <Alert>신청서를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.</Alert>
+        <Alert>{tr('신청서를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.', 'We could not load the form. Please try again in a moment.')}</Alert>
       </PublicLayout>
     )
   }
@@ -449,7 +457,7 @@ export function RegisterPage() {
   if (form === null) {
     return (
       <PublicLayout>
-        <Alert>신청서를 찾을 수 없습니다. 받으신 링크를 다시 확인해 주세요.</Alert>
+        <Alert>{tr('신청서를 찾을 수 없습니다. 받으신 링크를 다시 확인해 주세요.', 'We could not find this form. Please check the link you received.')}</Alert>
       </PublicLayout>
     )
   }
@@ -464,10 +472,10 @@ export function RegisterPage() {
           <h1 className="text-lg font-bold text-slate-900">{title}</h1>
           <p className="mt-3 text-sm text-slate-600">
             {form.status === 'before'
-              ? '아직 모집 전입니다. 모집이 시작되면 다시 안내드리겠습니다.'
+              ? tr('아직 모집 전입니다. 모집이 시작되면 다시 안내드리겠습니다.', 'Registration has not opened yet. We will let you know when it opens.')
               : form.status === 'closed'
-                ? '모집이 마감되었습니다.'
-                : '정원이 마감되었습니다.'}
+                ? tr('모집이 마감되었습니다.', 'Registration has closed.')
+                : tr('정원이 마감되었습니다.', 'This program is full.')}
           </p>
           {form.kakao_channel_url && <KakaoButton url={form.kakao_channel_url} />}
         </div>
@@ -490,34 +498,39 @@ export function RegisterPage() {
   return (
     <PublicLayout>
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-slate-900">{title} 등록 신청</h1>
+        <h1 className="text-xl font-bold text-slate-900">{en ? `${title} Registration` : `${title} 등록 신청`}</h1>
         <dl className="mt-3 space-y-1 rounded-xl bg-white p-4 text-sm ring-1 ring-slate-200">
           {p.country && (
             <div className="flex justify-between gap-4">
-              <dt className="text-slate-500">국가</dt>
+              <dt className="text-slate-500">{tr('국가', 'Country')}</dt>
               <dd className="text-slate-900">{p.country}</dd>
             </div>
           )}
           {p.start_date && p.end_date && (
             <div className="flex justify-between gap-4">
-              <dt className="shrink-0 text-slate-500">일정</dt>
+              <dt className="shrink-0 text-slate-500">{tr('일정', 'Dates')}</dt>
               <dd className="text-right text-slate-900">
-                {formatDateLongKo(p.start_date)} ~ {formatDateLongKo(p.end_date)}
+                {formatDateLong(p.start_date, lang)} ~ {formatDateLong(p.end_date, lang)}
               </dd>
             </div>
           )}
           {!!p.total_price && (
             <div className="flex justify-between gap-4">
-              <dt className="text-slate-500">참가비</dt>
-              <dd className="font-semibold text-slate-900">{formatWon(p.total_price)}</dd>
+              <dt className="text-slate-500">{tr('참가비', 'Program fee')}</dt>
+              <dd className="font-semibold text-slate-900">{formatMoney(p.total_price, lang)}</dd>
             </div>
           )}
         </dl>
         {p.description && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">{p.description}</p>}
-        {form.intro && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">{form.intro}</p>}
+        {!en && form.intro && <p className="mt-3 text-sm leading-relaxed whitespace-pre-line text-slate-600">{form.intro}</p>}
+        {en && (
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            Fields are in English, but you may answer in Korean or English. The program description above is provided by INTOEDU in Korean.
+          </p>
+        )}
         {!tokenValid && (
           <Link to={`/register${hubQuery.size ? `?${hubQuery}` : ''}`} className="mt-3 inline-block text-sm text-brand-600 hover:underline">
-            ← 다른 캠프 보기
+            {tr('← 다른 캠프 보기', '← See other camps')}
           </Link>
         )}
       </div>
@@ -525,32 +538,50 @@ export function RegisterPage() {
       {waitlist && (
         <div className="mb-4">
           <Alert tone="amber">
-            정원이 모두 찼습니다. 지금 신청하시면 <strong>대기 접수</strong>되며, 자리가 생기면 순서대로 연락드립니다. 대기 접수 단계에서는 납부하실 금액이
-            없습니다.
+            {en ? (
+              <>
+                This program is full. If you apply now, you will be added to the <strong>waitlist</strong> and we will contact you in order when a place
+                opens up. No payment is needed while you are on the waitlist.
+              </>
+            ) : (
+              <>
+                정원이 모두 찼습니다. 지금 신청하시면 <strong>대기 접수</strong>되며, 자리가 생기면 순서대로 연락드립니다. 대기 접수 단계에서는 납부하실
+                금액이 없습니다.
+              </>
+            )}
           </Alert>
         </div>
       )}
 
       {member.status === 'guest' && !tokenValid && anyLoginMethod(loginMethods) && (
         <p className="mb-4 rounded-xl bg-white px-4 py-3 text-sm text-slate-600 ring-1 ring-slate-200">
-          인투유학 회원이시면{' '}
+          {tr('인투유학 회원이시면', 'INTOEDU member?')}{' '}
           <Link to={`/account/login?next=${encodeURIComponent(location.pathname + location.search)}`} className="font-semibold text-brand-600 underline">
-            로그인
+            {tr('로그인', 'Log in')}
           </Link>
-          하고 저장된 정보로 바로 채우세요.
+          {tr('하고 저장된 정보로 바로 채우세요.', ' to fill in the form with your saved details.')}
         </p>
       )}
       {memberFilled && !tokenValid && (
         <div className="mb-4">
-          <Alert tone="green">회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.</Alert>
+          <Alert tone="green">{tr('회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.', 'We filled in the form from your profile. Please update anything that has changed.')}</Alert>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <Section title="알게 된 경로">
+        <Section title={tr('알게 된 경로', 'Referral source')}>
           {knownPartner ? (
             <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
-              <strong>{knownPartner.name}</strong>
-              {knownContact ? ` ${knownContact.name} 선생님` : ''} 소개로 신청합니다.
+              {en ? (
+                <>
+                  Referred by <strong>{knownPartner.name}</strong>
+                  {knownContact ? ` (${knownContact.name})` : ''}
+                </>
+              ) : (
+                <>
+                  <strong>{knownPartner.name}</strong>
+                  {knownContact ? ` ${knownContact.name} 선생님` : ''} 소개로 신청합니다.
+                </>
+              )}
             </div>
           ) : form.inflow ? (
             <InflowField
@@ -563,15 +594,15 @@ export function RegisterPage() {
             />
           ) : null}
           {knownPartner && !knownContact && contacts.length > 0 && (
-            <Field label="소개해 주신 선생님 (선택)">
+            <Field label={tr('소개해 주신 선생님 (선택)', 'Teacher who referred you (optional)')}>
               <Select value={contactChoice} onChange={(e) => setContactChoice(e.target.value)}>
-                <option value="">선택 안 함</option>
+                <option value="">{tr('선택 안 함', 'Not selected')}</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {CONTACT_ROLE_LABELS[c.role] ?? ''}
+                    {c.name} {en ? '' : (CONTACT_ROLE_LABELS[c.role] ?? '')}
                   </option>
                 ))}
-                <option value={CONTACT_UNKNOWN}>잘 모르겠어요</option>
+                <option value={CONTACT_UNKNOWN}>{tr('잘 모르겠어요', "I'm not sure")}</option>
               </Select>
             </Field>
           )}
@@ -580,8 +611,8 @@ export function RegisterPage() {
             field(
               'consulted',
               <fieldset>
-                <legend className="mb-2 text-sm font-medium text-slate-700">{form.consulted_label}</legend>
-                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={form.consulted_label}>
+                <legend className="mb-2 text-sm font-medium text-slate-700">{inflowText(form.consulted_label, lang)}</legend>
+                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={inflowText(form.consulted_label, lang)}>
                   {CONSULTED_OPTIONS.map((o) => (
                     <label
                       key={o.value}
@@ -590,23 +621,29 @@ export function RegisterPage() {
                       }`}
                     >
                       <input type="radio" name="consulted" className="sr-only" checked={consulted === o.value} onChange={() => setConsulted(o.value)} />
-                      {o.label}
+                      {en ? o.en : o.label}
                     </label>
                   ))}
                 </div>
                 {consulted === 'yes' && (
-                  <p className="mt-2 text-xs text-slate-500">상담 때 남기신 학부모 휴대폰 번호와 학생 이름을 같게 적어 주시면 상담 내용과 연결됩니다.</p>
+                  <p className="mt-2 text-xs text-slate-500">
+                    {tr(
+                      '상담 때 남기신 학부모 휴대폰 번호와 학생 이름을 같게 적어 주시면 상담 내용과 연결됩니다.',
+                      'Please use the same parent mobile number and student name as in your consultation request so we can link them.',
+                    )}
+                  </p>
                 )}
                 {errors.consulted && <p className="mt-1 text-xs text-red-600">{errors.consulted}</p>}
               </fieldset>,
             )}
         </Section>
 
-        <Section title="학생 정보">
+        <Section title={tr('학생 정보', 'Student information')}>
           {member.status === 'member' && !tokenValid && <ChildPicker students={member.students} value={childId} onPick={pickChild} />}
           {field(
             'student_name_ko',
-            <Field label={label('student_name_ko', '학생 이름(한글)')} hint={fieldHelp(texts, 'student_name_ko')} error={errors.student_name_ko}>
+            <Field label={label('student_name_ko', '학생 이름(한글)', 'Student name')}
+              hint={help('student_name_ko', undefined, "The student's Korean name if they have one; otherwise the English name.")} error={errors.student_name_ko}>
               <Input autoComplete="off" value={v.student_name_ko} onChange={(e) => set('student_name_ko')(e.target.value)} />
             </Field>,
           )}
@@ -614,8 +651,8 @@ export function RegisterPage() {
             field(
               'student_name_en',
               <Field
-                label={label('student_name_en', '영문 이름(여권과 동일)', !req('student_name_en'))}
-                hint={fieldHelp(texts, 'student_name_en', '여권에 적힌 그대로 입력해 주세요. 항공권 발권에 사용합니다.')}
+                label={label('student_name_en', '영문 이름(여권과 동일)', 'Name in English (as in passport)', !req('student_name_en'))}
+                hint={help('student_name_en', '여권에 적힌 그대로 입력해 주세요. 항공권 발권에 사용합니다.', 'Enter it exactly as in the passport. We use it to book flights.')}
                 error={errors.student_name_en}
               >
                 <Input
@@ -631,7 +668,7 @@ export function RegisterPage() {
           {shown('birth_date') &&
             field(
               'birth_date',
-              <Field label={label('birth_date', '생년월일', !req('birth_date'))} hint={fieldHelp(texts, 'birth_date')} error={errors.birth_date}>
+              <Field label={label('birth_date', '생년월일', 'Date of birth', !req('birth_date'))} hint={help('birth_date')} error={errors.birth_date}>
                 <Input type="date" max={todayKst()} value={v.birth_date} onChange={(e) => set('birth_date')(e.target.value)} />
               </Field>,
             )}
@@ -639,11 +676,11 @@ export function RegisterPage() {
             field(
               'gender',
               <div>
-                <p className="mb-2 text-sm font-medium text-slate-700">{label('gender', '성별', !req('gender'))}</p>
-                <div className="flex gap-2" role="radiogroup" aria-label="성별">
+                <p className="mb-2 text-sm font-medium text-slate-700">{label('gender', '성별', 'Gender', !req('gender'))}</p>
+                <div className="flex gap-2" role="radiogroup" aria-label={tr('성별', 'Gender')}>
                   {[
-                    { value: 'male', label: '남' },
-                    { value: 'female', label: '여' },
+                    { value: 'male', label: tr('남', 'Male') },
+                    { value: 'female', label: tr('여', 'Female') },
                   ].map((o) => (
                     <label
                       key={o.value}
@@ -662,19 +699,19 @@ export function RegisterPage() {
           {shown('school') &&
             field(
               'school',
-              <Field label={label('school', '학교', !req('school'))} hint={fieldHelp(texts, 'school')} error={errors.school}>
+              <Field label={label('school', '학교', 'School', !req('school'))} hint={help('school')} error={errors.school}>
                 <Input value={v.school} onChange={(e) => set('school')(e.target.value)} />
               </Field>,
             )}
           {shown('grade') &&
             field(
               'grade',
-              <Field label={label('grade', '학년', !req('grade'))} hint={fieldHelp(texts, 'grade')} error={errors.grade}>
+              <Field label={label('grade', '학년', 'Grade (in Korea)', !req('grade'))} hint={help('grade')} error={errors.grade}>
                 <Select value={v.grade} onChange={(e) => set('grade')(e.target.value)}>
-                  <option value="">선택해 주세요</option>
+                  <option value="">{tr('선택해 주세요', 'Please select')}</option>
                   {GRADES.map((g) => (
                     <option key={g} value={g}>
-                      {g}
+                      {optionText(g, lang)}
                     </option>
                   ))}
                 </Select>
@@ -683,12 +720,12 @@ export function RegisterPage() {
           {shown('english_level') &&
             field(
               'english_level',
-              <Field label={label('english_level', '영어 수준', !req('english_level'))} hint={fieldHelp(texts, 'english_level')} error={errors.english_level}>
+              <Field label={label('english_level', '영어 수준', 'English level', !req('english_level'))} hint={help('english_level')} error={errors.english_level}>
                 <Select value={v.english_level} onChange={(e) => set('english_level')(e.target.value)}>
-                  <option value="">선택해 주세요</option>
+                  <option value="">{tr('선택해 주세요', 'Please select')}</option>
                   {ENGLISH_LEVELS.map((g) => (
                     <option key={g} value={g}>
-                      {g}
+                      {optionText(g, lang)}
                     </option>
                   ))}
                 </Select>
@@ -696,16 +733,17 @@ export function RegisterPage() {
             )}
         </Section>
 
-        <Section title="학부모 정보">
+        <Section title={tr('학부모 정보', 'Parent information')}>
           {field(
             'parent_name',
-            <Field label={label('parent_name', '학부모 이름')} hint={fieldHelp(texts, 'parent_name')} error={errors.parent_name}>
+            <Field label={label('parent_name', '학부모 이름', "Parent's name")} hint={help('parent_name')} error={errors.parent_name}>
               <Input autoComplete="name" value={v.parent_name} onChange={(e) => set('parent_name')(e.target.value)} />
             </Field>,
           )}
           {field(
             'parent_phone',
-            <Field label={label('parent_phone', '휴대폰 번호')} hint={fieldHelp(texts, 'parent_phone', '납부 안내를 이 번호로 보내 드립니다.')} error={errors.parent_phone}>
+            <Field label={label('parent_phone', '휴대폰 번호', 'Mobile number')}
+              hint={help('parent_phone', '납부 안내를 이 번호로 보내 드립니다.', 'We will send payment notices to this number.')} error={errors.parent_phone}>
               <Input
                 type="tel"
                 inputMode="tel"
@@ -720,14 +758,14 @@ export function RegisterPage() {
           {shown('parent_email') &&
             field(
               'parent_email',
-              <Field label={label('parent_email', '이메일', !req('parent_email'))} hint={fieldHelp(texts, 'parent_email')} error={errors.parent_email}>
+              <Field label={label('parent_email', '이메일', 'Email', !req('parent_email'))} hint={help('parent_email')} error={errors.parent_email}>
                 <Input type="email" inputMode="email" autoComplete="email" value={v.parent_email} onChange={(e) => set('parent_email')(e.target.value)} />
               </Field>,
             )}
           {shown('address') &&
             field(
               'address',
-              <Field label={label('address', '주소', !req('address'))} hint={fieldHelp(texts, 'address')} error={errors.address}>
+              <Field label={label('address', '주소', 'Address', !req('address'))} hint={help('address')} error={errors.address}>
                 <Input autoComplete="street-address" value={v.address} onChange={(e) => set('address')(e.target.value)} />
               </Field>,
             )}
@@ -735,28 +773,32 @@ export function RegisterPage() {
 
         {shown('emergency') && (
           <Section
-            title={label('emergency', '비상 연락처', !req('emergency'))}
-            description={fieldHelp(texts, 'emergency', '프로그램 기간 중 학부모님과 연락이 닿지 않을 때 연락드릴 분입니다.')}
+            title={label('emergency', '비상 연락처', 'Emergency contact', !req('emergency'))}
+            description={help(
+              'emergency',
+              '프로그램 기간 중 학부모님과 연락이 닿지 않을 때 연락드릴 분입니다.',
+              'Someone we can contact during the program if we cannot reach you.',
+            )}
           >
             {field(
               'emergency_name',
-              <Field label="이름" error={errors.emergency_name}>
+              <Field label={tr('이름', 'Name')} error={errors.emergency_name}>
                 <Input value={v.emergency_name} onChange={(e) => set('emergency_name')(e.target.value)} />
               </Field>,
             )}
-            <Field label="관계">
+            <Field label={tr('관계', 'Relationship')}>
               <Select value={v.emergency_relation} onChange={(e) => set('emergency_relation')(e.target.value)}>
-                <option value="">선택해 주세요</option>
+                <option value="">{tr('선택해 주세요', 'Please select')}</option>
                 {EMERGENCY_RELATIONS.map((r) => (
                   <option key={r} value={r}>
-                    {r}
+                    {optionText(r, lang)}
                   </option>
                 ))}
               </Select>
             </Field>
             {field(
               'emergency_phone',
-              <Field label="연락처" error={errors.emergency_phone}>
+              <Field label={tr('연락처', 'Phone number')} error={errors.emergency_phone}>
                 <Input type="tel" inputMode="tel" placeholder="010-1234-5678" value={v.emergency_phone} onChange={(e) => set('emergency_phone')(e.target.value)} />
               </Field>,
             )}
@@ -764,13 +806,17 @@ export function RegisterPage() {
         )}
 
         {(shown('special_notes') || p.health_field_enabled) && (
-          <Section title="특이사항">
+          <Section title={tr('특이사항', 'Special notes')}>
             {shown('special_notes') &&
               field(
                 'special_notes',
                 <Field
-                  label={label('special_notes', '특이사항', !req('special_notes'))}
-                  hint={fieldHelp(texts, 'special_notes', p.health_field_enabled ? '건강 관련 내용은 아래 건강 특이사항 항목에 적어 주세요.' : undefined)}
+                  label={label('special_notes', '특이사항', 'Special notes', !req('special_notes'))}
+                  hint={help(
+                    'special_notes',
+                    p.health_field_enabled ? '건강 관련 내용은 아래 건강 특이사항 항목에 적어 주세요.' : undefined,
+                    p.health_field_enabled ? 'Please write health-related notes in the health notes field below.' : undefined,
+                  )}
                   error={errors.special_notes}
                 >
                   <Textarea rows={3} maxLength={2000} value={v.special_notes} onChange={(e) => set('special_notes')(e.target.value)} />
@@ -780,8 +826,11 @@ export function RegisterPage() {
               field(
                 'health',
                 <Field
-                  label="건강 특이사항 (선택)"
-                  hint="알레르기, 복용 중인 약 등. 적으시면 아래 민감정보 수집·이용 동의가 필요합니다."
+                  label={tr('건강 특이사항 (선택)', 'Health notes (optional)')}
+                  hint={tr(
+                    '알레르기, 복용 중인 약 등. 적으시면 아래 민감정보 수집·이용 동의가 필요합니다.',
+                    'Allergies, medication, etc. If you fill this in, consent to the collection of sensitive information below is required.',
+                  )}
                   error={errors.health}
                 >
                   <Textarea rows={3} maxLength={2000} value={v.health_notes} onChange={(e) => set('health_notes')(e.target.value)} />
@@ -791,15 +840,15 @@ export function RegisterPage() {
         )}
 
         {p.passport_upload_enabled && (
-          <Section title="여권 사진">
+          <Section title={tr('여권 사진', 'Passport photo')}>
             {field(
               'passport',
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="여권 사진 제출">
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tr('여권 사진 제출', 'Passport photo submission')}>
                   {(
                     [
-                      ['now', '지금 올리기'],
-                      ['later', '나중에 제출'],
+                      ['now', tr('지금 올리기', 'Upload now')],
+                      ['later', tr('나중에 제출', 'Submit later')],
                     ] as const
                   ).map(([value, label]) => (
                     <label
@@ -815,30 +864,50 @@ export function RegisterPage() {
                 </div>
                 {passportMode === 'now' && <PassportPicker file={passportFile} onChange={setPassportFile} error={errors.passport} />}
                 {passportMode === 'later' && (
-                  <p className="text-sm text-slate-600">신청 후 받으시는 [신청 내용 확인] 페이지나 담당자가 보내 드리는 링크로 제출하실 수 있습니다.</p>
+                  <p className="text-sm text-slate-600">
+                    {tr(
+                      '신청 후 받으시는 [신청 내용 확인] 페이지나 담당자가 보내 드리는 링크로 제출하실 수 있습니다.',
+                      'You can submit it later on your registration page or through the link your advisor sends you.',
+                    )}
+                  </p>
                 )}
                 {passportMode !== 'now' && errors.passport && <p className="text-xs text-red-600">{errors.passport}</p>}
-                <p className="text-xs text-slate-500">제출하신 이미지는 암호화하여 보관하며, 지정된 담당자만 열람할 수 있습니다.</p>
-                {waitlist && <p className="text-xs text-slate-500">대기 접수는 자리가 확정된 뒤 여권 사진을 받습니다.</p>}
+                <p className="text-xs text-slate-500">
+                  {tr('제출하신 이미지는 암호화하여 보관하며, 지정된 담당자만 열람할 수 있습니다.', 'Your image is stored encrypted and only designated staff can view it.')}
+                </p>
+                {waitlist && (
+                  <p className="text-xs text-slate-500">
+                    {tr('대기 접수는 자리가 확정된 뒤 여권 사진을 받습니다.', 'For waitlisted applicants, we collect the passport photo once a place is confirmed.')}
+                  </p>
+                )}
               </div>,
             )}
           </Section>
         )}
 
         {questions.length > 0 && (
-          <Section title="추가 질문">
+          <Section title={tr('추가 질문', 'Additional questions')}>
             <QuestionFields questions={questions} values={answers} onChange={setAnswers} errors={questionErrors} />
           </Section>
         )}
 
         {form.agency && (
-          <Section title="항공권·ESTA·여행자보험 대행" description="대행을 원하시면 항목을 골라 주세요. 직접 준비하셔도 됩니다.">
+          <Section
+            title={tr('항공권·ESTA·여행자보험 대행', 'Flights, ESTA and travel insurance')}
+            description={tr('대행을 원하시면 항목을 골라 주세요. 직접 준비하셔도 됩니다.', 'Choose the items you want us to arrange, or arrange them yourself.')}
+          >
             <AgencyChooser fees={form.agency.fees} choice={agency.choice} services={agency.services} onChange={setAgency} error={errors.agency} />
           </Section>
         )}
 
         {!waitlist && (
-          <Section title="납부 안내" description="오늘 신청하시면 아래 일정으로 납부하시게 됩니다. 입금 계좌는 신청 완료 화면과 안내 메시지로 알려 드립니다.">
+          <Section
+            title={tr('납부 안내', 'Payment information')}
+            description={tr(
+              '오늘 신청하시면 아래 일정으로 납부하시게 됩니다. 입금 계좌는 신청 완료 화면과 안내 메시지로 알려 드립니다.',
+              'If you register today, you will pay according to the schedule below. We will share the bank account on the next screen and by message.',
+            )}
+          >
             <div className="space-y-3">
               <DiscountList discounts={form.discounts} />
               <ScheduleList lines={form.schedule ?? []} />
@@ -846,8 +915,9 @@ export function RegisterPage() {
           </Section>
         )}
 
-        <Section title="동의 및 확인">
+        <Section title={tr('동의 및 확인', 'Consent and confirmation')}>
           <div id="field-consent" className="space-y-3">
+            {en && <ConsentKoreanNote />}
             {consents
               .filter((c) => c.kind !== 'destruction_notice' && c.kind !== 'reg_partner_share')
               .map((c) => (
@@ -856,15 +926,19 @@ export function RegisterPage() {
                   doc={c}
                   checked={!!agree[c.kind]}
                   onChange={(checked) => setAgree((prev) => ({ ...prev, [c.kind]: checked }))}
-                  label={`${c.required ? '[필수]' : '[선택]'} 위 내용을 확인하였으며 동의합니다.`}
+                  label={
+                    en
+                      ? `${c.required ? '[Required]' : '[Optional]'} I have read the above and agree.`
+                      : `${c.required ? '[필수]' : '[선택]'} 위 내용을 확인하였으며 동의합니다.`
+                  }
                 />
               ))}
             {form.refund && (
               <ConsentItem
-                doc={{ title: `[필수] 환불 규정 확인 (v${form.refund.version})`, body: form.refund.body }}
+                doc={{ title: tr(`[필수] 환불 규정 확인 (v${form.refund.version})`, `[Required] Refund policy (v${form.refund.version})`), body: form.refund.body }}
                 checked={!!agree.refund}
                 onChange={(checked) => setAgree((prev) => ({ ...prev, refund: checked }))}
-                label="[필수] 환불 규정을 확인했습니다."
+                label={tr('[필수] 환불 규정을 확인했습니다.', '[Required] I have read the refund policy.')}
               />
             )}
             {hasPartner && doc('reg_partner_share') && (
@@ -872,7 +946,7 @@ export function RegisterPage() {
                 doc={{ title: doc('reg_partner_share')!.title, body: doc('reg_partner_share')!.body.replaceAll('{{partner_name}}', partnerName ?? '') }}
                 checked={!!agree.reg_partner_share}
                 onChange={(checked) => setAgree((prev) => ({ ...prev, reg_partner_share: checked }))}
-                label="[선택] 위 내용을 확인하였으며 동의합니다."
+                label={tr('[선택] 위 내용을 확인하였으며 동의합니다.', '[Optional] I have read the above and agree.')}
               />
             )}
             {errors.consent && <p className="text-xs text-red-600">{errors.consent}</p>}
@@ -891,7 +965,7 @@ export function RegisterPage() {
                   checked={!!agree.destruction_notice}
                   onChange={(e) => setAgree((prev) => ({ ...prev, destruction_notice: e.target.checked }))}
                 />
-                [필수] 개인정보 파기 안내를 확인했습니다.
+                {tr('[필수] 개인정보 파기 안내를 확인했습니다.', '[Required] I have read the personal data deletion notice.')}
               </label>
               {errors.destruction && <p className="text-xs text-red-600">{errors.destruction}</p>}
             </div>,
@@ -907,7 +981,7 @@ export function RegisterPage() {
 
         {submitError && <Alert>{submitError}</Alert>}
         <Button type="submit" className="w-full py-3 text-base" disabled={submitting}>
-          {submitting ? '보내는 중…' : waitlist ? '대기 신청하기' : '등록 신청하기'}
+          {submitting ? tr('보내는 중…', 'Sending…') : waitlist ? tr('대기 신청하기', 'Join the waitlist') : tr('등록 신청하기', 'Register')}
         </Button>
       </form>
     </PublicLayout>
@@ -915,6 +989,7 @@ export function RegisterPage() {
 }
 
 export function KakaoButton({ url }: { url: string }) {
+  const { tr } = useLang()
   return (
     <a
       href={url}
@@ -922,7 +997,7 @@ export function KakaoButton({ url }: { url: string }) {
       rel="noreferrer"
       className="mt-6 flex w-full items-center justify-center rounded-xl bg-[#FEE500] px-4 py-3 text-base font-semibold text-[#191919]"
     >
-      인투유학 카카오톡 문의 바로가기
+      {tr('인투유학 카카오톡 문의 바로가기', 'Contact INTOEDU on KakaoTalk')}
     </a>
   )
 }

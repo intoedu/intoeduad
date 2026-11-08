@@ -3,10 +3,10 @@ export type AgencyService = 'flight' | 'esta' | 'insurance'
 export type AgencyChoice = 'agency' | 'self'
 export type AgencyFees = Record<string, number>
 
-export const AGENCY_SERVICES: Array<{ value: AgencyService; label: string; hint: string }> = [
-  { value: 'flight', label: '항공권', hint: '항공권 요금은 별도이며 확정되면 안내드립니다' },
-  { value: 'esta', label: 'ESTA (미국 전자여행허가)', hint: '미국 정부 신청 수수료는 별도입니다' },
-  { value: 'insurance', label: '여행자보험', hint: '보험료는 별도입니다' },
+export const AGENCY_SERVICES: Array<{ value: AgencyService; label: string; hint: string; en: string; enHint: string }> = [
+  { value: 'flight', label: '항공권', hint: '항공권 요금은 별도이며 확정되면 안내드립니다', en: 'Flights', enHint: 'Airfare is charged separately; we will let you know once it is confirmed' },
+  { value: 'esta', label: 'ESTA (미국 전자여행허가)', hint: '미국 정부 신청 수수료는 별도입니다', en: 'ESTA (U.S. travel authorization)', enHint: 'The U.S. government application fee is charged separately' },
+  { value: 'insurance', label: '여행자보험', hint: '보험료는 별도입니다', en: 'Travel insurance', enHint: 'The insurance premium is charged separately' },
 ]
 
 export const DEFAULT_AGENCY_FEES: AgencyFees = { '1': 30000, '2': 50000, '3': 60000 }
@@ -17,10 +17,10 @@ export function agencyFee(count: number, fees: AgencyFees = DEFAULT_AGENCY_FEES)
   return Number(fees[n] ?? DEFAULT_AGENCY_FEES[n])
 }
 
-export function agencyServiceLabels(services: readonly string[]): string {
+export function agencyServiceLabels(services: readonly string[], lang: 'ko' | 'en' = 'ko'): string {
   return AGENCY_SERVICES.filter((s) => services.includes(s.value))
-    .map((s) => s.label.replace(/ \(.*\)$/, ''))
-    .join('·')
+    .map((s) => (lang === 'en' ? s.en : s.label).replace(/ \(.*\)$/, ''))
+    .join(lang === 'en' ? ', ' : '·')
 }
 
 // 여권 영문 이름: 대문자, 공백 하나, 영문·공백·하이픈만

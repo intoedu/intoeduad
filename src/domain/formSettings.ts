@@ -114,19 +114,20 @@ function isEmpty(v: AnswerValue | undefined): boolean {
 }
 
 // 화면 검사(서버 collect_form_answers 와 같은 규칙). 오류는 질문 id → 문구
-export function validateAnswers(questions: PublicQuestion[], answers: AnswerMap, enforceRequired = true): Record<string, string> {
+export function validateAnswers(questions: PublicQuestion[], answers: AnswerMap, enforceRequired = true, lang: 'ko' | 'en' = 'ko'): Record<string, string> {
+  const en = lang === 'en'
   const errors: Record<string, string> = {}
   for (const q of questions) {
     const v = answers[q.id]
     if (isEmpty(v)) {
-      if (q.required && enforceRequired) errors[q.id] = '답해 주세요.'
+      if (q.required && enforceRequired) errors[q.id] = en ? 'Please answer this question.' : '답해 주세요.'
       continue
     }
-    if (q.type === 'number' && !/^-?[0-9]{1,12}(\.[0-9]{1,4})?$/.test(String(v).trim())) errors[q.id] = '숫자만 입력해 주세요.'
-    if (q.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(String(v))) errors[q.id] = '날짜를 확인해 주세요.'
-    if ((q.type === 'single_choice' || q.type === 'dropdown') && !q.options.includes(String(v))) errors[q.id] = '다시 골라 주세요.'
-    if (q.type === 'multi_choice' && (v as string[]).some((x) => !q.options.includes(x))) errors[q.id] = '다시 골라 주세요.'
-    if (q.type === 'yes_no' && !(YES_NO as readonly string[]).includes(String(v))) errors[q.id] = '다시 골라 주세요.'
+    if (q.type === 'number' && !/^-?[0-9]{1,12}(\.[0-9]{1,4})?$/.test(String(v).trim())) errors[q.id] = en ? 'Please enter numbers only.' : '숫자만 입력해 주세요.'
+    if (q.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(String(v))) errors[q.id] = en ? 'Please check the date.' : '날짜를 확인해 주세요.'
+    if ((q.type === 'single_choice' || q.type === 'dropdown') && !q.options.includes(String(v))) errors[q.id] = en ? 'Please choose again.' : '다시 골라 주세요.'
+    if (q.type === 'multi_choice' && (v as string[]).some((x) => !q.options.includes(x))) errors[q.id] = en ? 'Please choose again.' : '다시 골라 주세요.'
+    if (q.type === 'yes_no' && !(YES_NO as readonly string[]).includes(String(v))) errors[q.id] = en ? 'Please choose again.' : '다시 골라 주세요.'
   }
   return errors
 }
@@ -182,15 +183,16 @@ export const CONTACT_UNKNOWN = '__unknown__'
 export const EMPTY_INFLOW: InflowValue = { channelId: '', partnerId: '', contactId: '', detail: '' }
 
 // 링크로 학원이 정해졌으면 묻지 않는다
-export function validateInflow(config: InflowConfig | null | undefined, v: InflowValue, partnerKnown: boolean): string | null {
+export function validateInflow(config: InflowConfig | null | undefined, v: InflowValue, partnerKnown: boolean, lang: 'ko' | 'en' = 'ko'): string | null {
   if (partnerKnown) return null
+  const en = lang === 'en'
   const ch = config?.channels.find((c) => c.id === v.channelId)
-  if (!ch) return '알게 된 경로를 선택해 주세요.'
+  if (!ch) return en ? 'Please tell us how you heard about us.' : '알게 된 경로를 선택해 주세요.'
   if (ch.kind === 'partner') {
-    if (!v.partnerId) return '소개해 준 학원을 골라 주세요.'
-    if (v.partnerId === PARTNER_NOT_LISTED && !v.detail.trim()) return '학원 이름을 적어 주세요.'
+    if (!v.partnerId) return en ? 'Please choose the academy that referred you.' : '소개해 준 학원을 골라 주세요.'
+    if (v.partnerId === PARTNER_NOT_LISTED && !v.detail.trim()) return en ? 'Please enter the academy name.' : '학원 이름을 적어 주세요.'
   }
-  if (ch.kind === 'detail' && ch.detail_required && !v.detail.trim()) return `${ch.detail_label || '내용'}을(를) 적어 주세요.`
+  if (ch.kind === 'detail' && ch.detail_required && !v.detail.trim()) return en ? 'Please fill in the details.' : `${ch.detail_label || '내용'}을(를) 적어 주세요.`
   return null
 }
 
@@ -208,11 +210,32 @@ export function inflowPayload(config: InflowConfig | null | undefined, v: Inflow
 }
 
 // 상담 이력 질문
-export const CONSULTED_OPTIONS: Array<{ value: 'yes' | 'no' | 'unsure'; label: string }> = [
-  { value: 'yes', label: '예, 상담했어요' },
-  { value: 'no', label: '아니요, 처음이에요' },
-  { value: 'unsure', label: '잘 모르겠어요' },
+export const CONSULTED_OPTIONS: Array<{ value: 'yes' | 'no' | 'unsure'; label: string; en: string }> = [
+  { value: 'yes', label: '예, 상담했어요', en: 'Yes, I have' },
+  { value: 'no', label: '아니요, 처음이에요', en: 'No, this is my first time' },
+  { value: 'unsure', label: '잘 모르겠어요', en: "I'm not sure" },
 ]
+
+// 기본으로 들어 있는 유입 경로·문구의 영어 표기(관리자가 새로 만든 이름은 그대로 보인다)
+export const INFLOW_EN: Record<string, string> = {
+  '어디서 알게 되셨나요?': 'How did you hear about us?',
+  '학원 소개': 'Referred by an academy',
+  '지인 소개': 'Friend or family',
+  '인스타그램': 'Instagram',
+  '네이버 블로그·카페': 'Naver Blog / Cafe',
+  '유튜브': 'YouTube',
+  '인터넷 검색': 'Web search',
+  '설명회·박람회': 'Info session / Fair',
+  '이전에 참가한 적 있음': 'I have joined before',
+  '기타': 'Other',
+  '소개해 주신 분 (선택)': 'Who referred you? (optional)',
+  '알게 된 경로': 'Please specify',
+  '인투유학 상담을 신청하신 적이 있나요?': 'Have you requested a consultation with INTOEDU before?',
+}
+export function inflowText(text: string | null | undefined, lang: 'ko' | 'en'): string {
+  if (!text) return ''
+  return lang === 'en' ? (INFLOW_EN[text] ?? text) : text
+}
 
 export const CONSULTED_LABELS: Record<string, string> = { yes: '예', no: '아니오', unsure: '잘 모르겠음' }
 export const LEAD_LINK_LABELS: Record<string, string> = {
@@ -227,12 +250,13 @@ export const LEAD_LINK_LABELS: Record<string, string> = {
 export type KakaoValue = { use: '' | 'yes' | 'no'; altPhone: string; altContact: string }
 export const EMPTY_KAKAO: KakaoValue = { use: '', altPhone: '', altContact: '' }
 
-export function validateKakao(v: KakaoValue): string | null {
-  if (!v.use) return '카카오톡 사용 여부를 골라 주세요.'
+export function validateKakao(v: KakaoValue, lang: 'ko' | 'en' = 'ko'): string | null {
+  const en = lang === 'en'
+  if (!v.use) return en ? 'Please tell us whether you use KakaoTalk.' : '카카오톡 사용 여부를 골라 주세요.'
   if (v.use === 'no') {
     const phone = v.altPhone.replace(/\D/g, '')
-    if (phone && !/^01[0-9]{8,9}$/.test(phone)) return '대신 받을 카카오톡 번호를 확인해 주세요. (예: 010-1234-5678)'
-    if (!phone && !v.altContact.trim()) return '대신 받을 카카오톡 번호나 다른 연락 방법 중 하나는 적어 주세요.'
+    if (phone && !/^01[0-9]{8,9}$/.test(phone)) return en ? 'Please check the alternative KakaoTalk phone number. (e.g. 010-1234-5678)' : '대신 받을 카카오톡 번호를 확인해 주세요. (예: 010-1234-5678)'
+    if (!phone && !v.altContact.trim()) return en ? 'Please enter an alternative KakaoTalk number or another way to reach you.' : '대신 받을 카카오톡 번호나 다른 연락 방법 중 하나는 적어 주세요.'
   }
   return null
 }
