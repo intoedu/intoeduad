@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useLang } from '../../i18n/context'
+import { LangToggle } from '../../i18n/lang'
 import { anyLoginMethod, signInWithProvider, useCustomer, useLoginMethods, type CustomerState, type Provider } from './customerApi'
 
 const DISMISS_KEY = 'intoedu:member-gate-dismissed'
@@ -44,6 +45,10 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="member-gate-title">
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+        {/* 안내 창이 머리글을 덮으므로 언어 버튼을 창 안에도 둔다 */}
+        <div className="mb-3 flex justify-end">
+          <LangToggle />
+        </div>
         <h2 id="member-gate-title" className="text-lg font-bold text-slate-900">
           {tr('회원으로 신청하시겠어요?', 'Would you like to sign up first?')}
         </h2>

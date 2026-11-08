@@ -71,6 +71,17 @@ const agreeTo = (page, title) => page.getByRole('checkbox', { name: new RegExp(`
   await page.getByRole('button', { name: '한국어' }).click()
   check('한국어로 되돌리기', await visible(page.getByRole('heading', { name: '유학·캠프 상담 신청' })))
 
+  // 4-1) 처음 여는 사람: 회원가입 안내 창이 머리글을 덮어도 창 안에서 영어로 바꿀 수 있다
+  const ctx0 = await browser.newContext({ viewport: { width: 390, height: 844 } })
+  const p0 = await ctx0.newPage()
+  p0.on('pageerror', (e) => errors.push(e.message))
+  await p0.goto(`${BASE}/apply`)
+  check('안내 창 한국어', await visible(p0.getByRole('heading', { name: '회원으로 신청하시겠어요?' })))
+  await p0.getByRole('dialog').getByRole('button', { name: 'English' }).click()
+  check('안내 창 안에서 영어로', await visible(p0.getByRole('heading', { name: 'Would you like to sign up first?' })))
+  await p0.getByRole('button', { name: 'Continue without signing up' }).click()
+  check('창 닫은 뒤 신청서 영어', await visible(p0.getByRole('heading', { name: 'Study Abroad & Camp Consultation' })))
+
   // 5) ?lang=en 으로 바로 영어(새 기기), 직원 화면은 한국어 그대로
   const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 } })
   const p2 = await ctx2.newPage()
