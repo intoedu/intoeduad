@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { AccountHeaderLink } from '../account/MemberGate'
+import { LangToggle } from '../../i18n/lang'
 
 // 학부모용 공개 화면 (모바일 우선)
 export function PublicLayout({ children }: { children: ReactNode }) {
@@ -8,7 +9,10 @@ export function PublicLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-xl items-center justify-between px-4 py-3">
           <span className="text-lg font-bold text-brand-600">인투유학</span>
-          <AccountHeaderLink />
+          <div className="flex items-center gap-3">
+            <LangToggle />
+            <AccountHeaderLink />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-xl px-4 pt-5 pb-16">{children}</main>

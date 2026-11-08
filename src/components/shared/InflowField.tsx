@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Field, Input, Select } from '../ui'
 import { CONTACT_ROLE_LABELS } from '../../lib/labels'
+import { useLang } from '../../i18n/context'
 import {
   CONTACT_UNKNOWN,
+  inflowText,
   PARTNER_NOT_LISTED,
   type InflowConfig,
   type InflowValue,
@@ -29,6 +31,7 @@ export function InflowField({
 }) {
   const [loaded, setLoaded] = useState<{ partnerId: string; list: InflowContact[] }>({ partnerId: '', list: [] })
   const channel = config.channels.find((c) => c.id === value.channelId)
+  const { lang, en, tr } = useLang()
 
   const partnerPicked = channel?.kind === 'partner' && !!value.partnerId && value.partnerId !== PARTNER_NOT_LISTED
   useEffect(() => {
@@ -42,15 +45,15 @@ export function InflowField({
 
   return (
     <div className="space-y-3" id="field-inflow">
-      <Field label={config.label}>
+      <Field label={inflowText(config.label, lang)}>
         <Select
           value={value.channelId}
           onChange={(e) => onChange({ channelId: e.target.value, partnerId: '', contactId: '', detail: '' })}
         >
-          <option value="">선택해 주세요</option>
+          <option value="">{tr('선택해 주세요', 'Please select')}</option>
           {config.channels.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.label}
+              {inflowText(c.label, lang)}
             </option>
           ))}
         </Select>
@@ -58,33 +61,33 @@ export function InflowField({
 
       {channel?.kind === 'partner' && (
         <>
-          <Field label="소개해 준 학원">
+          <Field label={tr('소개해 준 학원', 'Referring academy')}>
             <Select value={value.partnerId} onChange={(e) => onChange({ ...value, partnerId: e.target.value, contactId: '', detail: '' })}>
-              <option value="">선택해 주세요</option>
+              <option value="">{tr('선택해 주세요', 'Please select')}</option>
               {partners.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
                   {p.region ? ` (${p.region})` : ''}
                 </option>
               ))}
-              <option value={PARTNER_NOT_LISTED}>목록에 없어요 (직접 입력)</option>
+              <option value={PARTNER_NOT_LISTED}>{tr('목록에 없어요 (직접 입력)', 'Not listed (type the name)')}</option>
             </Select>
           </Field>
           {value.partnerId === PARTNER_NOT_LISTED && (
-            <Field label="학원 이름">
+            <Field label={tr('학원 이름', 'Academy name')}>
               <Input maxLength={100} value={value.detail} onChange={(e) => onChange({ ...value, detail: e.target.value })} />
             </Field>
           )}
           {contacts.length > 0 && (
-            <Field label="소개해 주신 선생님 (선택)">
+            <Field label={tr('소개해 주신 선생님 (선택)', 'Teacher who referred you (optional)')}>
               <Select value={value.contactId} onChange={(e) => onChange({ ...value, contactId: e.target.value })}>
-                <option value="">선택 안 함</option>
+                <option value="">{tr('선택 안 함', 'Not selected')}</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {c.role ? (CONTACT_ROLE_LABELS[c.role] ?? '') : ''}
+                    {c.name} {c.role && !en ? (CONTACT_ROLE_LABELS[c.role] ?? '') : ''}
                   </option>
                 ))}
-                <option value={CONTACT_UNKNOWN}>잘 모르겠어요</option>
+                <option value={CONTACT_UNKNOWN}>{tr('잘 모르겠어요', "I'm not sure")}</option>
               </Select>
             </Field>
           )}
@@ -92,7 +95,7 @@ export function InflowField({
       )}
 
       {channel?.kind === 'detail' && (
-        <Field label={channel.detail_label || '내용'}>
+        <Field label={channel.detail_label ? inflowText(channel.detail_label, lang) : tr('내용', 'Details')}>
           <Input maxLength={100} value={value.detail} onChange={(e) => onChange({ ...value, detail: e.target.value })} />
         </Field>
       )}

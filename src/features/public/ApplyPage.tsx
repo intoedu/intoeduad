@@ -41,19 +41,22 @@ import {
   type PublicSlot,
 } from './publicApi'
 import { SlotPicker } from './SlotPicker'
+import { useLang } from '../../i18n/context'
+import { errorText, optionText } from '../../i18n/text'
+import { ConsentKoreanNote } from '../../i18n/lang'
 
 const GRADES = ['초1', '초2', '초3', '초4', '초5', '초6', '중1', '중2', '중3', '고1', '고2', '고3', '기타']
 const RELATIONS = ['어머니', '아버지', '조부모', '기타']
 const INTERESTS = [
-  { value: 'study_abroad', label: '유학' },
-  { value: 'camp', label: '캠프' },
+  { value: 'study_abroad', label: '유학', en: 'Study abroad' },
+  { value: 'camp', label: '캠프', en: 'Camp' },
 ]
 const TOPICS = [
-  { value: 'camp', label: '캠프' },
-  { value: 'study_abroad', label: '유학' },
-  { value: 'cost', label: '비용' },
-  { value: 'schedule', label: '일정' },
-  { value: 'other', label: '기타' },
+  { value: 'camp', label: '캠프', en: 'Camp' },
+  { value: 'study_abroad', label: '유학', en: 'Study abroad' },
+  { value: 'cost', label: '비용', en: 'Cost' },
+  { value: 'schedule', label: '일정', en: 'Schedule' },
+  { value: 'other', label: '기타', en: 'Other' },
 ]
 
 export type ApplyDoneState = {
@@ -68,6 +71,7 @@ export function ApplyPage() {
   const contactCode = params.get('c')
   const navigate = useNavigate()
   const location = useLocation()
+  const { lang, en, tr } = useLang()
   // 회원: 저장된 정보로 신청서 채우기
   const { state: member } = useCustomer()
   const [childId, setChildId] = useState('')
@@ -164,29 +168,33 @@ export function ApplyPage() {
   const modes = leadModes(config?.modes)
   const shown = (k: keyof typeof modes) => modes[k] !== 'hidden'
   const req = (k: keyof typeof modes) => modes[k] === 'required'
-  const texts = config?.texts
-  const label = (k: string, fallback: string, optionalMark = false) =>
-    `${fieldLabel(texts, k, fallback)}${optionalMark ? ' (선택)' : ''}`
+  // 영어 화면에서는 관리자가 한국어로 바꾼 항목 이름·도움말 대신 영어 기본 문구를 쓴다
+  const texts = en ? null : config?.texts
+  const label = (k: string, fallback: string, enText: string, optionalMark = false) =>
+    `${en ? enText : fieldLabel(texts, k, fallback)}${optionalMark ? tr(' (선택)', ' (optional)') : ''}`
   const questions = config?.questions ?? []
 
   function validate(): Record<string, string> {
     const next: Record<string, string> = {}
-    const inflowError = config ? validateInflow(config.inflow, inflow, !!linkedPartner) : null
+    const inflowError = config ? validateInflow(config.inflow, inflow, !!linkedPartner, lang) : null
     if (inflowError) next.inflow = inflowError
-    if (!studentName.trim()) next.studentName = '자녀 이름을 입력해 주세요.'
-    if (shown('grade') && req('grade') && !grade) next.grade = '학년을 선택해 주세요.'
-    if (shown('interests') && req('interests') && interests.length === 0) next.interests = '관심 분야를 골라 주세요.'
-    if (shown('programs') && req('programs') && programs.length > 0 && programIds.length === 0) next.programs = '관심 프로그램을 골라 주세요.'
-    if (!parentName.trim()) next.parentName = '학부모 이름을 입력해 주세요.'
-    if (!isValidMobile(normalizePhone(phone))) next.phone = '휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)'
-    const kakaoError = validateKakao(kakao)
+    if (!studentName.trim()) next.studentName = tr('자녀 이름을 입력해 주세요.', "Please enter your child's name.")
+    if (shown('grade') && req('grade') && !grade) next.grade = tr('학년을 선택해 주세요.', 'Please select a grade.')
+    if (shown('interests') && req('interests') && interests.length === 0) next.interests = tr('관심 분야를 골라 주세요.', 'Please choose your interests.')
+    if (shown('programs') && req('programs') && programs.length > 0 && programIds.length === 0) next.programs = tr('관심 프로그램을 골라 주세요.', 'Please choose the programs you are interested in.')
+    if (!parentName.trim()) next.parentName = tr('학부모 이름을 입력해 주세요.', "Please enter the parent's name.")
+    if (!isValidMobile(normalizePhone(phone))) next.phone = tr('휴대폰 번호를 정확히 입력해 주세요. (예: 010-1234-5678)', 'Please enter a valid Korean mobile number. (e.g. 010-1234-5678)')
+    const kakaoError = validateKakao(kakao, lang)
     if (kakaoError) next.kakao = kakaoError
-    if (shown('relation') && req('relation') && !relation) next.relation = '자녀와의 관계를 선택해 주세요.'
-    if (wantSlot && !slot) next.slot = '상담 희망 날짜와 시간을 골라 주세요. 원하지 않으시면 체크를 해제해 주세요.'
-    if (shown('topics') && req('topics') && topics.length === 0) next.topics = '상담 받고 싶은 내용을 골라 주세요.'
-    if (shown('message') && req('message') && !message.trim()) next.message = '자세한 내용을 적어 주세요.'
-    for (const [id, msg] of Object.entries(validateAnswers(questions, answers))) next[`q-${id}`] = msg
-    if (!agreePrivacy || !agreeGuardian) next.consent = '필수 동의 항목에 모두 동의해 주세요.'
+    if (shown('relation') && req('relation') && !relation) next.relation = tr('자녀와의 관계를 선택해 주세요.', 'Please select your relationship to the child.')
+    if (wantSlot && !slot) next.slot = tr(
+        '상담 희망 날짜와 시간을 골라 주세요. 원하지 않으시면 체크를 해제해 주세요.',
+        'Please choose a date and time, or uncheck the box if you do not need one.',
+      )
+    if (shown('topics') && req('topics') && topics.length === 0) next.topics = tr('상담 받고 싶은 내용을 골라 주세요.', 'Please choose what you would like to discuss.')
+    if (shown('message') && req('message') && !message.trim()) next.message = tr('자세한 내용을 적어 주세요.', 'Please add some details.')
+    for (const [id, msg] of Object.entries(validateAnswers(questions, answers, true, lang))) next[`q-${id}`] = msg
+    if (!agreePrivacy || !agreeGuardian) next.consent = tr('필수 동의 항목에 모두 동의해 주세요.', 'Please agree to all required items.')
     return next
   }
 
@@ -237,7 +245,7 @@ export function ApplyPage() {
       navigate('/apply/done', { replace: true, state })
     } catch (err) {
       const error = err as SubmitError
-      setSubmitError(error.message)
+      setSubmitError(errorText(error.code, error.message, lang))
       if (error.code === 'SLOT_UNAVAILABLE') {
         setSlot(null)
         setSlotReload((n) => n + 1)
@@ -250,7 +258,7 @@ export function ApplyPage() {
   if (loadError) {
     return (
       <PublicLayout>
-        <Alert>신청서를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.</Alert>
+        <Alert>{tr('신청서를 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.', 'We could not load the form. Please try again in a moment.')}</Alert>
       </PublicLayout>
     )
   }
@@ -277,41 +285,56 @@ export function ApplyPage() {
       {member.status === 'needs_setup' && (
         <div className="mb-4">
           <Alert tone="blue">
-            회원 정보를 아직 입력하지 않으셨습니다.{' '}
+            {tr('회원 정보를 아직 입력하지 않으셨습니다.', 'You have not filled in your member profile yet.')}{' '}
             <a href={`/account/setup?next=${encodeURIComponent(location.pathname + location.search)}`} className="font-semibold underline">
-              회원 정보 입력하기
+              {tr('회원 정보 입력하기', 'Fill in my profile')}
             </a>
           </Alert>
         </div>
       )}
       {memberFilled && (
         <div className="mb-4">
-          <Alert tone="green">회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.</Alert>
+          <Alert tone="green">{tr('회원 정보로 채웠습니다. 바뀐 내용이 있으면 고쳐 주세요.', 'We filled in the form from your profile. Please update anything that has changed.')}</Alert>
         </div>
       )}
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-slate-900">{config.title || '유학·캠프 상담 신청'}</h1>
-        {config.intro && <p className="mt-1 text-sm whitespace-pre-line text-slate-600">{config.intro}</p>}
+        <h1 className="text-xl font-bold text-slate-900">{en ? 'Study Abroad & Camp Consultation' : config.title || '유학·캠프 상담 신청'}</h1>
+        {en ? (
+          <p className="mt-1 text-sm text-slate-600">
+            Please fill in the form below and an INTOEDU advisor will contact you. Fields are in English, but you may answer in Korean or English.
+          </p>
+        ) : (
+          config.intro && <p className="mt-1 text-sm whitespace-pre-line text-slate-600">{config.intro}</p>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-        <Section title="알게 된 경로">
+        <Section title={tr('알게 된 경로', 'Referral source')}>
           {linkedPartner ? (
             <>
               <div className="rounded-lg bg-brand-50 px-4 py-3 text-sm text-brand-700">
-                <strong>{linkedPartner.name}</strong>
-                {linkedContact ? ` ${linkedContact.name} 선생님` : ''} 소개로 신청합니다.
+                {en ? (
+                  <>
+                    Referred by <strong>{linkedPartner.name}</strong>
+                    {linkedContact ? ` (${linkedContact.name})` : ''}
+                  </>
+                ) : (
+                  <>
+                    <strong>{linkedPartner.name}</strong>
+                    {linkedContact ? ` ${linkedContact.name} 선생님` : ''} 소개로 신청합니다.
+                  </>
+                )}
               </div>
               {!linkedContact && linkedPartner.contacts.length > 0 && (
-                <Field label="소개해 주신 선생님 (선택)">
+                <Field label={tr('소개해 주신 선생님 (선택)', 'Teacher who referred you (optional)')}>
                   <Select value={contactChoice} onChange={(e) => setContactChoice(e.target.value)}>
-                    <option value="">선택 안 함</option>
+                    <option value="">{tr('선택 안 함', 'Not selected')}</option>
                     {linkedPartner.contacts.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} {CONTACT_ROLE_LABELS[c.role] ?? ''}
+                        {c.name} {en ? '' : (CONTACT_ROLE_LABELS[c.role] ?? '')}
                       </option>
                     ))}
-                    <option value={CONTACT_UNKNOWN}>잘 모르겠어요</option>
+                    <option value={CONTACT_UNKNOWN}>{tr('잘 모르겠어요', "I'm not sure")}</option>
                   </Select>
                 </Field>
               )}
@@ -328,21 +351,21 @@ export function ApplyPage() {
           ) : null}
         </Section>
 
-        <Section title="자녀 정보">
+        <Section title={tr('자녀 정보', 'Student information')}>
           {member.status === 'member' && <ChildPicker students={member.students} value={childId} onPick={pickChild} />}
           <div id="field-studentName">
-            <Field label={label('student_name', '자녀 이름')} hint={fieldHelp(texts, 'student_name')} error={errors.studentName}>
+            <Field label={label('student_name', '자녀 이름', "Child's name")} hint={fieldHelp(texts, 'student_name')} error={errors.studentName}>
               <Input autoComplete="off" value={studentName} onChange={(e) => setStudentName(e.target.value)} />
             </Field>
           </div>
           {shown('grade') && (
             <div id="field-grade">
-              <Field label={label('grade', '학년', !req('grade'))} hint={fieldHelp(texts, 'grade')} error={errors.grade}>
+              <Field label={label('grade', '학년', 'Grade (in Korea)', !req('grade'))} hint={fieldHelp(texts, 'grade')} error={errors.grade}>
                 <Select value={grade} onChange={(e) => setGrade(e.target.value)}>
-                  <option value="">선택해 주세요</option>
+                  <option value="">{tr('선택해 주세요', 'Please select')}</option>
                   {GRADES.map((g) => (
                     <option key={g} value={g}>
-                      {g}
+                      {optionText(g, lang)}
                     </option>
                   ))}
                 </Select>
@@ -351,15 +374,15 @@ export function ApplyPage() {
           )}
           {shown('interests') && (
             <div id="field-interests">
-              <p className="mb-2 text-sm font-medium text-slate-700">{label('interests', '관심 분야 (복수 선택)')}</p>
+              <p className="mb-2 text-sm font-medium text-slate-700">{label('interests', '관심 분야 (복수 선택)', 'Interests (choose all that apply)')}</p>
               {fieldHelp(texts, 'interests') && <p className="-mt-1 mb-2 text-xs text-slate-500">{fieldHelp(texts, 'interests')}</p>}
-              <ChoiceChips name="interests" options={INTERESTS} values={interests} onChange={setInterests} />
+              <ChoiceChips name="interests" options={INTERESTS.map((o) => ({ value: o.value, label: en ? o.en : o.label }))} values={interests} onChange={setInterests} />
               {errors.interests && <p className="mt-1 text-xs text-red-600">{errors.interests}</p>}
             </div>
           )}
           {shown('programs') && programs.length > 0 && (
             <div id="field-programs">
-              <p className="mb-2 text-sm font-medium text-slate-700">{label('programs', '관심 프로그램 (복수 선택)')}</p>
+              <p className="mb-2 text-sm font-medium text-slate-700">{label('programs', '관심 프로그램 (복수 선택)', 'Programs of interest (choose all that apply)')}</p>
               {fieldHelp(texts, 'programs') && <p className="-mt-1 mb-2 text-xs text-slate-500">{fieldHelp(texts, 'programs')}</p>}
               <ChoiceChips
                 name="programs"
@@ -372,14 +395,14 @@ export function ApplyPage() {
           )}
         </Section>
 
-        <Section title="학부모 정보">
+        <Section title={tr('학부모 정보', 'Parent information')}>
           <div id="field-parentName">
-            <Field label={label('parent_name', '학부모 이름')} hint={fieldHelp(texts, 'parent_name')} error={errors.parentName}>
+            <Field label={label('parent_name', '학부모 이름', "Parent's name")} hint={fieldHelp(texts, 'parent_name')} error={errors.parentName}>
               <Input autoComplete="name" value={parentName} onChange={(e) => setParentName(e.target.value)} />
             </Field>
           </div>
           <div id="field-phone">
-            <Field label={label('parent_phone', '휴대폰 번호')} hint={fieldHelp(texts, 'parent_phone')} error={errors.phone}>
+            <Field label={label('parent_phone', '휴대폰 번호', 'Mobile number')} hint={fieldHelp(texts, 'parent_phone')} error={errors.phone}>
               <Input
                 type="tel"
                 inputMode="tel"
@@ -393,12 +416,12 @@ export function ApplyPage() {
           <KakaoField value={kakao} onChange={setKakao} error={errors.kakao} />
           {shown('relation') && (
             <div id="field-relation">
-              <Field label={label('relation', '자녀와의 관계', !req('relation'))} hint={fieldHelp(texts, 'relation')} error={errors.relation}>
+              <Field label={label('relation', '자녀와의 관계', 'Relationship to the child', !req('relation'))} hint={fieldHelp(texts, 'relation')} error={errors.relation}>
                 <Select value={relation} onChange={(e) => setRelation(e.target.value)}>
-                  <option value="">선택해 주세요</option>
+                  <option value="">{tr('선택해 주세요', 'Please select')}</option>
                   {RELATIONS.map((r) => (
                     <option key={r} value={r}>
-                      {r}
+                      {optionText(r, lang)}
                     </option>
                   ))}
                 </Select>
@@ -409,8 +432,12 @@ export function ApplyPage() {
 
         {shown('slot') && (
           <Section
-            title="상담 희망 일시 (선택)"
-            description={fieldHelp(texts, 'slot', '상담 방식(전화 또는 화상)은 문의 내용에 맞춰 담당자가 안내드립니다.')}
+            title={tr('상담 희망 일시 (선택)', 'Preferred consultation time (optional)')}
+            description={
+              en
+                ? 'Your advisor will let you know whether the consultation will be by phone or video call.'
+                : fieldHelp(texts, 'slot', '상담 방식(전화 또는 화상)은 문의 내용에 맞춰 담당자가 안내드립니다.')
+            }
           >
             <label className="flex items-center gap-2 text-sm text-slate-800">
               <input
@@ -422,7 +449,7 @@ export function ApplyPage() {
                   if (!e.target.checked) setSlot(null)
                 }}
               />
-              {fieldLabel(texts, 'slot', '원하는 상담 날짜·시간을 고를게요')}
+              {en ? 'I would like to choose a date and time' : fieldLabel(texts, 'slot', '원하는 상담 날짜·시간을 고를게요')}
             </label>
             {wantSlot && (
               <div id="field-slot">
@@ -434,17 +461,17 @@ export function ApplyPage() {
         )}
 
         {(shown('topics') || shown('message')) && (
-          <Section title={fieldLabel(texts, 'topics', '상담 받고 싶은 내용')}>
+          <Section title={en ? 'What would you like to discuss?' : fieldLabel(texts, 'topics', '상담 받고 싶은 내용')}>
             {shown('topics') && (
               <div id="field-topics">
                 {fieldHelp(texts, 'topics') && <p className="mb-2 text-xs text-slate-500">{fieldHelp(texts, 'topics')}</p>}
-                <ChoiceChips name="topics" options={TOPICS} values={topics} onChange={setTopics} />
+                <ChoiceChips name="topics" options={TOPICS.map((o) => ({ value: o.value, label: en ? o.en : o.label }))} values={topics} onChange={setTopics} />
                 {errors.topics && <p className="mt-1 text-xs text-red-600">{errors.topics}</p>}
               </div>
             )}
             {shown('message') && (
               <div id="field-message">
-                <Field label={label('message', '자세한 내용', !req('message'))} hint={fieldHelp(texts, 'message')} error={errors.message}>
+                <Field label={label('message', '자세한 내용', 'Details', !req('message'))} hint={fieldHelp(texts, 'message')} error={errors.message}>
                   <Textarea rows={4} maxLength={2000} value={message} onChange={(e) => setMessage(e.target.value)} />
                 </Field>
               </div>
@@ -453,12 +480,13 @@ export function ApplyPage() {
         )}
 
         {questions.length > 0 && (
-          <Section title="추가 질문">
+          <Section title={tr('추가 질문', 'Additional questions')}>
             <QuestionFields questions={questions} values={answers} onChange={setAnswers} errors={questionErrors} />
           </Section>
         )}
 
-        <Section title="개인정보 수집·이용 동의">
+        <Section title={tr('개인정보 수집·이용 동의', 'Consent to collection and use of personal information')}>
+          {en && <ConsentKoreanNote />}
           {privacyDoc && (
             <div>
               <p className="mb-2 text-sm font-semibold text-slate-800">{privacyDoc.title}</p>
@@ -470,7 +498,7 @@ export function ApplyPage() {
           <div id="field-consent" className="space-y-3">
             <label className="flex items-start gap-2 text-sm text-slate-800">
               <input type="checkbox" className="mt-0.5 size-5 shrink-0" checked={agreePrivacy} onChange={(e) => setAgreePrivacy(e.target.checked)} />
-              [필수] 위 내용을 확인하였으며 개인정보 수집·이용에 동의합니다.
+              {tr('[필수] 위 내용을 확인하였으며 개인정보 수집·이용에 동의합니다.', '[Required] I have read the above and agree to the collection and use of personal information.')}
             </label>
             {guardianDoc && (
               <label className="flex items-start gap-2 text-sm text-slate-800">
@@ -480,7 +508,7 @@ export function ApplyPage() {
                   checked={agreeGuardian}
                   onChange={(e) => setAgreeGuardian(e.target.checked)}
                 />
-                [필수] {guardianDoc.body}
+                {tr('[필수]', '[Required]')} {guardianDoc.body}
               </label>
             )}
             {errors.consent && <p className="text-xs text-red-600">{errors.consent}</p>}
@@ -497,7 +525,7 @@ export function ApplyPage() {
 
         {submitError && <Alert>{submitError}</Alert>}
         <Button type="submit" className="w-full py-3 text-base" disabled={submitting}>
-          {submitting ? '보내는 중…' : '상담 신청하기'}
+          {submitting ? tr('보내는 중…', 'Sending…') : tr('상담 신청하기', 'Request a consultation')}
         </Button>
       </form>
     </PublicLayout>

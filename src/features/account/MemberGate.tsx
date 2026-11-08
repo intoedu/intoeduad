@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
+import { useLang } from '../../i18n/context'
 import { anyLoginMethod, signInWithProvider, useCustomer, useLoginMethods, type CustomerState, type Provider } from './customerApi'
 
 const DISMISS_KEY = 'intoedu:member-gate-dismissed'
@@ -17,6 +18,7 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
   const [open, setOpen] = useState(() => !dismissed())
   const providers = useLoginMethods()
   const [error, setError] = useState('')
+  const { tr } = useLang()
 
   // 켜진 로그인 수단이 없으면 묻지 않는다
   if (!open || state.status !== 'guest' || !providers || !anyLoginMethod(providers)) return null
@@ -35,7 +37,7 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
     try {
       await signInWithProvider(p, next)
     } catch (e) {
-      setError((e as Error).message)
+      setError(tr((e as Error).message, 'Could not open the login page. Please try again in a moment.'))
     }
   }
 
@@ -43,10 +45,13 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="member-gate-title">
       <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
         <h2 id="member-gate-title" className="text-lg font-bold text-slate-900">
-          회원으로 신청하시겠어요?
+          {tr('회원으로 신청하시겠어요?', 'Would you like to sign up first?')}
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          회원가입을 하시면 학생·학부모 정보를 한 번만 입력해 두고, 나중에 캠프를 신청하실 때 자동으로 채워 드립니다.
+          {tr(
+            '회원가입을 하시면 학생·학부모 정보를 한 번만 입력해 두고, 나중에 캠프를 신청하실 때 자동으로 채워 드립니다.',
+            'Sign up once to save your student and parent details, and we will fill them in for you when you register for a camp later.',
+          )}
         </p>
         <div className="mt-4 space-y-2">
           {providers.kakao && (
@@ -55,7 +60,7 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
               onClick={() => void go('kakao')}
               className="w-full rounded-xl bg-[#FEE500] px-4 py-3 text-base font-semibold text-[#191919]"
             >
-              카카오로 시작하기
+              {tr('카카오로 시작하기', 'Continue with Kakao')}
             </button>
           )}
           {providers.google && (
@@ -64,7 +69,7 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
               onClick={() => void go('google')}
               className="w-full rounded-xl bg-white px-4 py-3 text-base font-semibold text-slate-800 ring-1 ring-slate-300"
             >
-              구글로 시작하기
+              {tr('구글로 시작하기', 'Continue with Google')}
             </button>
           )}
           {providers.email && (
@@ -72,11 +77,11 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
               to={`/account/login?next=${encodeURIComponent(next)}`}
               className="block w-full rounded-xl bg-brand-600 px-4 py-3 text-center text-base font-semibold text-white"
             >
-              이메일로 회원가입·로그인
+              {tr('이메일로 회원가입·로그인', 'Sign up or log in with email')}
             </Link>
           )}
           <button type="button" onClick={close} className="w-full rounded-xl px-4 py-3 text-base font-medium text-slate-600 ring-1 ring-slate-200">
-            비회원으로 신청하기
+            {tr('비회원으로 신청하기', 'Continue without signing up')}
           </button>
         </div>
         {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
@@ -89,17 +94,18 @@ export function MemberGate({ state, next }: { state: CustomerState; next: string
 export function AccountHeaderLink() {
   const { state } = useCustomer()
   const methods = useLoginMethods()
+  const { tr } = useLang()
   if (state.status === 'member' || state.status === 'needs_setup') {
     return (
       <Link to="/account" className="text-sm font-medium text-brand-600">
-        내 정보
+        {tr('내 정보', 'My info')}
       </Link>
     )
   }
   if (state.status === 'guest' && anyLoginMethod(methods)) {
     return (
       <Link to={`/account/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`} className="text-sm text-slate-500">
-        로그인
+        {tr('로그인', 'Log in')}
       </Link>
     )
   }

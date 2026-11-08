@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Alert, Badge, Spinner } from '../../components/ui'
-import { formatDateLongKo } from '../../domain/dates'
-import { formatWon } from '../../domain/registration'
+import { useLang } from '../../i18n/context'
+import { formatDateLong, formatMoney } from '../../i18n/text'
 import { PublicLayout } from './PublicLayout'
 import { listOpenPrograms, type OpenProgram } from './publicApi'
 
@@ -12,6 +12,9 @@ export function RegisterHubPage() {
   const [params] = useSearchParams()
   const [programs, setPrograms] = useState<OpenProgram[] | null>(null)
   const [error, setError] = useState(false)
+  const { lang, tr } = useLang()
+  const won = (n: number) => formatMoney(n, lang)
+  const day = (d: string) => formatDateLong(d, lang)
 
   useEffect(() => {
     listOpenPrograms()
@@ -24,14 +27,14 @@ export function RegisterHubPage() {
   return (
     <PublicLayout>
       <div className="mb-5">
-        <h1 className="text-xl font-bold text-slate-900">인투유학 캠프 신청</h1>
-        <p className="mt-1 text-sm text-slate-600">신청하실 캠프를 골라 주세요.</p>
+        <h1 className="text-xl font-bold text-slate-900">{tr('인투유학 캠프 신청', 'INTOEDU Camp Registration')}</h1>
+        <p className="mt-1 text-sm text-slate-600">{tr('신청하실 캠프를 골라 주세요.', 'Please choose a camp.')}</p>
       </div>
-      {error && <Alert>캠프 목록을 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.</Alert>}
+      {error && <Alert>{tr('캠프 목록을 불러오지 못했습니다. 잠시 후 다시 접속해 주세요.', 'We could not load the camp list. Please try again in a moment.')}</Alert>}
       {!error && programs === null && <Spinner />}
       {programs && programs.length === 0 && (
         <div className="rounded-2xl bg-white p-6 text-center text-sm text-slate-600 shadow-sm ring-1 ring-slate-200">
-          지금 모집 중인 캠프가 없습니다. 새 캠프가 열리면 안내드리겠습니다.
+          {tr('지금 모집 중인 캠프가 없습니다. 새 캠프가 열리면 안내드리겠습니다.', 'There are no camps open right now. We will let you know when a new camp opens.')}
         </div>
       )}
       {programs && programs.length > 0 && (
@@ -46,21 +49,27 @@ export function RegisterHubPage() {
                     {p.season ? ` (${p.season})` : ''}
                   </p>
                   {p.is_full ? (
-                    <Badge tone={closed ? 'gray' : 'amber'}>{closed ? '마감' : '대기 접수'}</Badge>
+                    <Badge tone={closed ? 'gray' : 'amber'}>{closed ? tr('마감', 'Closed') : tr('대기 접수', 'Waitlist')}</Badge>
                   ) : (
-                    <Badge tone="green">모집 중</Badge>
+                    <Badge tone="green">{tr('모집 중', 'Open')}</Badge>
                   )}
-                  {p.early_bird && <Badge tone="blue">얼리버드 −{formatWon(p.early_bird.amount)}</Badge>}
+                  {p.early_bird && <Badge tone="blue">
+                      {tr('얼리버드', 'Early bird')} −{won(p.early_bird.amount)}
+                    </Badge>}
                 </div>
                 <dl className="mt-2 space-y-0.5 text-sm text-slate-600">
                   {p.country && <div>{p.country}</div>}
                   {p.start_date && p.end_date && (
                     <div>
-                      {formatDateLongKo(p.start_date)} ~ {formatDateLongKo(p.end_date)}
+                      {day(p.start_date)} ~ {day(p.end_date)}
                     </div>
                   )}
-                  {!!p.total_price && <div className="font-medium text-slate-800">참가비 {formatWon(p.total_price)}</div>}
-                  {p.early_bird && <div className="text-xs text-brand-700">{formatDateLongKo(p.early_bird.until)}까지 신청하면 얼리버드 할인</div>}
+                  {!!p.total_price && <div className="font-medium text-slate-800">
+                      {tr('참가비', 'Program fee')} {won(p.total_price)}
+                    </div>}
+                  {p.early_bird && <div className="text-xs text-brand-700">
+                      {tr(`${day(p.early_bird.until)}까지 신청하면 얼리버드 할인`, `Early-bird discount if you register by ${day(p.early_bird.until)}`)}
+                    </div>}
                 </dl>
               </>
             )
@@ -74,7 +83,7 @@ export function RegisterHubPage() {
                     className="block rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200 transition hover:ring-brand-600"
                   >
                     {body}
-                    <span className="mt-3 inline-block text-sm font-semibold text-brand-600">이 캠프 신청하기 →</span>
+                    <span className="mt-3 inline-block text-sm font-semibold text-brand-600">{tr('이 캠프 신청하기 →', 'Register for this camp →')}</span>
                   </Link>
                 )}
               </li>

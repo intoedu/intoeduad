@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { DayPicker } from 'react-day-picker'
-import { ko } from 'react-day-picker/locale'
+import { enUS, ko } from 'react-day-picker/locale'
+import { useLang } from '../../i18n/context'
 import 'react-day-picker/style.css'
 import { addDays } from '../../domain/dates'
 import { formatKst, todayKst } from '../../lib/datetime'
@@ -19,6 +20,7 @@ export function SlotPicker({
   reloadKey: number
 }) {
   const [slots, setSlots] = useState<PublicSlot[] | null>(null)
+  const { en, tr } = useLang()
   const [day, setDay] = useState<string | null>(value ? formatKst(value.starts_at, 'yyyy-MM-dd') : null)
 
   useEffect(() => {
@@ -35,11 +37,14 @@ export function SlotPicker({
     return map
   }, [slots])
 
-  if (!slots) return <p className="text-sm text-slate-500">상담 가능한 시간을 불러오는 중…</p>
+  if (!slots) return <p className="text-sm text-slate-500">{tr('상담 가능한 시간을 불러오는 중…', 'Loading available times…')}</p>
   if (slots.length === 0) {
     return (
       <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-slate-600">
-        지금은 예약 가능한 상담 시간이 없습니다. 신청만 남겨 주시면 담당자가 연락드립니다.
+        {tr(
+          '지금은 예약 가능한 상담 시간이 없습니다. 신청만 남겨 주시면 담당자가 연락드립니다.',
+          'There are no open times right now. Just submit the form and an advisor will contact you.',
+        )}
       </p>
     )
   }
@@ -57,7 +62,7 @@ export function SlotPicker({
       <div className="flex justify-center overflow-x-auto">
         <DayPicker
           mode="single"
-          locale={ko}
+          locale={en ? enUS : ko}
           selected={day ? toDate(day) : undefined}
           onSelect={(d) => {
             const key = d ? toKey(d) : null
@@ -75,7 +80,9 @@ export function SlotPicker({
 
       {day ? (
         <div>
-          <p className="mb-2 text-sm font-medium text-slate-700">{formatKst(`${day}T12:00:00+09:00`, 'M월 d일')} 상담 가능한 시간</p>
+          <p className="mb-2 text-sm font-medium text-slate-700">{en
+              ? `Available times on ${formatKst(`${day}T12:00:00+09:00`, 'MMM d')} (Korea time)`
+              : `${formatKst(`${day}T12:00:00+09:00`, 'M월 d일')} 상담 가능한 시간`}</p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {daySlots.map((s) => {
               const selected = value?.id === s.id
@@ -96,7 +103,7 @@ export function SlotPicker({
           </div>
         </div>
       ) : (
-        <p className="text-center text-sm text-slate-500">진하게 표시된 날짜를 눌러 시간을 골라 주세요.</p>
+        <p className="text-center text-sm text-slate-500">{tr('진하게 표시된 날짜를 눌러 시간을 골라 주세요.', 'Tap a date in bold to see available times.')}</p>
       )}
     </div>
   )

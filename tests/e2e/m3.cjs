@@ -122,7 +122,7 @@ async function fillRequired(page, { student, parent, phone }) {
   check('마감 경합: 안내 문구', await visible(parent.getByText('선택하신 상담 시간이 방금 마감되었습니다', { exact: false })))
   check('마감 경합: 신청 저장 안 됨', sql(`select count(*) from leads where student_name = '박도윤'`) === '0')
   await parent.waitForTimeout(1000)
-  check('마감 경합: 선택 해제', (await parent.getByRole('button', { pressed: true }).count()) === 0)
+  check('마감 경합: 선택 해제', (await parent.locator('main').getByRole('button', { pressed: true }).count()) === 0) // 머리글 언어 버튼 제외
   check('마감 경합: 마감된 시간은 목록에서 사라짐', (await parent.getByRole('button', { name: racedTime, exact: true }).count()) === 0, racedTime)
 
   // 5) 관리자 화면: 예약 수 반영

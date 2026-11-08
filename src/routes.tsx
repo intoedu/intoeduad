@@ -8,6 +8,7 @@ import { ApplyDonePage } from './features/public/ApplyDonePage'
 import { ApplyPage } from './features/public/ApplyPage'
 import type { StaffRole } from './lib/labels'
 import { PUBLIC_PATHS } from './domain/publicPaths'
+import { LangLayout } from './i18n/lang'
 
 // 관리자 화면은 필요할 때만 내려받는다 (학부모용 신청서를 휴대폰에서 빨리 열기 위해)
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })))
@@ -85,16 +86,22 @@ export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/admin" replace /> },
 
   // 학부모용 공개 화면
-  { path: PUBLIC_PATHS.apply, element: <ApplyPage /> },
-  { path: '/apply/done', element: <ApplyDonePage /> },
-  { path: PUBLIC_PATHS.applyPartner, element: <ApplyPage /> },
-  { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
+  // 상담·캠프 신청서와 완료 화면: 한국어/영어 전환(주소는 그대로, ?lang=en 으로 영어로 열기)
+  {
+    element: <LangLayout />,
+    children: [
+      { path: PUBLIC_PATHS.apply, element: <ApplyPage /> },
+      { path: '/apply/done', element: <ApplyDonePage /> },
+      { path: PUBLIC_PATHS.applyPartner, element: <ApplyPage /> },
+      { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
+      { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
+      { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
+    ],
+  },
   { path: '/account', element: <Lazy><AccountPage /></Lazy> },
   { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
   { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
   { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
-  { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
-  { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
   { path: PUBLIC_PATHS.my, element: <Lazy><MyPage /></Lazy> },
   { path: PUBLIC_PATHS.myTravel, element: <Lazy><TravelPage /></Lazy> },
   { path: PUBLIC_PATHS.passport, element: <Lazy><PassportPage /></Lazy> },
