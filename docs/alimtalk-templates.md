@@ -99,7 +99,7 @@
 | `#{추가납부}` | 항공권 1,500,000원 (2026년 12월 1일(화)까지) |
 | `#{입금계좌}` | NH농협 3010382729931 (예금주 인투유학) |
 | `#{파기일}` | 2027년 2월 4일(목) |
-| `#{확인링크}` | https://intoeduad.intoedu0309.workers.dev/my/AbCdEf123 |
+| `#{확인링크}` | https://app.intoabroad.com/my/AbCdEf123 |
 | `#{카카오채널}` | https://pf.kakao.com/_AkclX/chat |
 
 ## 캠프 대기 접수 안내 (`registration_waitlisted`)
@@ -138,7 +138,7 @@
 | `#{학생명}` | 이하늘 |
 | `#{프로그램명}` | 미국 스쿨링 캠프 (2027 겨울) |
 | `#{파기일}` | 2027년 2월 4일(목) |
-| `#{확인링크}` | https://intoeduad.intoedu0309.workers.dev/my/AbCdEf123 |
+| `#{확인링크}` | https://app.intoabroad.com/my/AbCdEf123 |
 | `#{카카오채널}` | https://pf.kakao.com/_AkclX/chat |
 
 ## 납부 안내 변경 (`payment_notice_correction`)
@@ -181,5 +181,5 @@
 | `#{추가납부}` | 없음 |
 | `#{입금계좌}` | NH농협 3010382729931 (예금주 인투유학) |
 | `#{변경내용}` | 현지 숙소 변경으로 잔금 200,000원 감액 |
-| `#{확인링크}` | https://intoeduad.intoedu0309.workers.dev/my/AbCdEf123 |
+| `#{확인링크}` | https://app.intoabroad.com/my/AbCdEf123 |
 | `#{카카오채널}` | https://pf.kakao.com/_AkclX/chat |

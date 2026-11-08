@@ -7,6 +7,7 @@ import { NotFoundPage } from './features/common/ComingSoonPage'
 import { ApplyDonePage } from './features/public/ApplyDonePage'
 import { ApplyPage } from './features/public/ApplyPage'
 import type { StaffRole } from './lib/labels'
+import { PUBLIC_PATHS } from './domain/publicPaths'
 
 // 관리자 화면은 필요할 때만 내려받는다 (학부모용 신청서를 휴대폰에서 빨리 열기 위해)
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout').then((m) => ({ default: m.AdminLayout })))
@@ -84,19 +85,19 @@ export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/admin" replace /> },
 
   // 학부모용 공개 화면
-  { path: '/apply', element: <ApplyPage /> },
+  { path: PUBLIC_PATHS.apply, element: <ApplyPage /> },
   { path: '/apply/done', element: <ApplyDonePage /> },
-  { path: '/apply/:partnerCode', element: <ApplyPage /> },
-  { path: '/register', element: <Lazy><RegisterHubPage /></Lazy> },
+  { path: PUBLIC_PATHS.applyPartner, element: <ApplyPage /> },
+  { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
   { path: '/account', element: <Lazy><AccountPage /></Lazy> },
   { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
   { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
   { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
   { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
-  { path: '/register/:slug', element: <Lazy><RegisterPage /></Lazy> },
-  { path: '/my/:token', element: <Lazy><MyPage /></Lazy> },
-  { path: '/my/:token/travel', element: <Lazy><TravelPage /></Lazy> },
-  { path: '/passport/:token', element: <Lazy><PassportPage /></Lazy> },
+  { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
+  { path: PUBLIC_PATHS.my, element: <Lazy><MyPage /></Lazy> },
+  { path: PUBLIC_PATHS.myTravel, element: <Lazy><TravelPage /></Lazy> },
+  { path: PUBLIC_PATHS.passport, element: <Lazy><PassportPage /></Lazy> },
 
   // 직원용
   { path: '/login', element: <Lazy><LoginPage /></Lazy> },
