@@ -60,6 +60,7 @@ const NotificationSettingsPage = lazy(() =>
 const PartnerStatsPage = lazy(() => import('./features/partners/PartnerStatsPage').then((m) => ({ default: m.PartnerStatsPage })))
 const PassportLogsPage = lazy(() => import('./features/logs/PassportLogsPage').then((m) => ({ default: m.PassportLogsPage })))
 const TravelPage = lazy(() => import('./features/public/TravelPage').then((m) => ({ default: m.TravelPage })))
+const OrientationPage = lazy(() => import('./features/orientation/OrientationPage').then((m) => ({ default: m.OrientationPage })))
 const MyPage = lazy(() => import('./features/public/MyPage').then((m) => ({ default: m.MyPage })))
 
 const OFFICE: StaffRole[] = ['admin', 'staff']
@@ -136,6 +137,7 @@ export const router = createBrowserRouter([
       { path: 'registrations', element: guarded(['admin', 'staff', 'viewer'], <RegistrationsPage />) },
       { path: 'registrations/new', element: guarded(OFFICE, <RegistrationNewPage />) },
       { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
+      { path: 'orientation', element: guarded(['admin', 'staff', 'viewer'], <OrientationPage />) },
       { path: 'payments', element: guarded(OFFICE, <PaymentsPage />) },
       { path: 'commissions', element: guarded(OFFICE, <CommissionsPage />) },
       { path: 'destruction', element: guarded(OFFICE, <DestructionPage />) },

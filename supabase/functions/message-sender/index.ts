@@ -197,7 +197,8 @@ export default {
   fetch: withSupabase({ auth: ["user", "publishable"] }, async (req, ctx) => {
     if (req.method !== "POST") return reply(405, { error: "허용되지 않은 요청입니다." });
     if (ctx.authMode === "user") {
-      const { data: ok } = await ctx.supabase.rpc("is_staff_or_admin");
+      // 대기열에 들어간 건만 보내므로 현지 팀(오리엔테이션 안내)도 깨울 수 있다
+      const { data: ok } = await ctx.supabase.rpc("is_active_staff");
       if (!ok) return reply(403, { error: "권한이 없습니다." });
     } else if (!sameToken(req.headers.get("x-runner-token") ?? "", Deno.env.get("MESSAGE_RUNNER_TOKEN") ?? "")) {
       return reply(403, { error: "허용되지 않은 요청입니다." });

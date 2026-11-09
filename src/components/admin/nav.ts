@@ -21,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/admin/programs', label: '캠프·프로그램', roles: OFFICE },
   { to: '/admin/prep', label: '캠프 준비사항', roles: OFFICE },
   { to: '/admin/registrations', label: '등록생', roles: ALL },
+  { to: '/admin/orientation', label: '오리엔테이션 안내', roles: ALL },
   { to: '/admin/payments', label: '납부·환불', roles: OFFICE },
   { to: '/admin/events', label: '중요 일정', roles: OFFICE },
   { to: '/admin/destruction', label: '개인정보 파기', roles: OFFICE },

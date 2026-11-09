@@ -517,14 +517,14 @@ isOneToOne: false
                   ]
                 },"message_logs": {
                   Row: {
-                    "attempts": number,"channel": string,"created_at": string,"error": string | null,"id": string,"last_attempt_at": string | null,"provider_message_id": string | null,"purpose": string,"recipient_staff_id": string | null,"related_id": string | null,"related_type": string | null,"requested_by": string | null,"sent_at": string | null,"status": string,"template_code": string | null,"to_hash": string | null,"to_masked": string | null
+                    "attempts": number,"channel": string,"context": Json | null,"created_at": string,"error": string | null,"id": string,"last_attempt_at": string | null,"provider_message_id": string | null,"purpose": string,"recipient_staff_id": string | null,"related_id": string | null,"related_type": string | null,"requested_by": string | null,"sent_at": string | null,"status": string,"template_code": string | null,"to_hash": string | null,"to_masked": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attempts"?: number,"channel": string,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose": string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status": string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
+                    "attempts"?: number,"channel": string,"context"?: Json | null,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose": string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status": string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
                   }
                   Update: {
-                    "attempts"?: number,"channel"?: string,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose"?: string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status"?: string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
+                    "attempts"?: number,"channel"?: string,"context"?: Json | null,"created_at"?: string,"error"?: string | null,"id"?: string,"last_attempt_at"?: string | null,"provider_message_id"?: string | null,"purpose"?: string,"recipient_staff_id"?: string | null,"related_id"?: string | null,"related_type"?: string | null,"requested_by"?: string | null,"sent_at"?: string | null,"status"?: string,"template_code"?: string | null,"to_hash"?: string | null,"to_masked"?: string | null
                   }
                   Relationships: [
                     {
@@ -789,6 +789,38 @@ isOneToOne: true
                   Relationships: [
                     
                   ]
+                },"program_final_orientations": {
+                  Row: {
+                    "created_at": string,"milestone_id": string | null,"note": string | null,"place": string,"program_id": string,"starts_at": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"milestone_id"?: string | null,"note"?: string | null,"place": string,"program_id": string,"starts_at": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"milestone_id"?: string | null,"note"?: string | null,"place"?: string,"program_id"?: string,"starts_at"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "program_final_orientations_milestone_id_fkey"
+      columns: ["milestone_id"]
+isOneToOne: false
+      referencedRelation: "program_milestones"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_final_orientations_program_id_fkey"
+      columns: ["program_id"]
+isOneToOne: true
+      referencedRelation: "programs"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "program_final_orientations_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"program_milestones": {
                   Row: {
                     "category": string,"created_at": string,"date": string,"id": string,"memo": string | null,"program_id": string,"show_dday": boolean,"title": string,"updated_at": string
@@ -1015,6 +1047,38 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"registration_orientations": {
+                  Row: {
+                    "created_at": string,"host_name": string,"memo": string | null,"method": string,"registration_id": string,"starts_at": string,"updated_at": string,"updated_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"host_name": string,"memo"?: string | null,"method": string,"registration_id": string,"starts_at": string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"host_name"?: string,"memo"?: string | null,"method"?: string,"registration_id"?: string,"starts_at"?: string,"updated_at"?: string,"updated_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "registration_orientations_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "registrations"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registration_orientations_registration_id_fkey"
+      columns: ["registration_id"]
+isOneToOne: true
+      referencedRelation: "v_registration_board"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "registration_orientations_updated_by_fkey"
+      columns: ["updated_by"]
+isOneToOne: false
+      referencedRelation: "staff_profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"registration_travelers": {
                   Row: {
                     "birth_city_en": string | null,"birth_country": string | null,"birth_date": string | null,"created_at": string,"email": string | null,"emergency_name": string | null,"emergency_phone": string | null,"employer": string | null,"esta_application_no": string | null,"esta_status": string,"father_name_en": string | null,"flight_status": string,"gender": string | null,"given_name_en": string,"home_address_en": string | null,"id": string,"insurance_status": string,"job_title": string | null,"memo": string | null,"mother_name_en": string | null,"other_citizenship": string | null,"passport_expiry_date": string | null,"passport_issue_date": string | null,"passport_no": string | null,"phone": string | null,"registration_id": string,"relation": string | null,"sort": number,"staff_note": string | null,"surname_en": string,"traveler_type": string,"updated_at": string
@@ -1043,9 +1107,9 @@ isOneToOne: false
                   ]
                 },"registrations": {
                   Row: {
-                    "address": string | null,"agency_choice": string | null,"agency_fee": number,"agency_services": (string)[],"alt_contact": string | null,"answers": NonNullable<Json>,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"consulted_before": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"discount_amount": number,"discount_detail": NonNullable<Json>,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"entered_by": string | null,"entry_method": string | null,"gender": string | null,"grade": string | null,"id": string,"inflow_channel_id": string | null,"inflow_detail": string | null,"inflow_label": string | null,"kakao_alt_phone": string | null,"kakao_use": boolean | null,"lead_check_needed": boolean,"lead_id": string | null,"lead_link_method": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"travel_info_submitted_at": string | null,"updated_at": string
+                    "address": string | null,"agency_choice": string | null,"agency_fee": number,"agency_services": (string)[],"alt_contact": string | null,"answers": NonNullable<Json>,"assigned_to": string | null,"attribution_confirmed_at": string | null,"attribution_confirmed_by": string | null,"attribution_source": string | null,"birth_date": string | null,"canceled_at": string | null,"consulted_before": string | null,"created_at": string,"deleted_at": string | null,"destroy_due_date": string | null,"destroyed_at": string | null,"discount_amount": number,"discount_detail": NonNullable<Json>,"emergency_name": string | null,"emergency_phone": string | null,"emergency_relation": string | null,"english_level": string | null,"entered_by": string | null,"entry_method": string | null,"gender": string | null,"grade": string | null,"id": string,"inflow_channel_id": string | null,"inflow_detail": string | null,"inflow_label": string | null,"kakao_alt_phone": string | null,"kakao_use": boolean | null,"lead_check_needed": boolean,"lead_id": string | null,"lead_link_method": string | null,"parent_email": string | null,"parent_name": string | null,"parent_phone": string | null,"partner_contact_id": string | null,"partner_id": string | null,"partner_share_agreed": boolean,"passport_status": string,"payment_changed_at": string | null,"payment_correction_sent_at": string | null,"program_id": string,"registered_on": string,"school": string | null,"source_other": string | null,"special_notes": string | null,"status": string,"student_name_en": string | null,"student_name_ko": string | null,"travel_info_submitted_at": string | null,"updated_at": string,"orientation_target_ok": boolean | null
                   }
-                  ComputedFields: never
+                  ComputedFields: "orientation_target_ok"
                   Insert: {
                     "address"?: string | null,"agency_choice"?: string | null,"agency_fee"?: number,"agency_services"?: (string)[],"alt_contact"?: string | null,"answers"?: NonNullable<Json>,"assigned_to"?: string | null,"attribution_confirmed_at"?: string | null,"attribution_confirmed_by"?: string | null,"attribution_source"?: string | null,"birth_date"?: string | null,"canceled_at"?: string | null,"consulted_before"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"destroy_due_date"?: string | null,"destroyed_at"?: string | null,"discount_amount"?: number,"discount_detail"?: NonNullable<Json>,"emergency_name"?: string | null,"emergency_phone"?: string | null,"emergency_relation"?: string | null,"english_level"?: string | null,"entered_by"?: string | null,"entry_method"?: string | null,"gender"?: string | null,"grade"?: string | null,"id"?: string,"inflow_channel_id"?: string | null,"inflow_detail"?: string | null,"inflow_label"?: string | null,"kakao_alt_phone"?: string | null,"kakao_use"?: boolean | null,"lead_check_needed"?: boolean,"lead_id"?: string | null,"lead_link_method"?: string | null,"parent_email"?: string | null,"parent_name"?: string | null,"parent_phone"?: string | null,"partner_contact_id"?: string | null,"partner_id"?: string | null,"partner_share_agreed"?: boolean,"passport_status"?: string,"payment_changed_at"?: string | null,"payment_correction_sent_at"?: string | null,"program_id": string,"registered_on"?: string,"school"?: string | null,"source_other"?: string | null,"special_notes"?: string | null,"status"?: string,"student_name_en"?: string | null,"student_name_ko"?: string | null,"travel_info_submitted_at"?: string | null,"updated_at"?: string
                   }
@@ -1429,6 +1493,7 @@ isOneToOne: false
 { Args: { "p_limit"?: number }; Returns: {
               "attempts": number,
 "channel": string,
+"context": Json | null,
 "created_at": string,
 "error": string | null,
 "id": string,
@@ -1501,6 +1566,12 @@ isOneToOne: false
 { Args: { "p_days"?: number }; Returns: {
               "critical": boolean,"date": string,"kind": string,"link": string,"overdue": boolean,"title": string
             }[]
+                           },
+"delete_final_orientation":
+{ Args: { "p_program_id": string }; Returns: undefined
+                           },
+"delete_registration_orientation":
+{ Args: { "p_registration_id": string }; Returns: undefined
                            },
 "destroy_lead_pii":
 { Args: { "p_lead_id": string }; Returns: Json
@@ -1590,6 +1661,36 @@ isOneToOne: false
 "message_context":
 { Args: { "p_log_id": string }; Returns: Json
                            },
+"orientation_last_notice":
+{ Args: { "p_final": boolean,"p_registration_id": string }; Returns: {
+              "attempts": number,
+"channel": string,
+"context": Json | null,
+"created_at": string,
+"error": string | null,
+"id": string,
+"last_attempt_at": string | null,
+"provider_message_id": string | null,
+"purpose": string,
+"recipient_staff_id": string | null,
+"related_id": string | null,
+"related_type": string | null,
+"requested_by": string | null,
+"sent_at": string | null,
+"status": string,
+"template_code": string | null,
+"to_hash": string | null,
+"to_masked": string | null
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "message_logs"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"orientation_target_ok":
+{ Args: { "r": Omit<Database["public"]['Tables']["registrations"]['Row'], Database["public"]['Tables']["registrations"]['ComputedFields']> }; Returns: boolean
+                           },
 "partner_referral_counts":
 { Args: Record<PropertyKey, never>; Returns: {
               "lead_count": number,"partner_id": string,"registration_count": number
@@ -1624,6 +1725,11 @@ isOneToOne: false
 "program_enrollment_counts":
 { Args: Record<PropertyKey, never>; Returns: {
               "enrolled": number,"program_id": string,"waitlisted": number
+            }[]
+                           },
+"program_orientation_board":
+{ Args: { "p_program_id": string }; Returns: {
+              "final_notice_at": string,"final_notice_current": boolean,"final_notice_purpose": string,"final_notice_status": string,"kakao_use": boolean,"ot_host": string,"ot_memo": string,"ot_method": string,"ot_notice_at": string,"ot_notice_current": boolean,"ot_notice_purpose": string,"ot_notice_status": string,"ot_starts_at": string,"parent_name": string,"registration_id": string,"status": string,"student_name_en": string,"student_name_ko": string
             }[]
                            },
 "program_prep_progress":
@@ -1738,6 +1844,18 @@ isOneToOne: false
                            },
 "retry_message":
 { Args: { "p_log_id": string }; Returns: undefined
+                           },
+"save_final_orientation":
+{ Args: { "p_note"?: string,"p_place": string,"p_program_id": string,"p_starts_at": string }; Returns: undefined
+                           },
+"save_registration_orientation":
+{ Args: { "p_host": string,"p_memo"?: string,"p_method": string,"p_notify"?: boolean,"p_registration_id": string,"p_starts_at": string }; Returns: Json
+                           },
+"send_final_orientation":
+{ Args: { "p_program_id": string,"p_registration_ids": (string)[] }; Returns: Json
+                           },
+"send_registration_orientation":
+{ Args: { "p_registration_id": string }; Returns: string
                            },
 "send_test_message":
 { Args: { "p_channel": string }; Returns: string
