@@ -86,7 +86,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/admin" replace /> },
 
   // 학부모용 공개 화면
-  // 상담·캠프 신청서와 완료 화면: 한국어/영어 전환(주소는 그대로, ?lang=en 으로 영어로 열기)
+  // 상담·캠프 신청서·완료 화면·회원 화면: 한국어/영어 전환(주소는 그대로, ?lang=en 으로 영어로 열기)
   {
     element: <LangLayout />,
     children: [
@@ -96,12 +96,12 @@ export const router = createBrowserRouter([
       { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
       { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
       { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
+      { path: '/account', element: <Lazy><AccountPage /></Lazy> },
+      { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
+      { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
+      { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
     ],
   },
-  { path: '/account', element: <Lazy><AccountPage /></Lazy> },
-  { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
-  { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
-  { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
   { path: PUBLIC_PATHS.my, element: <Lazy><MyPage /></Lazy> },
   { path: PUBLIC_PATHS.myTravel, element: <Lazy><TravelPage /></Lazy> },
   { path: PUBLIC_PATHS.passport, element: <Lazy><PassportPage /></Lazy> },
