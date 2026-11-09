@@ -1,5 +1,5 @@
 // 알림 발송 — 대기열(message_logs, status = queued)을 처리한다
-// - 학부모 알림톡(솔라피 ATA): 상담 접수·등록 납부 안내·대기 접수·납부 정정 (1회성, 실패 시 문자 대체발송은 솔라피 설정)
+// - 학부모 알림톡(솔라피 ATA): 상담 접수·등록 납부 안내·대기 접수·납부 정정·1:1/최종 오리엔테이션 안내 (실패 시 문자 대체발송은 솔라피 템플릿 설정)
 // - 직원 알림: 문자(SMS/LMS) 또는 이메일(Resend) — 학부모 개인정보 없이 "신규 신청 1건" 형태
 // - 호출: 매분 예약 작업(x-runner-token) / 신청 직후 공개 함수 / 직원 화면(로그인)
 // - 솔라피·이메일을 꺼 두거나 설정하지 않으면 "보내지 않음(skipped)"으로 기록하고 끝낸다(시스템은 그대로 동작)
@@ -41,7 +41,16 @@ class Skip extends Error {}
 class Permanent extends Error {}
 
 type Ctx = {
-  message: { id: string; channel: string; purpose: string; template_code: string | null; related_id: string | null; attempts: number };
+  message: {
+    id: string;
+    channel: string;
+    purpose: string;
+    template_code: string | null;
+    related_id: string | null;
+    attempts: number;
+    // 오리엔테이션 안내: 담당자가 [안내 보내기]를 누른 때의 일정(개인정보 없음)
+    context?: { starts_at?: string; previous_starts_at?: string | null; method?: string; host?: string; place?: string; note?: string } | null;
+  };
   data: Record<string, unknown>;
   settings: Record<string, any>;
 };
@@ -129,16 +138,28 @@ async function processOne(admin: any, c: Ctx): Promise<[string, string | null, s
   if (!solapi.enabled) throw new Skip("알림톡 사용 안 함(설정)");
   const templateId = solapi.templates?.[template];
   if (!templateId || !solapi.pf_id || !solapi.sender_number) throw new Skip("솔라피 채널·발신번호·템플릿 ID 미설정");
-  const kakaoUrl = String(s.kakao_channel_url ?? "");
-  if (!kakaoUrl) throw new Skip("카카오톡 채널 주소 미설정");
-
   let values: Record<string, string>;
   if (template === "lead_received") {
     values = {
       학부모명: String(d.parent_name),
       자녀명: String(d.student_name),
       상담일시: d.scheduled_at ? kstDateTime(String(d.scheduled_at)) : "담당자가 연락드려 정합니다",
-      카카오채널: kakaoUrl,
+    };
+  } else if (template.startsWith("orientation_") || template.startsWith("final_orientation_")) {
+    const o = m.context ?? {};
+    if (!o.starts_at) throw new Permanent("오리엔테이션 일정이 없는 안내");
+    if (["canceled", "refunded", "waitlisted"].includes(String(d.status))) throw new Skip("취소·환불·대기 신청");
+    const when = (iso: string) => `${kstDateTime(iso)} (한국 시간)`;
+    values = {
+      학부모명: String(d.parent_name),
+      학생명: String(d.student_name),
+      프로그램명: String(d.program_name),
+      일시: when(o.starts_at),
+      이전일시: o.previous_starts_at ? when(o.previous_starts_at) : "",
+      진행방식: String(o.method ?? ""),
+      담당자: String(o.host ?? ""),
+      장소: String(o.place ?? ""),
+      참고사항: String(o.note ?? "") || "자세한 내용은 담당자가 안내드립니다",
     };
   } else {
     const site = String(s.public_site_url ?? "").replace(/\/+$/, "");
@@ -156,7 +177,6 @@ async function processOne(admin: any, c: Ctx): Promise<[string, string | null, s
         schedule: (d.schedule as ScheduleLine[]) ?? [],
         bank: s.bank_account ?? null,
         myUrl: `${site}/my/${token}`,
-        kakaoUrl,
       }),
       변경내용: String(d.change_reasons ?? "") || "납부 금액·기한 변경",
     };

@@ -11,7 +11,6 @@ const base = {
   destroyDate: '2027-02-04',
   bank: { bank: '국민은행', number: '123456-01-234567', holder: '인투유학' },
   myUrl: 'https://example.com/my/abc',
-  kakaoUrl: 'https://pf.kakao.com/_AkclX/chat',
 }
 
 describe('알림톡 문안', () => {

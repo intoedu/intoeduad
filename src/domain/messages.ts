@@ -8,7 +8,15 @@
 import { formatDateLongKo } from './dates'
 import { formatWon } from './registration'
 
-export type TemplateCode = 'lead_received' | 'registration_payment_notice' | 'registration_waitlisted' | 'payment_notice_correction'
+export type TemplateCode =
+  | 'lead_received'
+  | 'registration_payment_notice'
+  | 'registration_waitlisted'
+  | 'payment_notice_correction'
+  | 'orientation_scheduled'
+  | 'orientation_rescheduled'
+  | 'final_orientation_notice'
+  | 'final_orientation_changed'
 
 export type TemplateButton = { type: 'WL'; name: string; url: string }
 
@@ -23,8 +31,12 @@ export type AlimtalkTemplate = {
   examples: Record<string, string>
 }
 
-const KAKAO_BUTTON: TemplateButton = { type: 'WL', name: '카카오톡으로 문의하기', url: '#{카카오채널}' }
-const MY_BUTTON: TemplateButton = { type: 'WL', name: '신청 내용 확인', url: '#{확인링크}' }
+// 버튼 링크: 솔라피는 변수 링크도 프로토콜(https://)을 고정해서 등록해야 한다(템플릿 등록 화면 안내, 2026-11-09 확인)
+// - 카카오톡 문의: 바뀌지 않는 채널 주소라 고정 링크
+// - 신청 내용 확인: https:// 뒤만 변수(값은 "app.intoabroad.com/my/…" 형태)
+export const KAKAO_CHANNEL_CHAT_URL = 'https://pf.kakao.com/_AkclX/chat'
+const KAKAO_BUTTON: TemplateButton = { type: 'WL', name: '카카오톡으로 문의하기', url: KAKAO_CHANNEL_CHAT_URL }
+const MY_BUTTON: TemplateButton = { type: 'WL', name: '신청 내용 확인', url: 'https://#{확인링크}' }
 
 export const ALIMTALK_TEMPLATES: Record<TemplateCode, AlimtalkTemplate> = {
   lead_received: {
@@ -47,7 +59,6 @@ export const ALIMTALK_TEMPLATES: Record<TemplateCode, AlimtalkTemplate> = {
       학부모명: '김민지',
       자녀명: '이하늘',
       상담일시: '2026년 11월 3일(화) 14:00',
-      카카오채널: 'https://pf.kakao.com/_AkclX/chat',
     },
   },
   registration_payment_notice: {
@@ -81,8 +92,7 @@ export const ALIMTALK_TEMPLATES: Record<TemplateCode, AlimtalkTemplate> = {
       추가납부: '항공권 1,500,000원 (2026년 12월 1일(화)까지)',
       입금계좌: 'NH농협 3010382729931 (예금주 인투유학)',
       파기일: '2027년 2월 4일(목)',
-      확인링크: 'https://app.intoabroad.com/my/AbCdEf123',
-      카카오채널: 'https://pf.kakao.com/_AkclX/chat',
+      확인링크: 'app.intoabroad.com/my/AbCdEf123',
     },
   },
   registration_waitlisted: {
@@ -106,8 +116,7 @@ export const ALIMTALK_TEMPLATES: Record<TemplateCode, AlimtalkTemplate> = {
       학생명: '이하늘',
       프로그램명: '미국 스쿨링 캠프 (2027 겨울)',
       파기일: '2027년 2월 4일(목)',
-      확인링크: 'https://app.intoabroad.com/my/AbCdEf123',
-      카카오채널: 'https://pf.kakao.com/_AkclX/chat',
+      확인링크: 'app.intoabroad.com/my/AbCdEf123',
     },
   },
   payment_notice_correction: {
@@ -135,10 +144,114 @@ export const ALIMTALK_TEMPLATES: Record<TemplateCode, AlimtalkTemplate> = {
       추가납부: '없음',
       입금계좌: 'NH농협 3010382729931 (예금주 인투유학)',
       변경내용: '현지 숙소 변경으로 잔금 200,000원 감액',
-      확인링크: 'https://app.intoabroad.com/my/AbCdEf123',
-      카카오채널: 'https://pf.kakao.com/_AkclX/chat',
+      확인링크: 'app.intoabroad.com/my/AbCdEf123',
     },
   },
+  orientation_scheduled: {
+    code: 'orientation_scheduled',
+    name: '1:1 오리엔테이션 일정 안내',
+    trigger: '캠프 등록 후 담당 선생님이 1:1 오리엔테이션 날짜·시간을 정하고 [안내 보내기]를 눌렀을 때 1회',
+    body: `[인투유학] 1:1 오리엔테이션 일정 안내
+
+#{학부모명}님, #{학생명} 학생의 #{프로그램명} 1:1 오리엔테이션 일정을 안내드립니다.
+
+■ 일시: #{일시}
+■ 진행 방식: #{진행방식}
+■ 담당: #{담당자}
+
+일정 조정이 필요하시면 아래 버튼으로 문의해 주세요.
+
+※ 이 메시지는 등록하신 프로그램의 오리엔테이션 일정에 따라 발송되는 안내입니다.`,
+    buttons: [KAKAO_BUTTON],
+    examples: {
+      학부모명: '김민지',
+      학생명: '이하늘',
+      프로그램명: '미국 스쿨링 캠프 (2027 겨울)',
+      일시: '2026년 12월 15일(화) 10:00 (한국 시간)',
+      진행방식: 'Zoom 화상 · 회의 ID 812 3456 7890 · 암호 1234',
+      담당자: '줄리엣 선생님 (미국 센터)',
+    },
+  },
+  orientation_rescheduled: {
+    code: 'orientation_rescheduled',
+    name: '1:1 오리엔테이션 일정 변경 안내',
+    trigger: '이미 안내한 1:1 오리엔테이션 일정을 바꾸고 [안내 보내기]를 눌렀을 때, 변경 1회마다 1회',
+    body: `[인투유학] 1:1 오리엔테이션 일정 변경 안내
+
+#{학부모명}님, #{학생명} 학생의 #{프로그램명} 1:1 오리엔테이션 일정이 아래와 같이 변경되었습니다.
+
+■ 변경 전: #{이전일시}
+■ 변경 후: #{일시}
+■ 진행 방식: #{진행방식}
+■ 담당: #{담당자}
+
+※ 이 메시지는 등록하신 프로그램의 오리엔테이션 일정 변경에 따라 발송되는 안내입니다.`,
+    buttons: [KAKAO_BUTTON],
+    examples: {
+      학부모명: '김민지',
+      학생명: '이하늘',
+      프로그램명: '미국 스쿨링 캠프 (2027 겨울)',
+      이전일시: '2026년 12월 15일(화) 10:00 (한국 시간)',
+      일시: '2026년 12월 17일(목) 09:00 (한국 시간)',
+      진행방식: 'Zoom 화상 · 회의 ID 812 3456 7890 · 암호 1234',
+      담당자: '줄리엣 선생님 (미국 센터)',
+    },
+  },
+  final_orientation_notice: {
+    code: 'final_orientation_notice',
+    name: '최종 오리엔테이션 안내',
+    trigger: '캠프의 최종 오리엔테이션 일정을 정한 뒤 담당자가 등록생 학부모를 골라 [안내 보내기]를 눌렀을 때, 학생마다 1회',
+    body: `[인투유학] 최종 오리엔테이션 안내
+
+#{학부모명}님, #{학생명} 학생이 등록한 #{프로그램명}의 출국 전 최종 오리엔테이션 일정을 안내드립니다.
+
+■ 일시: #{일시}
+■ 장소·방식: #{장소}
+■ 참고: #{참고사항}
+
+참석이 어려우시면 아래 버튼으로 미리 알려 주세요.
+
+※ 이 메시지는 등록하신 프로그램의 오리엔테이션 일정에 따라 발송되는 안내입니다.`,
+    buttons: [KAKAO_BUTTON],
+    examples: {
+      학부모명: '김민지',
+      학생명: '이하늘',
+      프로그램명: '미국 스쿨링 캠프 (2027 겨울)',
+      일시: '2026년 12월 27일(일) 14:00 (한국 시간)',
+      장소: '인투유학 대전 센터 (대전 서구 둔산로 100, 3층)',
+      참고사항: '학생과 학부모님이 함께 참석해 주세요',
+    },
+  },
+  final_orientation_changed: {
+    code: 'final_orientation_changed',
+    name: '최종 오리엔테이션 일정 변경 안내',
+    trigger: '이미 안내한 최종 오리엔테이션 일시·장소를 바꾼 뒤 [안내 보내기]를 눌렀을 때, 받은 학생마다 변경 1회마다 1회',
+    body: `[인투유학] 최종 오리엔테이션 변경 안내
+
+#{학부모명}님, #{학생명} 학생이 등록한 #{프로그램명}의 최종 오리엔테이션 일정이 아래와 같이 변경되었습니다.
+
+■ 변경 전: #{이전일시}
+■ 변경 후: #{일시}
+■ 장소·방식: #{장소}
+■ 참고: #{참고사항}
+
+※ 이 메시지는 등록하신 프로그램의 오리엔테이션 일정 변경에 따라 발송되는 안내입니다.`,
+    buttons: [KAKAO_BUTTON],
+    examples: {
+      학부모명: '김민지',
+      학생명: '이하늘',
+      프로그램명: '미국 스쿨링 캠프 (2027 겨울)',
+      이전일시: '2026년 12월 27일(일) 14:00 (한국 시간)',
+      일시: '2026년 12월 28일(월) 19:00 (한국 시간)',
+      장소: 'Zoom 화상 · 회의 ID 812 3456 7890 · 암호 1234',
+      참고사항: '학생과 학부모님이 함께 참석해 주세요',
+    },
+  },
+}
+
+// 버튼 링크 변수 값: 템플릿에 https:// 가 고정되어 있으므로 값에서는 뺀다
+export function linkVariable(url: string): string {
+  return url.replace(/^https?:\/\//, '')
 }
 
 // 본문·버튼에 쓰인 변수 이름 (순서대로, 중복 제거)
@@ -195,7 +308,6 @@ export function paymentNoticeVariables(input: {
   schedule: NoticeScheduleLine[]
   bank: { bank: string; number: string; holder: string } | null
   myUrl: string
-  kakaoUrl: string
 }): Record<string, string> {
   const deposit = input.schedule.find((l) => l.kind === 'deposit')
   const balance = input.schedule.find((l) => l.kind === 'balance')
@@ -211,7 +323,6 @@ export function paymentNoticeVariables(input: {
     추가납부: extras.length ? extras.map((l) => lineText(l, true)).join(', ') : '없음',
     입금계좌: bank ? `${input.bank!.bank} ${input.bank!.number}${input.bank!.holder ? ` (예금주 ${input.bank!.holder})` : ''}` : '담당자가 따로 안내드립니다',
     파기일: formatDateLongKo(input.destroyDate),
-    확인링크: input.myUrl,
-    카카오채널: input.kakaoUrl,
+    확인링크: linkVariable(input.myUrl),
   }
 }

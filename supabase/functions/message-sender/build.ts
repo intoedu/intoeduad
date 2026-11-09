@@ -39,7 +39,6 @@ export function paymentNoticeVariables(input: {
   schedule: ScheduleLine[];
   bank: Bank;
   myUrl: string;
-  kakaoUrl: string;
 }): Record<string, string> {
   const deposit = input.schedule.find((l) => l.kind === "deposit");
   const balance = input.schedule.find((l) => l.kind === "balance");
@@ -55,17 +54,25 @@ export function paymentNoticeVariables(input: {
     추가납부: extras.length ? extras.map((l) => lineText(l, true)).join(", ") : "없음",
     입금계좌: bank ? `${input.bank!.bank} ${input.bank!.number}${input.bank!.holder ? ` (예금주 ${input.bank!.holder})` : ""}` : "담당자가 따로 안내드립니다",
     파기일: dateLongKo(input.destroyDate),
-    확인링크: input.myUrl,
-    카카오채널: input.kakaoUrl,
+    확인링크: linkVariable(input.myUrl),
   };
 }
 
-// 템플릿별로 쓰는 변수 (docs/alimtalk-templates.md)
+// 버튼 링크 변수 값: 템플릿에 https:// 가 고정되어 있으므로 값에서는 뺀다(src/domain/messages.ts linkVariable)
+export function linkVariable(url: string): string {
+  return url.replace(/^https?:\/\//, "");
+}
+
+// 템플릿별로 쓰는 변수 (docs/alimtalk-templates.md). 카카오톡 문의 버튼은 고정 링크라 변수가 아니다.
 export const TEMPLATE_VARIABLES: Record<string, string[]> = {
-  lead_received: ["학부모명", "자녀명", "상담일시", "카카오채널"],
-  registration_payment_notice: ["학부모명", "학생명", "프로그램명", "일정", "예약금", "잔금", "추가납부", "입금계좌", "파기일", "확인링크", "카카오채널"],
-  registration_waitlisted: ["학부모명", "학생명", "프로그램명", "파기일", "확인링크", "카카오채널"],
-  payment_notice_correction: ["학부모명", "학생명", "프로그램명", "예약금", "잔금", "추가납부", "입금계좌", "변경내용", "확인링크", "카카오채널"],
+  lead_received: ["학부모명", "자녀명", "상담일시"],
+  registration_payment_notice: ["학부모명", "학생명", "프로그램명", "일정", "예약금", "잔금", "추가납부", "입금계좌", "파기일", "확인링크"],
+  registration_waitlisted: ["학부모명", "학생명", "프로그램명", "파기일", "확인링크"],
+  payment_notice_correction: ["학부모명", "학생명", "프로그램명", "예약금", "잔금", "추가납부", "입금계좌", "변경내용", "확인링크"],
+  orientation_scheduled: ["학부모명", "학생명", "프로그램명", "일시", "진행방식", "담당자"],
+  orientation_rescheduled: ["학부모명", "학생명", "프로그램명", "이전일시", "일시", "진행방식", "담당자"],
+  final_orientation_notice: ["학부모명", "학생명", "프로그램명", "일시", "장소", "참고사항"],
+  final_orientation_changed: ["학부모명", "학생명", "프로그램명", "이전일시", "일시", "장소", "참고사항"],
 };
 
 // 솔라피 variables 형식: {"#{변수}": "값"} — 값은 한 줄 문자열, 빠지면 보내지 않는다

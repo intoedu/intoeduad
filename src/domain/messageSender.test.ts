@@ -13,7 +13,6 @@ const input = {
   destroyDate: '2027-02-04',
   bank: { bank: '국민은행', number: '123456-01-234567', holder: '인투유학' },
   myUrl: 'https://example.com/my/abc',
-  kakaoUrl: 'https://pf.kakao.com/_AkclX/chat',
   schedule: [
     { kind: 'deposit' as const, label: '예약금', amount: 1000000, due_date: '2026-11-07', paid: 1000000 },
     { kind: 'balance' as const, label: '잔금', amount: 4000000, due_date: '2026-12-06', paid: 0 },
@@ -33,7 +32,7 @@ describe('알림 발송 함수', () => {
   })
 
   it('솔라피 변수 형식 #{변수}, 빠진 값이면 보내지 않음', () => {
-    const v = sender.toSolapiVariables('lead_received', { 학부모명: '김민지', 자녀명: '이\n하늘', 상담일시: '2026년 11월 3일(화) 14:00', 카카오채널: 'https://pf.kakao.com/x' })
+    const v = sender.toSolapiVariables('lead_received', { 학부모명: '김민지', 자녀명: '이\n하늘', 상담일시: '2026년 11월 3일(화) 14:00' })
     expect(v['#{자녀명}']).toBe('이 하늘')
     expect(() => sender.toSolapiVariables('lead_received', { 학부모명: '김민지' })).toThrow('#{자녀명}')
   })
