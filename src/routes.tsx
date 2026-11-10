@@ -4,6 +4,7 @@ import { NAV_ITEMS } from './components/admin/nav'
 import { Spinner } from './components/ui'
 import { RequireStaff } from './features/auth/RequireStaff'
 import { NotFoundPage } from './features/common/ComingSoonPage'
+import { RouteError } from './features/common/RouteError'
 import { ApplyDonePage } from './features/public/ApplyDonePage'
 import { ApplyPage } from './features/public/ApplyPage'
 import type { StaffRole } from './lib/labels'
@@ -84,76 +85,82 @@ const comingSoonRoutes = NAV_ITEMS.filter((item) => item.milestone).map((item) =
 }))
 
 export const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/admin" replace /> },
-
-  // 학부모용 공개 화면
-  // 상담·캠프 신청서·완료 화면·회원 화면: 한국어/영어 전환(주소는 그대로, ?lang=en 으로 영어로 열기)
+  // 모든 화면 공통 오류 처리(배포 직후 예전 화면 조각 → 자동 새로 고침)
   {
-    element: <LangLayout />,
+    errorElement: <RouteError />,
     children: [
-      { path: PUBLIC_PATHS.apply, element: <ApplyPage /> },
-      { path: '/apply/done', element: <ApplyDonePage /> },
-      { path: PUBLIC_PATHS.applyPartner, element: <ApplyPage /> },
-      { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
-      { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
-      { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
-      { path: '/account', element: <Lazy><AccountPage /></Lazy> },
-      { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
-      { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
-      { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
-    ],
-  },
-  { path: PUBLIC_PATHS.my, element: <Lazy><MyPage /></Lazy> },
-  { path: PUBLIC_PATHS.myTravel, element: <Lazy><TravelPage /></Lazy> },
-  { path: PUBLIC_PATHS.passport, element: <Lazy><PassportPage /></Lazy> },
+      { path: '/', element: <Navigate to="/admin" replace /> },
 
-  // 직원용
-  { path: '/login', element: <Lazy><LoginPage /></Lazy> },
-  { path: '/auth/set-password', element: <Lazy><SetPasswordPage /></Lazy> },
-  {
-    path: '/admin',
-    element: (
-      <RequireStaff>
-        <Lazy>
-          <AdminLayout />
-        </Lazy>
-      </RequireStaff>
-    ),
-    children: [
-      { index: true, element: <Lazy><DashboardPage /></Lazy> },
-      { path: 'partners', element: guarded(OFFICE, <PartnersListPage />) },
-      { path: 'partners/new', element: guarded(OFFICE, <PartnerNewPage />) },
-      { path: 'partners/stats', element: guarded(OFFICE, <PartnerStatsPage />) },
-      { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
-      { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
-      { path: 'leads/new', element: guarded(OFFICE, <LeadNewPage />) },
-      { path: 'links', element: guarded(OFFICE, <LinksPage />) },
-      { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },
-      { path: 'programs', element: guarded(OFFICE, <ProgramsListPage />) },
-      { path: 'programs/new', element: guarded(OFFICE, <ProgramNewPage />) },
-      { path: 'programs/:id', element: guarded(OFFICE, <ProgramDetailPage />) },
-      { path: 'prep', element: guarded(OFFICE, <PrepPage />) },
-      { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
-      { path: 'registrations', element: guarded(['admin', 'staff', 'viewer'], <RegistrationsPage />) },
-      { path: 'registrations/new', element: guarded(OFFICE, <RegistrationNewPage />) },
-      { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
-      { path: 'orientation', element: guarded(['admin', 'staff', 'viewer'], <OrientationPage />) },
-      { path: 'payments', element: guarded(OFFICE, <PaymentsPage />) },
-      { path: 'commissions', element: guarded(OFFICE, <CommissionsPage />) },
-      { path: 'destruction', element: guarded(OFFICE, <DestructionPage />) },
-      { path: 'calendar', element: guarded(OFFICE, <CalendarPage />) },
-      { path: 'events', element: guarded(OFFICE, <EventsPage />) },
-      { path: 'messages', element: guarded(OFFICE, <MessagesPage />) },
-      { path: 'logs', element: guarded(['admin'], <PassportLogsPage />) },
-      { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
-      { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },
-      { path: 'settings/general', element: guarded(['admin'], <GeneralSettingsPage />) },
-      { path: 'settings/consents', element: guarded(['admin'], <ConsentsPage />) },
-      { path: 'settings/forms', element: guarded(['admin'], <FormsSettingsPage />) },
-      { path: 'settings/notifications', element: guarded(['admin'], <NotificationSettingsPage />) },
-      ...comingSoonRoutes,
+      // 학부모용 공개 화면
+      // 상담·캠프 신청서·완료 화면·회원 화면: 한국어/영어 전환(주소는 그대로, ?lang=en 으로 영어로 열기)
+      {
+        element: <LangLayout />,
+        children: [
+          { path: PUBLIC_PATHS.apply, element: <ApplyPage /> },
+          { path: '/apply/done', element: <ApplyDonePage /> },
+          { path: PUBLIC_PATHS.applyPartner, element: <ApplyPage /> },
+          { path: PUBLIC_PATHS.register, element: <Lazy><RegisterHubPage /></Lazy> },
+          { path: '/register/done', element: <Lazy><RegisterDonePage /></Lazy> },
+          { path: PUBLIC_PATHS.registerCamp, element: <Lazy><RegisterPage /></Lazy> },
+          { path: '/account', element: <Lazy><AccountPage /></Lazy> },
+          { path: '/account/login', element: <Lazy><AccountLoginPage /></Lazy> },
+          { path: '/account/callback', element: <Lazy><AccountCallbackPage /></Lazy> },
+          { path: '/account/setup', element: <Lazy><AccountSetupPage /></Lazy> },
+        ],
+      },
+      { path: PUBLIC_PATHS.my, element: <Lazy><MyPage /></Lazy> },
+      { path: PUBLIC_PATHS.myTravel, element: <Lazy><TravelPage /></Lazy> },
+      { path: PUBLIC_PATHS.passport, element: <Lazy><PassportPage /></Lazy> },
+
+      // 직원용
+      { path: '/login', element: <Lazy><LoginPage /></Lazy> },
+      { path: '/auth/set-password', element: <Lazy><SetPasswordPage /></Lazy> },
+      {
+        path: '/admin',
+        element: (
+          <RequireStaff>
+            <Lazy>
+              <AdminLayout />
+            </Lazy>
+          </RequireStaff>
+        ),
+        children: [
+          { index: true, element: <Lazy><DashboardPage /></Lazy> },
+          { path: 'partners', element: guarded(OFFICE, <PartnersListPage />) },
+          { path: 'partners/new', element: guarded(OFFICE, <PartnerNewPage />) },
+          { path: 'partners/stats', element: guarded(OFFICE, <PartnerStatsPage />) },
+          { path: 'partners/:id', element: guarded(OFFICE, <PartnerDetailPage />) },
+          { path: 'leads', element: guarded(OFFICE, <LeadsListPage />) },
+          { path: 'leads/new', element: guarded(OFFICE, <LeadNewPage />) },
+          { path: 'links', element: guarded(OFFICE, <LinksPage />) },
+          { path: 'leads/:id', element: guarded(OFFICE, <LeadDetailPage />) },
+          { path: 'programs', element: guarded(OFFICE, <ProgramsListPage />) },
+          { path: 'programs/new', element: guarded(OFFICE, <ProgramNewPage />) },
+          { path: 'programs/:id', element: guarded(OFFICE, <ProgramDetailPage />) },
+          { path: 'prep', element: guarded(OFFICE, <PrepPage />) },
+          { path: 'slots', element: guarded(OFFICE, <SlotsPage />) },
+          { path: 'registrations', element: guarded(['admin', 'staff', 'viewer'], <RegistrationsPage />) },
+          { path: 'registrations/new', element: guarded(OFFICE, <RegistrationNewPage />) },
+          { path: 'registrations/:id', element: guarded(OFFICE, <RegistrationDetailPage />) },
+          { path: 'orientation', element: guarded(['admin', 'staff', 'viewer'], <OrientationPage />) },
+          { path: 'payments', element: guarded(OFFICE, <PaymentsPage />) },
+          { path: 'commissions', element: guarded(OFFICE, <CommissionsPage />) },
+          { path: 'destruction', element: guarded(OFFICE, <DestructionPage />) },
+          { path: 'calendar', element: guarded(OFFICE, <CalendarPage />) },
+          { path: 'events', element: guarded(OFFICE, <EventsPage />) },
+          { path: 'messages', element: guarded(OFFICE, <MessagesPage />) },
+          { path: 'logs', element: guarded(['admin'], <PassportLogsPage />) },
+          { path: 'settings', element: <Navigate to="/admin/settings/staff" replace /> },
+          { path: 'settings/staff', element: guarded(['admin'], <StaffPage />) },
+          { path: 'settings/general', element: guarded(['admin'], <GeneralSettingsPage />) },
+          { path: 'settings/consents', element: guarded(['admin'], <ConsentsPage />) },
+          { path: 'settings/forms', element: guarded(['admin'], <FormsSettingsPage />) },
+          { path: 'settings/notifications', element: guarded(['admin'], <NotificationSettingsPage />) },
+          ...comingSoonRoutes,
+          { path: '*', element: <NotFoundPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
-  { path: '*', element: <NotFoundPage /> },
 ])
